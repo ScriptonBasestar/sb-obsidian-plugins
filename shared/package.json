@@ -1,0 +1,21 @@
+{
+  "name": "@sb-obsidian-plugins/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for Obsidian plugins",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "obsidian": "latest",
+    "typescript": "^4.7.4"
+  }
+}
