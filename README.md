@@ -1,70 +1,95 @@
-# Obsidian Awesome Plugin
+# Obsidian Plugins Monorepo
 
-An all-in-one Obsidian plugin that combines template insertion, metadata automation, git synchronization, and publishing features.
+A collection of Obsidian plugins managed as a monorepo using pnpm workspaces. This repository contains multiple plugins that enhance your Obsidian experience with template generation, metadata management, git synchronization, and publishing capabilities.
 
-## ✅ Features
+## 📦 Plugins
 
-### 📄 Template Insertion
-- Quick template insertion with customizable templates
-- Built-in templates for daily notes and meeting notes
-- Template folder configuration
-- Modal interface for template selection
+### template-generator
 
-### 🪄 Metadata Automation
-- Auto-generate frontmatter metadata
-- Automatic creation and modification timestamps
-- Title and tag extraction
-- Configurable metadata fields
+Template insertion plugin with dynamic content generation
 
-### 🔧 Git Synchronization
-- Git-based version control integration
-- Automatic commit and sync capabilities
-- Branch management support
-- Conflict resolution assistance
+- Handlebars/eta template engine support
+- Dynamic variables (date, weather, fortune)
+- External API integration
+- Template preview and selection UI
 
-### 🌐 Publishing
-- Export notes to static site generators
-- Multiple output format support
-- Automated publishing workflows
-- Custom publishing configurations
+### git-sync
+
+Automatic git synchronization with AI-powered commit messages
+
+- Periodic auto-commit to `tmp` branch
+- LLM-powered commit message generation
+- Auto-pull on startup
+- Conflict resolution support
+
+### metadata-manager
+
+Frontmatter metadata management and linting
+
+- Auto-insert frontmatter on new documents
+- Template-based metadata rules
+- Metadata validation and linting
+- Auto-formatting capabilities
+
+### publisher-scripton
+
+Publish notes to scripton.cloud platform
+
+- API key management
+- Selective note/folder publishing
+- Markdown to HTML/JSON conversion
+- Publishing status tracking
 
 ## 🚀 Installation
 
 ### From Obsidian Community Plugins
+
 1. Open Obsidian Settings
 2. Go to Community Plugins
 3. Search for "Awesome Plugin"
 4. Install and enable
 
 ### Manual Installation
+
 1. Download the latest release from GitHub
 2. Extract to your `.obsidian/plugins/` folder
 3. Enable the plugin in settings
 
 ### Development Installation
+
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/obsidian-awesome-plugin.git
-cd obsidian-awesome-plugin
+git clone https://github.com/yourusername/sb-obsidian-plugins.git
+cd sb-obsidian-plugins
+
+# Install pnpm if not already installed
+npm install -g pnpm
 
 # Install dependencies
-make install
+pnpm install
 
-# Build the plugin
-make build
+# Build all plugins
+pnpm build
 
-# Link to your Obsidian vault
-ln -s "$(pwd)" "/path/to/your/vault/.obsidian/plugins/obsidian-awesome-plugin"
+# Build specific plugin
+pnpm --filter @sb-obsidian-plugins/template-generator build
+
+# Link plugins to your Obsidian vault
+ln -s "$(pwd)/packages/template-generator" "/path/to/your/vault/.obsidian/plugins/template-generator"
+ln -s "$(pwd)/packages/git-sync" "/path/to/your/vault/.obsidian/plugins/git-sync"
+# ... repeat for other plugins
 ```
 
 ## 🔄 Development Workflow
 
 ### Setup
+
 ```bash
 make dev-setup
 ```
 
 ### Development Commands
+
 - `make watch` - Build and watch for changes
 - `make build` - Build the plugin
 - `make lint` - Run linter
@@ -72,6 +97,7 @@ make dev-setup
 - `make test-coverage` - Run tests with coverage
 
 ### Release Process
+
 1. Update version in `package.json` and `manifest.json`
 2. Run `make build` to create distribution files
 3. Run `make release` to create GitHub release
