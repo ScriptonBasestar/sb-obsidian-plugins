@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(rm:*)",
+      "Bash(chmod:*)",
+      "Bash(make:*)",
+      "Bash(touch:*)",
+      "Bash(sed:*)",
+      "Bash(grep:*)",
+      "Bash(git add:*)",
+      "Bash(make test:*)",
+      "Bash(timeout 5s make run)",
+      "Bash(git reset:*)",
+      "Bash(git commit:*)",
+      "Bash(rm:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}
