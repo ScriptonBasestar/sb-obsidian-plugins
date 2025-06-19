@@ -6,7 +6,7 @@
 
 ## 📦 공통 작업 (Monorepo)
 
-- [ ] `pnpm` 기반 workspace 구성 (`pnpm-workspace.yaml`)
+- [x] `pnpm` 기반 workspace 구성 (`pnpm-workspace.yaml`)
 - [ ] 루트 `package.json` 설정 (devDeps, scripts 등)
 - [ ] 공통 타입/유틸 디렉토리 `shared/` 생성
 - [ ] 루트 `.gitignore`, `README.md`, `Makefile` 생성
