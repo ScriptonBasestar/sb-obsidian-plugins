@@ -370,6 +370,10 @@ var DEFAULT_SETTINGS = {
   publishEnabled: false
 };
 var AwesomePlugin = class extends import_obsidian2.Plugin {
+  constructor() {
+    super(...arguments);
+    this.templateCommandsRegistered = false;
+  }
   async onload() {
     await this.loadSettings();
     this.templateCache = new TemplateCache(this.app.vault, this.settings.templateFolder);
@@ -402,12 +406,83 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
       }
     });
     this.addSettingTab(new AwesomePluginSettingTab(this.app, this));
-    this.addRibbonIcon("dice", "Awesome Plugin", (evt) => {
-      new import_obsidian2.Notice("Awesome Plugin is active!");
+    this.addRibbonIcon("file-plus", "Insert Template", (evt) => {
+      this.openTemplateModal();
     });
     this.templateCache.preloadTemplates();
+    this.registerTemplateCommands();
   }
   onunload() {
+  }
+  async openTemplateModal() {
+    const activeView = this.app.workspace.getActiveViewOfType(import_obsidian2.MarkdownView);
+    if (!activeView) {
+      this.createNewFileWithTemplate();
+      return;
+    }
+    const editor = activeView.editor;
+    this.insertTemplate(editor);
+  }
+  async createNewFileWithTemplate() {
+    const templates = await this.getTemplates();
+    if (templates.length === 0) {
+      new import_obsidian2.Notice("No templates found in templates folder");
+      return;
+    }
+    new TemplateModal(this.app, templates, async (template) => {
+      try {
+        const newFile = await this.app.vault.create(
+          `Untitled-${Date.now()}.md`,
+          template.content
+        );
+        await this.app.workspace.getLeaf().openFile(newFile);
+        new import_obsidian2.Notice(`Created new file with template: ${template.name}`);
+      } catch (error) {
+        new import_obsidian2.Notice(`Failed to create new file: ${error.message}`);
+      }
+    }).open();
+  }
+  async registerTemplateCommands() {
+    if (this.templateCommandsRegistered) {
+      return;
+    }
+    try {
+      const templates = await this.getTemplates();
+      for (const template of templates) {
+        this.addCommand({
+          id: `insert-template-${this.sanitizeId(template.name)}`,
+          name: `Insert Template: ${template.name}`,
+          editorCallback: (editor, view) => {
+            const cursor = editor.getCursor();
+            editor.replaceRange(template.content, cursor);
+            new import_obsidian2.Notice(`Inserted template: ${template.name}`);
+          }
+        });
+        this.addCommand({
+          id: `new-file-template-${this.sanitizeId(template.name)}`,
+          name: `New File with Template: ${template.name}`,
+          callback: async () => {
+            try {
+              const newFile = await this.app.vault.create(
+                `${template.name}-${Date.now()}.md`,
+                template.content
+              );
+              await this.app.workspace.getLeaf().openFile(newFile);
+              new import_obsidian2.Notice(`Created new file with template: ${template.name}`);
+            } catch (error) {
+              new import_obsidian2.Notice(`Failed to create new file: ${error.message}`);
+            }
+          }
+        });
+      }
+      this.templateCommandsRegistered = true;
+      console.log(`Registered ${templates.length * 2} template commands`);
+    } catch (error) {
+      console.error("Failed to register template commands:", error);
+    }
+  }
+  sanitizeId(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
