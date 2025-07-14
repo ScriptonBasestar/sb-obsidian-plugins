@@ -78,8 +78,8 @@ export default class AwesomePlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  private insertTemplate(editor: Editor) {
-    const templates = this.getTemplates();
+  private async insertTemplate(editor: Editor) {
+    const templates = await this.getTemplates();
     if (templates.length === 0) {
       new Notice('No templates found in templates folder');
       return;
@@ -92,15 +92,62 @@ export default class AwesomePlugin extends Plugin {
     }).open();
   }
 
-  private getTemplates(): Array<{ name: string; content: string }> {
+  private async getTemplates(): Promise<Array<{ name: string; content: string; path: string }>> {
+    const templateFolder = this.settings.templateFolder;
+    const vault = this.app.vault;
+
+    try {
+      // Check if template folder exists
+      const folder = vault.getAbstractFileByPath(templateFolder);
+      if (!folder || !(folder instanceof this.app.vault.adapter.fs?.Folder || folder.children)) {
+        // Return default templates if folder doesn't exist
+        return this.getDefaultTemplates();
+      }
+
+      const templates: Array<{ name: string; content: string; path: string }> = [];
+
+      // Scan folder for markdown files
+      const files = vault
+        .getFiles()
+        .filter((file) => file.path.startsWith(templateFolder) && file.extension === 'md');
+
+      for (const file of files) {
+        try {
+          const content = await vault.read(file);
+          const name = file.basename;
+          templates.push({
+            name,
+            content,
+            path: file.path,
+          });
+        } catch (error) {
+          console.warn(`Failed to read template file: ${file.path}`, error);
+        }
+      }
+
+      // If no templates found in folder, return defaults
+      if (templates.length === 0) {
+        return this.getDefaultTemplates();
+      }
+
+      return templates;
+    } catch (error) {
+      console.error('Failed to load templates from folder:', error);
+      return this.getDefaultTemplates();
+    }
+  }
+
+  private getDefaultTemplates(): Array<{ name: string; content: string; path: string }> {
     return [
       {
         name: 'Daily Note',
         content: `# {{date}}\n\n## Tasks\n- [ ] \n\n## Notes\n\n## Reflection\n`,
+        path: 'built-in/daily-note.md',
       },
       {
         name: 'Meeting Notes',
         content: `# Meeting: {{title}}\n\n**Date:** {{date}}\n**Attendees:** \n\n## Agenda\n\n## Notes\n\n## Action Items\n- [ ] \n`,
+        path: 'built-in/meeting-notes.md',
       },
     ];
   }
@@ -152,13 +199,13 @@ export default class AwesomePlugin extends Plugin {
 }
 
 class TemplateModal extends Modal {
-  templates: Array<{ name: string; content: string }>;
-  onChoose: (template: { name: string; content: string }) => void;
+  templates: Array<{ name: string; content: string; path: string }>;
+  onChoose: (template: { name: string; content: string; path: string }) => void;
 
   constructor(
     app: App,
-    templates: Array<{ name: string; content: string }>,
-    onChoose: (template: { name: string; content: string }) => void
+    templates: Array<{ name: string; content: string; path: string }>,
+    onChoose: (template: { name: string; content: string; path: string }) => void
   ) {
     super(app);
     this.templates = templates;
@@ -170,10 +217,22 @@ class TemplateModal extends Modal {
     contentEl.createEl('h2', { text: 'Choose Template' });
 
     this.templates.forEach((template) => {
-      const button = contentEl.createEl('button', {
+      const templateEl = contentEl.createEl('div', { cls: 'template-item' });
+
+      const button = templateEl.createEl('button', {
         text: template.name,
         cls: 'mod-cta',
       });
+
+      // Show template source (file path or built-in)
+      const pathEl = templateEl.createEl('div', {
+        text: template.path.startsWith('built-in/') ? 'Built-in template' : template.path,
+        cls: 'template-path',
+      });
+      pathEl.style.fontSize = '0.8em';
+      pathEl.style.color = 'var(--text-muted)';
+      pathEl.style.marginTop = '4px';
+
       button.onclick = () => {
         this.onChoose(template);
         this.close();
