@@ -28,6 +28,7 @@ const DEFAULT_SETTINGS: AwesomePluginSettings = {
 export default class AwesomePlugin extends Plugin {
   settings: AwesomePluginSettings;
   templateCache: TemplateCache;
+  private templateCommandsRegistered = false;
 
   async onload() {
     await this.loadSettings();
@@ -69,15 +70,109 @@ export default class AwesomePlugin extends Plugin {
 
     this.addSettingTab(new AwesomePluginSettingTab(this.app, this));
 
-    this.addRibbonIcon('dice', 'Awesome Plugin', (evt: MouseEvent) => {
-      new Notice('Awesome Plugin is active!');
+    this.addRibbonIcon('file-plus', 'Insert Template', (evt: MouseEvent) => {
+      this.openTemplateModal();
     });
 
     // Preload templates for better performance
     this.templateCache.preloadTemplates();
+    
+    // Register individual template commands
+    this.registerTemplateCommands();
   }
 
   onunload() {}
+
+  private async openTemplateModal() {
+    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    
+    if (!activeView) {
+      // No active editor, create new file with template
+      this.createNewFileWithTemplate();
+      return;
+    }
+
+    // Active editor exists, insert template
+    const editor = activeView.editor;
+    this.insertTemplate(editor);
+  }
+
+  private async createNewFileWithTemplate() {
+    const templates = await this.getTemplates();
+    if (templates.length === 0) {
+      new Notice('No templates found in templates folder');
+      return;
+    }
+
+    new TemplateModal(this.app, templates, async (template) => {
+      try {
+        // Create new untitled file
+        const newFile = await this.app.vault.create(
+          `Untitled-${Date.now()}.md`,
+          template.content
+        );
+        
+        // Open the new file
+        await this.app.workspace.getLeaf().openFile(newFile);
+        
+        new Notice(`Created new file with template: ${template.name}`);
+      } catch (error) {
+        new Notice(`Failed to create new file: ${error.message}`);
+      }
+    }).open();
+  }
+
+  private async registerTemplateCommands() {
+    // Only register template commands once during plugin load
+    if (this.templateCommandsRegistered) {
+      return;
+    }
+
+    try {
+      const templates = await this.getTemplates();
+      
+      for (const template of templates) {
+        // Register command for inserting template in current editor
+        this.addCommand({
+          id: `insert-template-${this.sanitizeId(template.name)}`,
+          name: `Insert Template: ${template.name}`,
+          editorCallback: (editor: Editor, view: MarkdownView) => {
+            const cursor = editor.getCursor();
+            editor.replaceRange(template.content, cursor);
+            new Notice(`Inserted template: ${template.name}`);
+          },
+        });
+
+        // Register command for creating new file with template
+        this.addCommand({
+          id: `new-file-template-${this.sanitizeId(template.name)}`,
+          name: `New File with Template: ${template.name}`,
+          callback: async () => {
+            try {
+              const newFile = await this.app.vault.create(
+                `${template.name}-${Date.now()}.md`,
+                template.content
+              );
+              
+              await this.app.workspace.getLeaf().openFile(newFile);
+              new Notice(`Created new file with template: ${template.name}`);
+            } catch (error) {
+              new Notice(`Failed to create new file: ${error.message}`);
+            }
+          },
+        });
+      }
+      
+      this.templateCommandsRegistered = true;
+      console.log(`Registered ${templates.length * 2} template commands`);
+    } catch (error) {
+      console.error('Failed to register template commands:', error);
+    }
+  }
+
+  private sanitizeId(name: string): string {
+    return name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  }
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -89,6 +184,7 @@ export default class AwesomePlugin extends Plugin {
     // Update template cache if folder changed
     if (this.templateCache) {
       this.templateCache.updateTemplateFolder(this.settings.templateFolder);
+      // Note: Template commands will be updated on next plugin reload
     }
   }
 
