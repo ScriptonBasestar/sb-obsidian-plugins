@@ -6074,41 +6074,53 @@ var TemplateEngine = class {
   }
   registerHelpers() {
     this.handlebars.registerHelper("formatDate", (date, format) => {
-      if (!date)
-        date = /* @__PURE__ */ new Date();
+      let dateObj;
+      if (!date) {
+        dateObj = /* @__PURE__ */ new Date();
+      } else if (typeof date === "string") {
+        dateObj = new Date(date);
+      } else {
+        dateObj = date;
+      }
       switch (format) {
         case "YYYY-MM-DD":
-          return date.toISOString().split("T")[0];
+          return dateObj.toISOString().split("T")[0];
         case "MM/DD/YYYY":
-          return date.toLocaleDateString("en-US");
+          return dateObj.toLocaleDateString("en-US");
         case "DD/MM/YYYY":
-          return date.toLocaleDateString("en-GB");
+          return dateObj.toLocaleDateString("en-GB");
         case "MMMM DD, YYYY":
-          return date.toLocaleDateString("en-US", {
+          return dateObj.toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
             day: "numeric"
           });
         default:
-          return date.toLocaleDateString();
+          return dateObj.toLocaleDateString();
       }
     });
     this.handlebars.registerHelper("formatTime", (date, format) => {
-      if (!date)
-        date = /* @__PURE__ */ new Date();
+      let dateObj;
+      if (!date) {
+        dateObj = /* @__PURE__ */ new Date();
+      } else if (typeof date === "string") {
+        dateObj = new Date(date);
+      } else {
+        dateObj = date;
+      }
       switch (format) {
         case "24":
-          return date.toLocaleTimeString("en-GB", {
+          return dateObj.toLocaleTimeString("en-GB", {
             hour: "2-digit",
             minute: "2-digit"
           });
         case "12":
-          return date.toLocaleTimeString("en-US", {
+          return dateObj.toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit"
           });
         default:
-          return date.toLocaleTimeString();
+          return dateObj.toLocaleTimeString();
       }
     });
     this.handlebars.registerHelper("uppercase", (str) => {
@@ -6132,6 +6144,18 @@ var TemplateEngine = class {
     this.handlebars.registerHelper("subtract", (a, b) => {
       return (a || 0) - (b || 0);
     });
+    this.handlebars.registerHelper("koreanDate", (date) => {
+      const dateObj = date ? typeof date === "string" ? new Date(date) : date : /* @__PURE__ */ new Date();
+      return this.formatKoreanDate(dateObj);
+    });
+    this.handlebars.registerHelper("koreanDay", (date) => {
+      const dateObj = date ? typeof date === "string" ? new Date(date) : date : /* @__PURE__ */ new Date();
+      return this.formatKoreanDay(dateObj);
+    });
+    this.handlebars.registerHelper("koreanDateTime", (date) => {
+      const dateObj = date ? typeof date === "string" ? new Date(date) : date : /* @__PURE__ */ new Date();
+      return this.formatKoreanDateTime(dateObj);
+    });
   }
   getDefaultContext() {
     const now = /* @__PURE__ */ new Date();
@@ -6141,13 +6165,40 @@ var TemplateEngine = class {
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
     return {
+      // English date variables
       date: now.toISOString().split("T")[0],
       time: now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
       datetime: now.toISOString(),
       today: today.toISOString().split("T")[0],
       tomorrow: tomorrow.toISOString().split("T")[0],
-      yesterday: yesterday.toISOString().split("T")[0]
+      yesterday: yesterday.toISOString().split("T")[0],
+      // Korean date variables
+      \uB0A0\uC9DC: this.formatKoreanDate(now),
+      \uC624\uB298: this.formatKoreanDate(today),
+      \uB0B4\uC77C: this.formatKoreanDate(tomorrow),
+      \uC5B4\uC81C: this.formatKoreanDate(yesterday),
+      \uC694\uC77C: this.formatKoreanDay(now)
     };
+  }
+  formatKoreanDate(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${year}\uB144 ${month}\uC6D4 ${day}\uC77C`;
+  }
+  formatKoreanDay(date) {
+    const days = ["\uC77C\uC694\uC77C", "\uC6D4\uC694\uC77C", "\uD654\uC694\uC77C", "\uC218\uC694\uC77C", "\uBAA9\uC694\uC77C", "\uAE08\uC694\uC77C", "\uD1A0\uC694\uC77C"];
+    return days[date.getDay()];
+  }
+  formatKoreanDateTime(date) {
+    const koreanDate = this.formatKoreanDate(date);
+    const koreanDay = this.formatKoreanDay(date);
+    const time = date.toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    });
+    return `${koreanDate} ${koreanDay} ${time}`;
   }
   renderTemplate(template, userVariables) {
     try {
@@ -6218,6 +6269,7 @@ var TemplateEngine = class {
   }
   getAvailableVariables() {
     return [
+      // English variables
       "date",
       "time",
       "datetime",
@@ -6225,11 +6277,18 @@ var TemplateEngine = class {
       "tomorrow",
       "yesterday",
       "title",
-      "author"
+      "author",
+      // Korean variables
+      "\uB0A0\uC9DC",
+      "\uC624\uB298",
+      "\uB0B4\uC77C",
+      "\uC5B4\uC81C",
+      "\uC694\uC77C"
     ];
   }
   getAvailableHelpers() {
     return [
+      // English helpers
       "formatDate",
       "formatTime",
       "uppercase",
@@ -6237,7 +6296,11 @@ var TemplateEngine = class {
       "capitalize",
       "if_eq",
       "add",
-      "subtract"
+      "subtract",
+      // Korean helpers
+      "koreanDate",
+      "koreanDay",
+      "koreanDateTime"
     ];
   }
 };
@@ -6374,8 +6437,21 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
   }
   async promptForTemplateVariables(template) {
     const userVariables = {};
+    const builtInVariables = [
+      "date",
+      "time",
+      "datetime",
+      "today",
+      "tomorrow",
+      "yesterday",
+      "\uB0A0\uC9DC",
+      "\uC624\uB298",
+      "\uB0B4\uC77C",
+      "\uC5B4\uC81C",
+      "\uC694\uC77C"
+    ];
     const interactiveVariables = template.variables.filter(
-      (variable) => !["date", "time", "datetime", "today", "tomorrow", "yesterday"].includes(variable.toLowerCase())
+      (variable) => !builtInVariables.includes(variable.toLowerCase())
     );
     if (interactiveVariables.length === 0) {
       return userVariables;

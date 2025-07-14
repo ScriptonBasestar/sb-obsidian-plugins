@@ -204,8 +204,12 @@ export default class AwesomePlugin extends Plugin {
     const userVariables: TemplateVariables = {};
     
     // Check if template has variables that need user input
+    const builtInVariables = [
+      'date', 'time', 'datetime', 'today', 'tomorrow', 'yesterday',
+      '날짜', '오늘', '내일', '어제', '요일'
+    ];
     const interactiveVariables = template.variables.filter(variable => 
-      !['date', 'time', 'datetime', 'today', 'tomorrow', 'yesterday'].includes(variable.toLowerCase())
+      !builtInVariables.includes(variable.toLowerCase())
     );
 
     if (interactiveVariables.length === 0) {
