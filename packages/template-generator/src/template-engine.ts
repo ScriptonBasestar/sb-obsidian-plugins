@@ -14,6 +14,13 @@ export interface TemplateContext {
   tomorrow: string;
   yesterday: string;
   
+  // Korean date variables
+  날짜: string;
+  오늘: string;
+  내일: string;
+  어제: string;
+  요일: string;
+  
   // User-provided variables
   title?: string;
   author?: string;
@@ -116,6 +123,22 @@ export class TemplateEngine {
     this.handlebars.registerHelper('subtract', (a: number, b: number) => {
       return (a || 0) - (b || 0);
     });
+
+    // Korean date helpers
+    this.handlebars.registerHelper('koreanDate', (date?: Date | string) => {
+      const dateObj = date ? (typeof date === 'string' ? new Date(date) : date) : new Date();
+      return this.formatKoreanDate(dateObj);
+    });
+
+    this.handlebars.registerHelper('koreanDay', (date?: Date | string) => {
+      const dateObj = date ? (typeof date === 'string' ? new Date(date) : date) : new Date();
+      return this.formatKoreanDay(dateObj);
+    });
+
+    this.handlebars.registerHelper('koreanDateTime', (date?: Date | string) => {
+      const dateObj = date ? (typeof date === 'string' ? new Date(date) : date) : new Date();
+      return this.formatKoreanDateTime(dateObj);
+    });
   }
 
   private getDefaultContext(): TemplateContext {
@@ -127,13 +150,46 @@ export class TemplateEngine {
     yesterday.setDate(yesterday.getDate() - 1);
 
     return {
+      // English date variables
       date: now.toISOString().split('T')[0],
       time: now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
       datetime: now.toISOString(),
       today: today.toISOString().split('T')[0],
       tomorrow: tomorrow.toISOString().split('T')[0],
       yesterday: yesterday.toISOString().split('T')[0],
+      
+      // Korean date variables
+      날짜: this.formatKoreanDate(now),
+      오늘: this.formatKoreanDate(today),
+      내일: this.formatKoreanDate(tomorrow),
+      어제: this.formatKoreanDate(yesterday),
+      요일: this.formatKoreanDay(now),
     };
+  }
+
+  private formatKoreanDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    
+    return `${year}년 ${month}월 ${day}일`;
+  }
+
+  private formatKoreanDay(date: Date): string {
+    const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    return days[date.getDay()];
+  }
+
+  private formatKoreanDateTime(date: Date): string {
+    const koreanDate = this.formatKoreanDate(date);
+    const koreanDay = this.formatKoreanDay(date);
+    const time = date.toLocaleTimeString('ko-KR', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    return `${koreanDate} ${koreanDay} ${time}`;
   }
 
   renderTemplate(template: ParsedTemplate, userVariables?: TemplateVariables): string {
@@ -228,6 +284,7 @@ export class TemplateEngine {
 
   getAvailableVariables(): string[] {
     return [
+      // English variables
       'date',
       'time', 
       'datetime',
@@ -236,11 +293,19 @@ export class TemplateEngine {
       'yesterday',
       'title',
       'author',
+      
+      // Korean variables
+      '날짜',
+      '오늘',
+      '내일',
+      '어제',
+      '요일',
     ];
   }
 
   getAvailableHelpers(): string[] {
     return [
+      // English helpers
       'formatDate',
       'formatTime',
       'uppercase',
@@ -249,6 +314,11 @@ export class TemplateEngine {
       'if_eq',
       'add',
       'subtract',
+      
+      // Korean helpers
+      'koreanDate',
+      'koreanDay',
+      'koreanDateTime',
     ];
   }
 }

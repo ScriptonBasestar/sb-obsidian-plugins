@@ -22,6 +22,17 @@ describe('TemplateEngine', () => {
       expect(result).toMatch(/Current time: \d{2}:\d{2}/);
     });
 
+    it('should render Korean date variables', () => {
+      const dateResult = engine.renderTemplateString('오늘은 {{날짜}}입니다');
+      expect(dateResult).toMatch(/오늘은 \d{4}년 \d{1,2}월 \d{1,2}일입니다/);
+
+      const dayResult = engine.renderTemplateString('오늘은 {{요일}}입니다');
+      expect(dayResult).toMatch(/오늘은 (월|화|수|목|금|토|일)요일입니다/);
+
+      const todayResult = engine.renderTemplateString('{{오늘}} {{요일}}');
+      expect(todayResult).toMatch(/\d{4}년 \d{1,2}월 \d{1,2}일 (월|화|수|목|금|토|일)요일/);
+    });
+
     it('should render user variables', () => {
       const result = engine.renderTemplateString('Hello {{name}}!', { name: 'World' });
       
@@ -82,6 +93,22 @@ describe('TemplateEngine', () => {
       const subtractTemplate = '{{subtract total discount}}';
       const subtractResult = engine.renderTemplateString(subtractTemplate, { total: 100, discount: 15 });
       expect(subtractResult).toBe('85');
+    });
+
+    it('should format Korean dates with helpers', () => {
+      const testDate = new Date('2025-01-15');
+      
+      const koreanDateTemplate = '{{koreanDate myDate}}';
+      const koreanDateResult = engine.renderTemplateString(koreanDateTemplate, { myDate: testDate });
+      expect(koreanDateResult).toBe('2025년 1월 15일');
+
+      const koreanDayTemplate = '{{koreanDay myDate}}';
+      const koreanDayResult = engine.renderTemplateString(koreanDayTemplate, { myDate: testDate });
+      expect(koreanDayResult).toBe('수요일');
+
+      const koreanDateTimeTemplate = '{{koreanDateTime myDate}}';
+      const koreanDateTimeResult = engine.renderTemplateString(koreanDateTimeTemplate, { myDate: testDate });
+      expect(koreanDateTimeResult).toMatch(/2025년 1월 15일 수요일 오전 \d{2}:\d{2}/);
     });
 
     it('should handle conditional rendering with if_eq', () => {
@@ -186,6 +213,7 @@ Meeting with {{attendee}} on {{date}}`;
     it('should list available variables', () => {
       const variables = engine.getAvailableVariables();
       
+      // English variables
       expect(variables).toContain('date');
       expect(variables).toContain('time');
       expect(variables).toContain('title');
@@ -193,11 +221,19 @@ Meeting with {{attendee}} on {{date}}`;
       expect(variables).toContain('today');
       expect(variables).toContain('tomorrow');
       expect(variables).toContain('yesterday');
+      
+      // Korean variables
+      expect(variables).toContain('날짜');
+      expect(variables).toContain('오늘');
+      expect(variables).toContain('내일');
+      expect(variables).toContain('어제');
+      expect(variables).toContain('요일');
     });
 
     it('should list available helpers', () => {
       const helpers = engine.getAvailableHelpers();
       
+      // English helpers
       expect(helpers).toContain('formatDate');
       expect(helpers).toContain('formatTime');
       expect(helpers).toContain('uppercase');
@@ -206,6 +242,11 @@ Meeting with {{attendee}} on {{date}}`;
       expect(helpers).toContain('if_eq');
       expect(helpers).toContain('add');
       expect(helpers).toContain('subtract');
+      
+      // Korean helpers
+      expect(helpers).toContain('koreanDate');
+      expect(helpers).toContain('koreanDay');
+      expect(helpers).toContain('koreanDateTime');
     });
   });
 
