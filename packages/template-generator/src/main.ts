@@ -9,6 +9,7 @@ import {
   Setting,
 } from 'obsidian';
 import { TemplateParser, ParsedTemplate } from './template-parser';
+import { TemplateCache } from './template-cache';
 
 interface AwesomePluginSettings {
   templateFolder: string;
@@ -26,9 +27,13 @@ const DEFAULT_SETTINGS: AwesomePluginSettings = {
 
 export default class AwesomePlugin extends Plugin {
   settings: AwesomePluginSettings;
+  templateCache: TemplateCache;
 
   async onload() {
     await this.loadSettings();
+
+    // Initialize template cache
+    this.templateCache = new TemplateCache(this.app.vault, this.settings.templateFolder);
 
     this.addCommand({
       id: 'insert-template',
@@ -67,6 +72,9 @@ export default class AwesomePlugin extends Plugin {
     this.addRibbonIcon('dice', 'Awesome Plugin', (evt: MouseEvent) => {
       new Notice('Awesome Plugin is active!');
     });
+
+    // Preload templates for better performance
+    this.templateCache.preloadTemplates();
   }
 
   onunload() {}
@@ -77,6 +85,11 @@ export default class AwesomePlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+
+    // Update template cache if folder changed
+    if (this.templateCache) {
+      this.templateCache.updateTemplateFolder(this.settings.templateFolder);
+    }
   }
 
   private async insertTemplate(editor: Editor) {
@@ -94,6 +107,31 @@ export default class AwesomePlugin extends Plugin {
   }
 
   private async getTemplates(): Promise<Array<ParsedTemplate>> {
+    // Use cache if available
+    if (this.templateCache) {
+      try {
+        const cachedTemplates = await this.templateCache.getTemplates();
+
+        // If no cached templates and no folder, return defaults
+        if (cachedTemplates.length === 0) {
+          const folder = this.app.vault.getAbstractFileByPath(this.settings.templateFolder);
+          if (!folder) {
+            return this.getDefaultTemplates();
+          }
+        }
+
+        return cachedTemplates.length > 0 ? cachedTemplates : this.getDefaultTemplates();
+      } catch (error) {
+        console.error('Failed to load templates from cache:', error);
+        return this.getDefaultTemplates();
+      }
+    }
+
+    // Fallback to direct loading (should not happen normally)
+    return this.getTemplatesDirectly();
+  }
+
+  private async getTemplatesDirectly(): Promise<Array<ParsedTemplate>> {
     const templateFolder = this.settings.templateFolder;
     const vault = this.app.vault;
 
