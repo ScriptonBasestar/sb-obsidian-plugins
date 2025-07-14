@@ -1,4 +1,4 @@
-import { TFile, Vault } from 'obsidian';
+import { TFile, Vault, TAbstractFile } from 'obsidian';
 import { ParsedTemplate, TemplateParser } from './template-parser';
 
 interface CacheEntry {
@@ -22,30 +22,32 @@ export class TemplateCache {
 
   private setupFileWatcher(): void {
     // Listen for file changes in the vault
-    this.vault.on('create', (file) => {
-      if (this.isTemplateFile(file)) {
+    this.vault.on('create', (file: TAbstractFile) => {
+      if (file instanceof TFile && this.isTemplateFile(file)) {
         this.invalidateCache();
       }
     });
 
-    this.vault.on('delete', (file) => {
-      if (this.isTemplateFile(file)) {
+    this.vault.on('delete', (file: TAbstractFile) => {
+      if (file instanceof TFile && this.isTemplateFile(file)) {
         this.removeFromCache(file.path);
         this.invalidateCache();
       }
     });
 
-    this.vault.on('modify', (file) => {
-      if (this.isTemplateFile(file)) {
+    this.vault.on('modify', (file: TAbstractFile) => {
+      if (file instanceof TFile && this.isTemplateFile(file)) {
         this.removeFromCache(file.path);
         this.invalidateCache();
       }
     });
 
-    this.vault.on('rename', (file, oldPath) => {
-      if (this.isTemplateFile(file) || oldPath.startsWith(this.templateFolder)) {
+    this.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
+      if ((file instanceof TFile && this.isTemplateFile(file)) || oldPath.startsWith(this.templateFolder)) {
         this.removeFromCache(oldPath);
-        this.removeFromCache(file.path);
+        if (file instanceof TFile) {
+          this.removeFromCache(file.path);
+        }
         this.invalidateCache();
       }
     });

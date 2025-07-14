@@ -166,8 +166,8 @@ describe('TemplateCache', () => {
   describe('Template lookup methods', () => {
     beforeEach(async () => {
       // Setup test templates with metadata
-      mockVault.read.mockImplementation((file: any) => {
-        const templates = {
+      mockVault.read.mockImplementation((file: any): Promise<string> => {
+        const templates: Record<string, string> = {
           'daily.md': `---
 title: Daily Note
 category: daily
@@ -182,7 +182,8 @@ tags: [meeting, work]
 # Meeting {{title}}`,
           'simple.md': `# Simple template without frontmatter`,
         };
-        return Promise.resolve(templates[file.path.split('/').pop()] || '# Default');
+        const fileName = file.path.split('/').pop() as string;
+        return Promise.resolve(templates[fileName] || '# Default');
       });
 
       mockVault.addFile('templates/daily.md', '', 1000, 100);

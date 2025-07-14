@@ -176,7 +176,7 @@ Today is {{date}}.
       const preview = TemplateParser.getTemplatePreview(template);
 
       expect(preview.length).toBeLessThanOrEqual(153); // 150 + '...'
-      expect(preview).toEndWith('...');
+      expect(preview).toMatch(/\.\.\.$/); // Should end with '...'
     });
 
     it('should handle templates with frontmatter in preview', () => {
