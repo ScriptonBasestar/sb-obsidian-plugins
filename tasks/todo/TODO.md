@@ -9,7 +9,7 @@
 - [x] `pnpm` 기반 workspace 구성 (`pnpm-workspace.yaml`)
 - [x] 루트 `package.json` 설정 (devDeps, scripts 등)
 - [x] 공통 타입/유틸 디렉토리 `shared/` 생성
-- [ ] 루트 `.gitignore`, `README.md`, `Makefile` 생성
+- [x] 루트 `.gitignore`, `README.md`, `Makefile` 생성
 - [ ] GitHub Actions 배포용 워크플로우 (`.github/workflows/release.yml`)
 
 ---
