@@ -1,6 +1,7 @@
 {
   "name": "@sb-obsidian-plugins/shared",
   "version": "1.0.0",
+  "type": "module",
   "description": "Shared types and utilities for Obsidian plugins",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +10,11 @@
     "dev": "tsc --watch",
     "lint": "eslint src --ext .ts",
     "test": "vitest",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "task-runner": "node dist/cli.js"
+  },
+  "bin": {
+    "task-runner": "./dist/cli.js"
   },
   "author": "Your Name",
   "license": "MIT",

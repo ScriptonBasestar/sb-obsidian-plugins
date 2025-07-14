@@ -2,6 +2,23 @@
 
 A collection of Obsidian plugins managed as a monorepo using pnpm workspaces. This repository contains multiple plugins that enhance your Obsidian experience with template generation, metadata management, git synchronization, and publishing capabilities.
 
+## 🚀 TASK_RUNNER.todo
+
+This project includes an automated TODO task processor for managing development tasks:
+
+```bash
+# Show next incomplete task
+pnpm task-runner
+
+# Process next task interactively
+pnpm task-runner --process
+
+# Convert alert files to TODOs
+pnpm task-runner --alerts
+```
+
+See [Task Runner Documentation](#task-runner) for detailed usage.
+
 ## 📦 Plugins
 
 ### template-generator
@@ -143,6 +160,31 @@ make test-coverage
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🚀 Task Runner
+
+### Directory Structure
+
+```
+tasks/
+├── todo/          # Active TODO files ([ ] items)
+├── done/          # Completed files (__DONE_YYYYMMDD.md)
+└── alert/         # Alert files to be converted to TODOs
+```
+
+### Task Processing Flow
+
+1. **Find Next Task**: Scans files alphabetically, finds first `[ ]` item
+2. **Analysis**: Reviews dependencies, related code/docs
+3. **Implementation**: Code changes, tests, documentation
+4. **Format & Commit**: Runs formatter, commits with proper message
+5. **File Movement**: Moves completed files to `/tasks/done/`
+
+### Task Markers
+
+- `[ ]` - Incomplete task
+- `[x]` - Completed task
+- `[>]` - Blocked/impossible task (document reason)
 
 ## 🙏 Acknowledgments
 
