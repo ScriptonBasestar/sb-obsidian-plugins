@@ -8,6 +8,7 @@ import {
   PluginSettingTab,
   Setting,
 } from 'obsidian';
+import { TemplateParser, ParsedTemplate } from './template-parser';
 
 interface AwesomePluginSettings {
   templateFolder: string;
@@ -92,7 +93,7 @@ export default class AwesomePlugin extends Plugin {
     }).open();
   }
 
-  private async getTemplates(): Promise<Array<{ name: string; content: string; path: string }>> {
+  private async getTemplates(): Promise<Array<ParsedTemplate>> {
     const templateFolder = this.settings.templateFolder;
     const vault = this.app.vault;
 
@@ -104,7 +105,7 @@ export default class AwesomePlugin extends Plugin {
         return this.getDefaultTemplates();
       }
 
-      const templates: Array<{ name: string; content: string; path: string }> = [];
+      const templates: Array<ParsedTemplate> = [];
 
       // Scan folder for markdown files
       const files = vault
@@ -114,12 +115,19 @@ export default class AwesomePlugin extends Plugin {
       for (const file of files) {
         try {
           const content = await vault.read(file);
-          const name = file.basename;
-          templates.push({
-            name,
-            content,
-            path: file.path,
-          });
+          const parsedTemplate = TemplateParser.parseTemplate(file.basename, content, file.path);
+
+          if (!parsedTemplate.isValid) {
+            console.warn(`Template validation failed for ${file.path}:`, parsedTemplate.errors);
+            // Still include invalid templates but mark them
+            new Notice(
+              `Template validation warnings in ${file.basename}: ${parsedTemplate.errors.join(
+                ', '
+              )}`
+            );
+          }
+
+          templates.push(parsedTemplate);
         } catch (error) {
           console.warn(`Failed to read template file: ${file.path}`, error);
         }
@@ -137,19 +145,58 @@ export default class AwesomePlugin extends Plugin {
     }
   }
 
-  private getDefaultTemplates(): Array<{ name: string; content: string; path: string }> {
-    return [
+  private getDefaultTemplates(): Array<ParsedTemplate> {
+    const defaultTemplates = [
       {
         name: 'Daily Note',
-        content: `# {{date}}\n\n## Tasks\n- [ ] \n\n## Notes\n\n## Reflection\n`,
+        content: `---
+title: Daily Note Template
+description: A template for daily notes with tasks and reflection
+category: daily
+tags: [daily, tasks, reflection]
+variables: [date]
+---
+
+# {{date}}
+
+## Tasks
+- [ ] 
+
+## Notes
+
+## Reflection
+`,
         path: 'built-in/daily-note.md',
       },
       {
         name: 'Meeting Notes',
-        content: `# Meeting: {{title}}\n\n**Date:** {{date}}\n**Attendees:** \n\n## Agenda\n\n## Notes\n\n## Action Items\n- [ ] \n`,
+        content: `---
+title: Meeting Notes Template
+description: A template for meeting notes with agenda and action items
+category: meeting
+tags: [meeting, notes, action-items]
+variables: [title, date]
+---
+
+# Meeting: {{title}}
+
+**Date:** {{date}}
+**Attendees:** 
+
+## Agenda
+
+## Notes
+
+## Action Items
+- [ ] 
+`,
         path: 'built-in/meeting-notes.md',
       },
     ];
+
+    return defaultTemplates.map((template) =>
+      TemplateParser.parseTemplate(template.name, template.content, template.path)
+    );
   }
 
   private autoGenerateMetadata(editor: Editor, view: MarkdownView) {
@@ -199,13 +246,13 @@ export default class AwesomePlugin extends Plugin {
 }
 
 class TemplateModal extends Modal {
-  templates: Array<{ name: string; content: string; path: string }>;
-  onChoose: (template: { name: string; content: string; path: string }) => void;
+  templates: Array<ParsedTemplate>;
+  onChoose: (template: ParsedTemplate) => void;
 
   constructor(
     app: App,
-    templates: Array<{ name: string; content: string; path: string }>,
-    onChoose: (template: { name: string; content: string; path: string }) => void
+    templates: Array<ParsedTemplate>,
+    onChoose: (template: ParsedTemplate) => void
   ) {
     super(app);
     this.templates = templates;
@@ -219,10 +266,51 @@ class TemplateModal extends Modal {
     this.templates.forEach((template) => {
       const templateEl = contentEl.createEl('div', { cls: 'template-item' });
 
-      const button = templateEl.createEl('button', {
+      // Add validation status indicator
+      if (!template.isValid) {
+        templateEl.style.border = '1px solid var(--text-error)';
+        templateEl.style.borderRadius = '4px';
+        templateEl.style.padding = '8px';
+        templateEl.style.marginBottom = '8px';
+      }
+
+      const headerEl = templateEl.createEl('div', { cls: 'template-header' });
+
+      const button = headerEl.createEl('button', {
         text: template.name,
         cls: 'mod-cta',
       });
+
+      // Show validation status
+      if (!template.isValid) {
+        const warningEl = headerEl.createEl('span', {
+          text: ' ⚠️',
+          cls: 'template-warning',
+        });
+        warningEl.title = template.errors.join('; ');
+      }
+
+      // Show template description from metadata
+      if (template.metadata.description) {
+        const descEl = templateEl.createEl('div', {
+          text: template.metadata.description,
+          cls: 'template-description',
+        });
+        descEl.style.fontSize = '0.85em';
+        descEl.style.color = 'var(--text-muted)';
+        descEl.style.marginTop = '2px';
+      }
+
+      // Show template variables
+      if (template.variables.length > 0) {
+        const varsEl = templateEl.createEl('div', {
+          text: `Variables: ${template.variables.join(', ')}`,
+          cls: 'template-variables',
+        });
+        varsEl.style.fontSize = '0.8em';
+        varsEl.style.color = 'var(--text-accent)';
+        varsEl.style.marginTop = '2px';
+      }
 
       // Show template source (file path or built-in)
       const pathEl = templateEl.createEl('div', {
