@@ -107,22 +107,24 @@ export default class AwesomePlugin extends Plugin {
   }
 
   private async getTemplates(): Promise<Array<ParsedTemplate>> {
-    // Use cache if available
+    // Use cache for file-based templates
     if (this.templateCache) {
       try {
         const cachedTemplates = await this.templateCache.getTemplates();
 
-        // If no cached templates and no folder, return defaults
+        // Only return defaults if template folder doesn't exist AND no templates found
         if (cachedTemplates.length === 0) {
           const folder = this.app.vault.getAbstractFileByPath(this.settings.templateFolder);
           if (!folder) {
+            new Notice(`Template folder '${this.settings.templateFolder}' not found. Using built-in templates.`);
             return this.getDefaultTemplates();
           }
         }
 
-        return cachedTemplates.length > 0 ? cachedTemplates : this.getDefaultTemplates();
+        return cachedTemplates;
       } catch (error) {
         console.error('Failed to load templates from cache:', error);
+        new Notice('Failed to load templates. Using built-in templates.');
         return this.getDefaultTemplates();
       }
     }
@@ -138,8 +140,8 @@ export default class AwesomePlugin extends Plugin {
     try {
       // Check if template folder exists
       const folder = vault.getAbstractFileByPath(templateFolder);
-      if (!folder || !(folder instanceof this.app.vault.adapter.fs?.Folder || folder.children)) {
-        // Return default templates if folder doesn't exist
+      if (!folder) {
+        new Notice(`Template folder '${templateFolder}' not found. Using built-in templates.`);
         return this.getDefaultTemplates();
       }
 
@@ -171,19 +173,21 @@ export default class AwesomePlugin extends Plugin {
         }
       }
 
-      // If no templates found in folder, return defaults
-      if (templates.length === 0) {
-        return this.getDefaultTemplates();
-      }
-
       return templates;
     } catch (error) {
       console.error('Failed to load templates from folder:', error);
+      new Notice('Failed to load templates from folder. Using built-in templates.');
       return this.getDefaultTemplates();
     }
   }
 
+  /**
+   * Fallback templates used only when template folder doesn't exist or loading fails
+   * These are minimal built-in templates to ensure the plugin always works
+   */
   private getDefaultTemplates(): Array<ParsedTemplate> {
+    console.log('Using built-in fallback templates');
+    
     const defaultTemplates = [
       {
         name: 'Daily Note',
@@ -249,7 +253,7 @@ variables: [title, date]
     const metadata = {
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
-      tags: [],
+      tags: [] as string[],
       title: file.basename,
     };
 
@@ -389,7 +393,7 @@ class AwesomePluginSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Template Folder')
-      .setDesc('Folder to look for templates')
+      .setDesc('Folder to look for template files (.md files with frontmatter)')
       .addText((text) =>
         text
           .setPlaceholder('templates')
@@ -397,6 +401,26 @@ class AwesomePluginSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.templateFolder = value;
             await this.plugin.saveSettings();
+          })
+      )
+      .addButton((button) =>
+        button
+          .setButtonText('Create Folder')
+          .setTooltip('Create the template folder if it doesn\'t exist')
+          .onClick(async () => {
+            try {
+              const folderPath = this.plugin.settings.templateFolder;
+              const folder = this.plugin.app.vault.getAbstractFileByPath(folderPath);
+              
+              if (!folder) {
+                await this.plugin.app.vault.createFolder(folderPath);
+                new Notice(`Created template folder: ${folderPath}`);
+              } else {
+                new Notice(`Template folder already exists: ${folderPath}`);
+              }
+            } catch (error) {
+              new Notice(`Failed to create template folder: ${error.message}`);
+            }
           })
       );
 
