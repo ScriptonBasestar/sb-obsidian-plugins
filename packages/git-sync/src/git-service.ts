@@ -33,12 +33,17 @@ export class GitService {
     try {
       const status: StatusResult = await this.git.status();
       const branch = await this.git.revparse(['--abbrev-ref', 'HEAD']);
-      
+
       // Get ahead/behind info
       let ahead = 0;
       let behind = 0;
       try {
-        const aheadBehind = await this.git.raw(['rev-list', '--left-right', '--count', `origin/${branch.trim()}...HEAD`]);
+        const aheadBehind = await this.git.raw([
+          'rev-list',
+          '--left-right',
+          '--count',
+          `origin/${branch.trim()}...HEAD`,
+        ]);
         const counts = aheadBehind.trim().split('\t');
         behind = parseInt(counts[0]) || 0;
         ahead = parseInt(counts[1]) || 0;
@@ -64,7 +69,10 @@ export class GitService {
   /**
    * Add files to staging area
    */
-  async addFiles(files: string[] | '.' = '.', includeUntracked: boolean = true): Promise<GitResult> {
+  async addFiles(
+    files: string[] | '.' = '.',
+    includeUntracked: boolean = true
+  ): Promise<GitResult> {
     try {
       if (includeUntracked && files === '.') {
         await this.git.add('.');
@@ -87,12 +95,12 @@ export class GitService {
   async commit(message: string): Promise<GitResult> {
     try {
       const result = await this.git.commit(message);
-      return { 
-        success: true, 
-        data: { 
+      return {
+        success: true,
+        data: {
           hash: result.commit,
-          summary: result.summary 
-        } 
+          summary: result.summary,
+        },
       };
     } catch (error) {
       console.error('Failed to commit:', error);
@@ -149,30 +157,28 @@ export class GitService {
   async pullRebase(branch?: string): Promise<GitResult> {
     try {
       const result = await this.git.pull('origin', branch, { '--rebase': 'true' });
-      
+
       // Check for conflicts
       const status = await this.getStatus();
-      const hasConflicts = status.unstaged.some(file => 
-        file.includes('<<<<<<< HEAD') || 
-        file.includes('>>>>>>> ')
+      const hasConflicts = status.unstaged.some(
+        (file) => file.includes('<<<<<<< HEAD') || file.includes('>>>>>>> ')
       );
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         conflicts: hasConflicts,
-        data: result 
+        data: result,
       };
     } catch (error) {
       console.error('Failed to pull with rebase:', error);
-      
+
       // Check if it's a conflict error
-      const isConflict = error.message.includes('conflict') || 
-                        error.message.includes('CONFLICT');
-      
+      const isConflict = error.message.includes('conflict') || error.message.includes('CONFLICT');
+
       if (isConflict) {
         return { success: true, conflicts: true, error: error.message };
       }
-      
+
       return { success: false, error: error.message };
     }
   }
@@ -207,8 +213,8 @@ export class GitService {
    * Merge branches
    */
   async mergeBranches(
-    fromBranch: string, 
-    toBranch: string, 
+    fromBranch: string,
+    toBranch: string,
     strategy: 'merge' | 'rebase' | 'squash' = 'merge'
   ): Promise<GitResult> {
     try {
@@ -240,22 +246,21 @@ export class GitService {
       const status = await this.getStatus();
       const hasConflicts = status.unstaged.length > 0;
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         conflicts: hasConflicts,
-        data: result 
+        data: result,
       };
     } catch (error) {
       console.error('Failed to merge branches:', error);
-      
+
       // Check if it's a conflict error
-      const isConflict = error.message.includes('conflict') || 
-                        error.message.includes('CONFLICT');
-      
+      const isConflict = error.message.includes('conflict') || error.message.includes('CONFLICT');
+
       if (isConflict) {
         return { success: true, conflicts: true, error: error.message };
       }
-      
+
       return { success: false, error: error.message };
     }
   }
@@ -349,13 +354,12 @@ export class GitService {
   async hasRemote(remoteName: string = 'origin'): Promise<boolean> {
     try {
       const remotes = await this.git.getRemotes(true);
-      return remotes.some(remote => remote.name === remoteName);
+      return remotes.some((remote) => remote.name === remoteName);
     } catch (error) {
       console.warn('Failed to check remote configuration:', error);
       return false;
     }
   }
-
 
   /**
    * Check if there are any uncommitted changes
@@ -386,7 +390,10 @@ export class GitService {
   /**
    * Check if it's safe to perform an auto-merge
    */
-  async isSafeToAutoMerge(tempBranch: string, mainBranch: string): Promise<{
+  async isSafeToAutoMerge(
+    tempBranch: string,
+    mainBranch: string
+  ): Promise<{
     safe: boolean;
     reason?: string;
   }> {

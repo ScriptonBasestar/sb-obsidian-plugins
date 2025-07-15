@@ -14,8 +14,8 @@ vi.mock('obsidian', () => ({
       vault: {
         on: vi.fn(),
         read: vi.fn(),
-        modify: vi.fn()
-      }
+        modify: vi.fn(),
+      },
     };
   },
   PluginSettingTab: class MockPluginSettingTab {},
@@ -26,7 +26,7 @@ vi.mock('obsidian', () => ({
   },
   Notice: class MockNotice {},
   TAbstractFile: class MockTAbstractFile {},
-  moment: require('moment')
+  moment: require('moment'),
 }));
 
 describe('MetadataManagerPlugin', () => {
@@ -38,16 +38,17 @@ describe('MetadataManagerPlugin', () => {
       vault: {
         on: vi.fn(),
         read: vi.fn(),
-        modify: vi.fn()
-      }
+        modify: vi.fn(),
+      },
     } as any;
-    
+
     // Initialize settings with defaults
     plugin.settings = {
       enableAutoInsert: true,
       autoInsertOnNewFiles: true,
       autoInsertDelay: 1000,
-      defaultTemplate: '---\ntitle: {{title}}\ncreated: {{created}}\nmodified: {{modified}}\ntags: []\n---',
+      defaultTemplate:
+        '---\ntitle: {{title}}\ncreated: {{created}}\nmodified: {{modified}}\ntags: []\n---',
       templatesByFolder: {},
       requiredFields: ['title', 'created'],
       optionalFields: ['tags', 'author', 'description'],
@@ -56,7 +57,7 @@ describe('MetadataManagerPlugin', () => {
       autoGenerateId: false,
       enableAutoFormat: true,
       fieldOrder: ['title', 'created', 'modified', 'tags', 'author', 'description'],
-      dateFormat: 'YYYY-MM-DD HH:mm:ss'
+      dateFormat: 'YYYY-MM-DD HH:mm:ss',
     };
   });
 
@@ -65,11 +66,11 @@ describe('MetadataManagerPlugin', () => {
       const template = '---\ntitle: {{title}}\ncreated: {{created}}\nmodified: {{modified}}\n---';
       const mockFile = {
         basename: 'test-file',
-        parent: { name: 'test-folder' }
+        parent: { name: 'test-folder' },
       } as any;
 
       const result = (plugin as any).processTemplate(template, mockFile);
-      
+
       expect(result).toContain('title: test-file');
       expect(result).toContain('created: 2024-01-01 12:00:00');
       expect(result).toContain('modified: 2024-01-01 12:00:00');
@@ -78,7 +79,7 @@ describe('MetadataManagerPlugin', () => {
     it('should generate unique IDs', () => {
       const id1 = (plugin as any).generateId();
       const id2 = (plugin as any).generateId();
-      
+
       expect(id1).not.toBe(id2);
       expect(typeof id1).toBe('string');
       expect(id1.length).toBeGreaterThan(0);
@@ -96,20 +97,20 @@ tags: [test, document]
 This is the body content.`;
 
       const result = (plugin as any).parseFrontmatter(content);
-      
+
       expect(result.frontmatter).toEqual({
         title: 'Test Document',
         created: '2024-01-01',
-        tags: ['test', 'document']
+        tags: ['test', 'document'],
       });
       expect(result.body).toBe('\nThis is the body content.');
     });
 
     it('should handle content without frontmatter', () => {
       const content = 'This is just body content.';
-      
+
       const result = (plugin as any).parseFrontmatter(content);
-      
+
       expect(result.frontmatter).toBeNull();
       expect(result.body).toBe(content);
     });
@@ -123,7 +124,7 @@ invalid: [unclosed bracket
 Body content.`;
 
       const result = (plugin as any).parseFrontmatter(content);
-      
+
       expect(result.frontmatter).toBeNull();
       expect(result.body).toBe(content);
     });
@@ -133,18 +134,18 @@ Body content.`;
     beforeEach(() => {
       plugin.settings = {
         requiredFields: ['title', 'created'],
-        dateFormat: 'YYYY-MM-DD HH:mm:ss'
+        dateFormat: 'YYYY-MM-DD HH:mm:ss',
       } as any;
     });
 
     it('should validate required fields', () => {
       const frontmatter = {
-        title: 'Test Document'
+        title: 'Test Document',
         // missing 'created' field
       };
 
       const issues = (plugin as any).validateFrontmatter(frontmatter);
-      
+
       expect(issues).toContain('Missing required field: created');
     });
 
@@ -152,11 +153,11 @@ Body content.`;
       const frontmatter = {
         title: 'Test Document',
         created: 'invalid-date',
-        modified: '2024-01-01 12:00:00'
+        modified: '2024-01-01 12:00:00',
       };
 
       const issues = (plugin as any).validateFrontmatter(frontmatter);
-      
+
       expect(issues).toContain('Invalid created date format');
       expect(issues).not.toContain('Invalid modified date format');
     });
@@ -165,11 +166,11 @@ Body content.`;
       const frontmatter = {
         title: 'Test Document',
         created: '2024-01-01 12:00:00',
-        tags: 'should-be-array'
+        tags: 'should-be-array',
       };
 
       const issues = (plugin as any).validateFrontmatter(frontmatter);
-      
+
       expect(issues).toContain('Tags should be an array');
     });
 
@@ -178,11 +179,11 @@ Body content.`;
         title: 'Test Document',
         created: '2024-01-01 12:00:00',
         modified: '2024-01-01 12:00:00',
-        tags: ['test', 'document']
+        tags: ['test', 'document'],
       };
 
       const issues = (plugin as any).validateFrontmatter(frontmatter);
-      
+
       expect(issues).toHaveLength(0);
     });
   });
@@ -192,49 +193,49 @@ Body content.`;
       plugin.settings = {
         defaultTemplate: 'default template',
         templatesByFolder: {
-          'journal': 'journal template',
-          'projects/work': 'work template'
-        }
+          journal: 'journal template',
+          'projects/work': 'work template',
+        },
       } as any;
     });
 
     it('should use folder-specific template when available', () => {
       const mockFile = {
-        parent: { path: 'journal/daily' }
+        parent: { path: 'journal/daily' },
       } as any;
 
       const template = (plugin as any).getTemplateForFile(mockFile);
-      
+
       expect(template).toBe('journal template');
     });
 
     it('should use most specific folder template', () => {
       const mockFile = {
-        parent: { path: 'projects/work/current' }
+        parent: { path: 'projects/work/current' },
       } as any;
 
       const template = (plugin as any).getTemplateForFile(mockFile);
-      
+
       expect(template).toBe('work template');
     });
 
     it('should fallback to default template', () => {
       const mockFile = {
-        parent: { path: 'random/folder' }
+        parent: { path: 'random/folder' },
       } as any;
 
       const template = (plugin as any).getTemplateForFile(mockFile);
-      
+
       expect(template).toBe('default template');
     });
 
     it('should handle root files', () => {
       const mockFile = {
-        parent: { path: '' }
+        parent: { path: '' },
       } as any;
 
       const template = (plugin as any).getTemplateForFile(mockFile);
-      
+
       expect(template).toBe('default template');
     });
   });
@@ -242,7 +243,7 @@ Body content.`;
   describe('Frontmatter Formatting', () => {
     beforeEach(() => {
       plugin.settings = {
-        fieldOrder: ['title', 'created', 'modified', 'tags']
+        fieldOrder: ['title', 'created', 'modified', 'tags'],
       } as any;
     });
 
@@ -252,13 +253,15 @@ Body content.`;
         modified: '2024-01-01',
         title: 'Test',
         created: '2024-01-01',
-        author: 'John'
+        author: 'John',
       };
 
       const formatted = (plugin as any).formatFrontmatterObject(frontmatter);
-      
+
       // Should start with fields in order
-      expect(formatted).toMatch(/^title: Test\ncreated: 2024-01-01\nmodified: 2024-01-01\ntags:\s*- test/);
+      expect(formatted).toMatch(
+        /^title: Test\ncreated: 2024-01-01\nmodified: 2024-01-01\ntags:\s*- test/
+      );
       // Should include remaining fields
       expect(formatted).toContain('author: John');
     });

@@ -44,10 +44,14 @@ export class WeatherService {
     try {
       const url = this.buildApiUrl(settings);
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Weather API error: ${response.status} ${response.statusText} - ${errorData.message || 'Unknown error'}`);
+        throw new Error(
+          `Weather API error: ${response.status} ${response.statusText} - ${
+            errorData.message || 'Unknown error'
+          }`
+        );
       }
 
       const data = await response.json();
@@ -87,8 +91,7 @@ export class WeatherService {
 
   private isCoordinates(location: string): boolean {
     const coords = location.split(',');
-    return coords.length === 2 && 
-           coords.every(coord => !isNaN(parseFloat(coord.trim())));
+    return coords.length === 2 && coords.every((coord) => !isNaN(parseFloat(coord.trim())));
   }
 
   private parseWeatherData(data: any, settings: WeatherSettings): WeatherData {
@@ -110,7 +113,7 @@ export class WeatherService {
 
   formatWeatherString(weather: WeatherData, settings: WeatherSettings): string {
     const tempUnit = settings.unit === 'metric' ? '°C' : '°F';
-    
+
     switch (settings.language) {
       case 'kr':
         return `${weather.location}: ${weather.description}, ${weather.temperature}${tempUnit} (체감 ${weather.feelsLike}${tempUnit})`;
@@ -126,7 +129,7 @@ export class WeatherService {
   formatDetailedWeather(weather: WeatherData, settings: WeatherSettings): string {
     const tempUnit = settings.unit === 'metric' ? '°C' : '°F';
     const speedUnit = settings.unit === 'metric' ? 'm/s' : 'mph';
-    
+
     switch (settings.language) {
       case 'kr':
         return `🌍 ${weather.location}
@@ -135,7 +138,7 @@ export class WeatherService {
 💧 습도: ${weather.humidity}%
 🌬️ 바람: ${weather.windSpeed} ${speedUnit}
 👁️ 가시거리: ${weather.visibility}km`;
-      
+
       case 'ja':
         return `🌍 ${weather.location}
 🌡️ 気温: ${weather.temperature}${tempUnit} (体感 ${weather.feelsLike}${tempUnit})
@@ -143,7 +146,7 @@ export class WeatherService {
 💧 湿度: ${weather.humidity}%
 🌬️ 風速: ${weather.windSpeed} ${speedUnit}
 👁️ 視程: ${weather.visibility}km`;
-      
+
       case 'zh':
         return `🌍 ${weather.location}
 🌡️ 温度: ${weather.temperature}${tempUnit} (体感 ${weather.feelsLike}${tempUnit})
@@ -151,7 +154,7 @@ export class WeatherService {
 💧 湿度: ${weather.humidity}%
 🌬️ 风速: ${weather.windSpeed} ${speedUnit}
 👁️ 能见度: ${weather.visibility}km`;
-      
+
       default: // English
         return `🌍 ${weather.location}
 🌡️ Temperature: ${weather.temperature}${tempUnit} (feels like ${weather.feelsLike}${tempUnit})

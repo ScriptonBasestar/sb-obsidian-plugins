@@ -28,27 +28,23 @@ export class ConfirmDialog extends Modal {
 
   onOpen() {
     const { contentEl } = this;
-    
+
     contentEl.createEl('h2', { text: this.options.title });
     contentEl.createEl('p', { text: this.options.message });
 
     new Setting(contentEl)
-      .addButton(btn => {
-        btn
-          .setButtonText(this.options.cancelText || 'Cancel')
-          .onClick(() => {
-            this.result = false;
-            this.close();
-          });
+      .addButton((btn) => {
+        btn.setButtonText(this.options.cancelText || 'Cancel').onClick(() => {
+          this.result = false;
+          this.close();
+        });
       })
-      .addButton(btn => {
-        const button = btn
-          .setButtonText(this.options.confirmText || 'Confirm')
-          .onClick(() => {
-            this.result = true;
-            this.close();
-          });
-        
+      .addButton((btn) => {
+        const button = btn.setButtonText(this.options.confirmText || 'Confirm').onClick(() => {
+          this.result = true;
+          this.close();
+        });
+
         if (this.options.dangerous) {
           button.setWarning();
         }
@@ -94,9 +90,9 @@ export class InputDialog extends Modal {
 
   onOpen() {
     const { contentEl } = this;
-    
+
     contentEl.createEl('h2', { text: this.options.title });
-    
+
     if (this.options.message) {
       contentEl.createEl('p', { text: this.options.message });
     }
@@ -104,44 +100,41 @@ export class InputDialog extends Modal {
     // Create error message element
     this.errorEl = contentEl.createEl('div', {
       cls: 'input-dialog-error',
-      attr: { style: 'color: var(--text-error); margin-bottom: 10px; display: none;' }
+      attr: { style: 'color: var(--text-error); margin-bottom: 10px; display: none;' },
+    });
+
+    new Setting(contentEl).addText((text) => {
+      this.inputComponent = text;
+      text
+        .setPlaceholder(this.options.placeholder || '')
+        .setValue(this.options.defaultValue || '')
+        .onChange((value) => {
+          // Clear error when user types
+          if (this.errorEl) {
+            this.errorEl.style.display = 'none';
+          }
+        });
+
+      // Focus and select all text
+      text.inputEl.focus();
+      text.inputEl.select();
+
+      // Submit on Enter
+      text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          this.submit();
+        }
+      });
     });
 
     new Setting(contentEl)
-      .addText(text => {
-        this.inputComponent = text;
-        text
-          .setPlaceholder(this.options.placeholder || '')
-          .setValue(this.options.defaultValue || '')
-          .onChange(value => {
-            // Clear error when user types
-            if (this.errorEl) {
-              this.errorEl.style.display = 'none';
-            }
-          });
-        
-        // Focus and select all text
-        text.inputEl.focus();
-        text.inputEl.select();
-        
-        // Submit on Enter
-        text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
-          if (e.key === 'Enter') {
-            this.submit();
-          }
+      .addButton((btn) => {
+        btn.setButtonText('Cancel').onClick(() => {
+          this.result = null;
+          this.close();
         });
-      });
-
-    new Setting(contentEl)
-      .addButton(btn => {
-        btn
-          .setButtonText('Cancel')
-          .onClick(() => {
-            this.result = null;
-            this.close();
-          });
       })
-      .addButton(btn => {
+      .addButton((btn) => {
         btn
           .setButtonText('OK')
           .setCta()
@@ -153,9 +146,9 @@ export class InputDialog extends Modal {
 
   private submit() {
     if (!this.inputComponent) return;
-    
+
     const value = this.inputComponent.getValue();
-    
+
     // Validate if validator is provided
     if (this.options.validate) {
       const error = this.options.validate(value);
@@ -165,7 +158,7 @@ export class InputDialog extends Modal {
         return;
       }
     }
-    
+
     this.result = value;
     this.close();
   }
@@ -202,9 +195,9 @@ export class ProgressDialog extends Modal {
 
   onOpen() {
     const { contentEl } = this;
-    
+
     contentEl.createEl('h2', { text: this.options.title });
-    
+
     if (this.options.message) {
       this.messageEl = contentEl.createEl('p', { text: this.options.message });
     } else {
@@ -214,52 +207,55 @@ export class ProgressDialog extends Modal {
     // Progress bar container
     const progressContainer = contentEl.createEl('div', {
       cls: 'progress-bar-container',
-      attr: { style: 'width: 100%; height: 20px; background-color: var(--background-modifier-border); border-radius: 10px; overflow: hidden; margin: 20px 0;' }
+      attr: {
+        style:
+          'width: 100%; height: 20px; background-color: var(--background-modifier-border); border-radius: 10px; overflow: hidden; margin: 20px 0;',
+      },
     });
 
     // Progress bar
     this.progressBar = progressContainer.createEl('div', {
       cls: 'progress-bar',
-      attr: { style: 'width: 0%; height: 100%; background-color: var(--interactive-accent); transition: width 0.3s ease;' }
+      attr: {
+        style:
+          'width: 0%; height: 100%; background-color: var(--interactive-accent); transition: width 0.3s ease;',
+      },
     });
 
     // Progress text
     this.progressText = contentEl.createEl('div', {
       text: '0%',
       cls: 'progress-text',
-      attr: { style: 'text-align: center; margin-top: 10px;' }
+      attr: { style: 'text-align: center; margin-top: 10px;' },
     });
 
     // Cancel button if cancellable
     if (this.options.cancellable) {
-      new Setting(contentEl)
-        .addButton(btn => {
-          this.cancelButton = btn
-            .setButtonText('Cancel')
-            .onClick(() => {
-              this.cancelled = true;
-              if (this.onCancel) {
-                this.onCancel();
-              }
-              this.close();
-            });
+      new Setting(contentEl).addButton((btn) => {
+        this.cancelButton = btn.setButtonText('Cancel').onClick(() => {
+          this.cancelled = true;
+          if (this.onCancel) {
+            this.onCancel();
+          }
+          this.close();
         });
+      });
     }
   }
 
   updateProgress(percent: number, message?: string) {
     if (this.cancelled) return;
-    
+
     const clampedPercent = Math.max(0, Math.min(100, percent));
-    
+
     if (this.progressBar) {
       this.progressBar.style.width = `${clampedPercent}%`;
     }
-    
+
     if (this.progressText) {
       this.progressText.textContent = `${Math.round(clampedPercent)}%`;
     }
-    
+
     if (message && this.messageEl) {
       this.messageEl.textContent = message;
     }
@@ -302,5 +298,5 @@ export const UI = {
     const dialog = new ProgressDialog(app, options);
     dialog.open();
     return dialog;
-  }
+  },
 };

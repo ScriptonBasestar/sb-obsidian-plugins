@@ -42,9 +42,9 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
 
     // Plugin header
     containerEl.createEl('h2', { text: this.plugin.manifest.name });
-    
+
     // Render each section
-    this.sections.forEach(section => {
+    this.sections.forEach((section) => {
       this.renderSection(containerEl, section);
     });
 
@@ -52,15 +52,17 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
     new Setting(containerEl)
       .setName('Reset to defaults')
       .setDesc('Reset all settings to their default values')
-      .addButton(button => button
-        .setButtonText('Reset')
-        .setWarning()
-        .onClick(async () => {
-          if (confirm('Are you sure you want to reset all settings to defaults?')) {
-            await this.plugin.resetSettings();
-            this.display(); // Refresh the settings display
-          }
-        }));
+      .addButton((button) =>
+        button
+          .setButtonText('Reset')
+          .setWarning()
+          .onClick(async () => {
+            if (confirm('Are you sure you want to reset all settings to defaults?')) {
+              await this.plugin.resetSettings();
+              this.display(); // Refresh the settings display
+            }
+          })
+      );
   }
 
   private renderSection(containerEl: HTMLElement, section: SettingsSection): void {
@@ -71,22 +73,20 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
 
     // Section description
     if (section.description) {
-      containerEl.createEl('p', { 
+      containerEl.createEl('p', {
         text: section.description,
-        cls: 'setting-item-description'
+        cls: 'setting-item-description',
       });
     }
 
     // Render each setting
-    section.settings.forEach(config => {
+    section.settings.forEach((config) => {
       this.renderSetting(containerEl, config);
     });
   }
 
   private renderSetting(containerEl: HTMLElement, config: SettingConfig): void {
-    const setting = new Setting(containerEl)
-      .setName(config.name)
-      .setDesc(config.desc);
+    const setting = new Setting(containerEl).setName(config.name).setDesc(config.desc);
 
     // Add validation error display
     const errorId = `error-${config.key}`;
@@ -95,13 +95,13 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
       setting.descEl.createEl('div', {
         text: existingError,
         cls: 'setting-validation-error',
-        attr: { id: errorId }
+        attr: { id: errorId },
       });
     }
 
     switch (config.type) {
       case 'text':
-        setting.addText(text => {
+        setting.addText((text) => {
           text
             .setPlaceholder(config.placeholder || '')
             .setValue((this.plugin.settings as any)[config.key] || config.default || '')
@@ -112,7 +112,7 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
         break;
 
       case 'toggle':
-        setting.addToggle(toggle => {
+        setting.addToggle((toggle) => {
           toggle
             .setValue((this.plugin.settings as any)[config.key] ?? config.default ?? false)
             .onChange(async (value) => {
@@ -122,7 +122,7 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
         break;
 
       case 'dropdown':
-        setting.addDropdown(dropdown => {
+        setting.addDropdown((dropdown) => {
           if (config.options) {
             Object.entries(config.options).forEach(([value, display]) => {
               dropdown.addOption(value, display);
@@ -137,7 +137,7 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
         break;
 
       case 'number':
-        setting.addText(text => {
+        setting.addText((text) => {
           text
             .setPlaceholder(config.placeholder || '')
             .setValue(String((this.plugin.settings as any)[config.key] ?? config.default ?? 0))
@@ -153,7 +153,7 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
         break;
 
       case 'textarea':
-        setting.addTextArea(textarea => {
+        setting.addTextArea((textarea) => {
           textarea
             .setPlaceholder(config.placeholder || '')
             .setValue((this.plugin.settings as any)[config.key] || config.default || '')
@@ -164,14 +164,12 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
         break;
 
       case 'button':
-        setting.addButton(button => {
-          button
-            .setButtonText(config.placeholder || 'Click')
-            .onClick(() => {
-              if (config.action) {
-                config.action();
-              }
-            });
+        setting.addButton((button) => {
+          button.setButtonText(config.placeholder || 'Click').onClick(() => {
+            if (config.action) {
+              config.action();
+            }
+          });
         });
         break;
     }
@@ -260,5 +258,5 @@ export const Validators = {
       }
       return null;
     };
-  }
+  },
 };

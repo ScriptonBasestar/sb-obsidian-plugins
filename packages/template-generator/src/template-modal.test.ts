@@ -19,7 +19,7 @@ Object.defineProperty(global, 'HTMLElement', {
     removeEventListener = vi.fn();
     querySelector = vi.fn();
     querySelectorAll = vi.fn(() => []);
-    
+
     createEl(tag: string, options?: { text?: string; cls?: string }): MockHTMLElement {
       const el = new MockHTMLElement();
       if (options?.text) el.textContent = options.text;
@@ -91,14 +91,20 @@ class MockTemplateModal extends MockModal {
     this.templates = templates;
     this.filteredTemplates = [...templates];
     this.onChoose = onChoose;
-    this.templateEngine = templateEngine || { previewTemplate: vi.fn().mockResolvedValue('Mock preview') };
+    this.templateEngine = templateEngine || {
+      previewTemplate: vi.fn().mockResolvedValue('Mock preview'),
+    };
   }
 
   filterTemplates(searchTerm: string): void {
-    this.filteredTemplates = this.templates.filter(template => 
-      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (template.metadata.description && template.metadata.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      template.variables.some((variable: string) => variable.toLowerCase().includes(searchTerm.toLowerCase()))
+    this.filteredTemplates = this.templates.filter(
+      (template) =>
+        template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (template.metadata.description &&
+          template.metadata.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        template.variables.some((variable: string) =>
+          variable.toLowerCase().includes(searchTerm.toLowerCase())
+        )
     );
   }
 
@@ -126,10 +132,10 @@ describe('TemplateModal', () => {
       {
         name: 'Daily Note',
         content: '# {{date}}\n\n## Tasks\n- [ ] \n\n## Notes\n',
-        metadata: { 
+        metadata: {
           title: 'Daily Note Template',
           description: 'A template for daily notes with tasks and reflection',
-          category: 'daily'
+          category: 'daily',
         },
         variables: ['date'],
         isValid: true,
@@ -140,10 +146,10 @@ describe('TemplateModal', () => {
       {
         name: 'Meeting Notes',
         content: '# Meeting: {{title}}\n\n**Date:** {{date}}\n**Attendees:** {{attendees}}\n',
-        metadata: { 
+        metadata: {
           title: 'Meeting Notes Template',
           description: 'A template for meeting notes with agenda and action items',
-          category: 'meeting'
+          category: 'meeting',
         },
         variables: ['title', 'date', 'attendees'],
         isValid: true,
@@ -153,11 +159,12 @@ describe('TemplateModal', () => {
       },
       {
         name: 'Project Template',
-        content: '# {{projectName}}\n\n## Overview\n{{description}}\n\n## Goals\n- {{goal1}}\n- {{goal2}}\n',
-        metadata: { 
+        content:
+          '# {{projectName}}\n\n## Overview\n{{description}}\n\n## Goals\n- {{goal1}}\n- {{goal2}}\n',
+        metadata: {
           title: 'Project Template',
           description: 'Template for project documentation',
-          category: 'project'
+          category: 'project',
         },
         variables: ['projectName', 'description', 'goal1', 'goal2'],
         isValid: true,
@@ -168,16 +175,16 @@ describe('TemplateModal', () => {
       {
         name: 'Invalid Template',
         content: '# {{unclosed\n\nThis template has syntax errors',
-        metadata: { 
+        metadata: {
           title: 'Invalid Template',
-          description: 'This template has validation errors'
+          description: 'This template has validation errors',
         },
         variables: [],
         isValid: false,
         errors: ['Mismatched template braces {{ }}'],
         path: 'templates/invalid.md',
         body: '# {{unclosed\n\nThis template has syntax errors',
-      }
+      },
     ];
 
     mockOnChoose = vi.fn();
@@ -192,7 +199,7 @@ describe('TemplateModal', () => {
     it('should filter templates by name', () => {
       modal.filterTemplates('daily');
       const filtered = modal.getFilteredTemplates();
-      
+
       expect(filtered).toHaveLength(1);
       expect(filtered[0].name).toBe('Daily Note');
     });
@@ -200,7 +207,7 @@ describe('TemplateModal', () => {
     it('should filter templates by description', () => {
       modal.filterTemplates('meeting');
       const filtered = modal.getFilteredTemplates();
-      
+
       expect(filtered).toHaveLength(1);
       expect(filtered[0].name).toBe('Meeting Notes');
     });
@@ -208,7 +215,7 @@ describe('TemplateModal', () => {
     it('should filter templates by variables', () => {
       modal.filterTemplates('attendees');
       const filtered = modal.getFilteredTemplates();
-      
+
       expect(filtered).toHaveLength(1);
       expect(filtered[0].name).toBe('Meeting Notes');
     });
@@ -216,7 +223,7 @@ describe('TemplateModal', () => {
     it('should be case insensitive', () => {
       modal.filterTemplates('DAILY');
       const filtered = modal.getFilteredTemplates();
-      
+
       expect(filtered).toHaveLength(1);
       expect(filtered[0].name).toBe('Daily Note');
     });
@@ -224,21 +231,21 @@ describe('TemplateModal', () => {
     it('should return empty array when no matches found', () => {
       modal.filterTemplates('nonexistent');
       const filtered = modal.getFilteredTemplates();
-      
+
       expect(filtered).toHaveLength(0);
     });
 
     it('should return all templates when search term is empty', () => {
       modal.filterTemplates('');
       const filtered = modal.getFilteredTemplates();
-      
+
       expect(filtered).toHaveLength(4);
     });
 
     it('should filter multiple matches', () => {
       modal.filterTemplates('template');
       const filtered = modal.getFilteredTemplates();
-      
+
       // Should match templates with "template" in description or name
       expect(filtered.length).toBeGreaterThan(1);
     });
@@ -248,17 +255,17 @@ describe('TemplateModal', () => {
     it('should select a template', () => {
       const template = mockTemplates[0];
       modal.selectTemplate(template);
-      
+
       expect(modal.getSelectedTemplate()).toBe(template);
     });
 
     it('should update selected template when different template is selected', () => {
       const template1 = mockTemplates[0];
       const template2 = mockTemplates[1];
-      
+
       modal.selectTemplate(template1);
       expect(modal.getSelectedTemplate()).toBe(template1);
-      
+
       modal.selectTemplate(template2);
       expect(modal.getSelectedTemplate()).toBe(template2);
     });
@@ -266,7 +273,7 @@ describe('TemplateModal', () => {
     it('should handle selection of invalid template', () => {
       const invalidTemplate = mockTemplates[3]; // Invalid Template
       modal.selectTemplate(invalidTemplate);
-      
+
       expect(modal.getSelectedTemplate()).toBe(invalidTemplate);
       expect(invalidTemplate.isValid).toBe(false);
     });
@@ -275,13 +282,13 @@ describe('TemplateModal', () => {
   describe('Template preview', () => {
     it('should call templateEngine.previewTemplate when template is selected', async () => {
       const template = mockTemplates[0];
-      
+
       // Mock the showPreview method since we can't test the full DOM interaction
       const showPreviewSpy = vi.fn();
       modal.showPreview = showPreviewSpy;
-      
+
       await modal.selectTemplate(template);
-      
+
       // The selectTemplate should trigger preview generation
       expect(modal.getSelectedTemplate()).toBe(template);
     });
@@ -289,7 +296,7 @@ describe('TemplateModal', () => {
     it('should handle preview generation errors gracefully', async () => {
       const template = mockTemplates[0];
       mockTemplateEngine.previewTemplate.mockRejectedValue(new Error('Preview error'));
-      
+
       // Should not throw error when preview generation fails
       expect(async () => {
         modal.selectTemplate(template);
@@ -320,7 +327,9 @@ describe('TemplateModal', () => {
     it('should show template name and description', () => {
       const template = mockTemplates[0];
       expect(template.name).toBe('Daily Note');
-      expect(template.metadata.description).toBe('A template for daily notes with tasks and reflection');
+      expect(template.metadata.description).toBe(
+        'A template for daily notes with tasks and reflection'
+      );
     });
 
     it('should show template variables', () => {
@@ -338,9 +347,9 @@ describe('TemplateModal', () => {
     it('should handle templates without description', () => {
       const templateWithoutDesc = {
         ...mockTemplates[0],
-        metadata: { title: 'Template without description' }
+        metadata: { title: 'Template without description' },
       };
-      
+
       expect(templateWithoutDesc.metadata.description).toBeUndefined();
     });
   });
@@ -349,24 +358,24 @@ describe('TemplateModal', () => {
     it('should call onChoose when template is selected for use', () => {
       const template = mockTemplates[0];
       modal.onChoose(template);
-      
+
       expect(mockOnChoose).toHaveBeenCalledWith(template);
     });
 
     it('should handle double-click to immediately use template', () => {
       const template = mockTemplates[0];
-      
+
       // Simulate double-click behavior
       modal.selectTemplate(template);
       modal.onChoose(template);
-      
+
       expect(mockOnChoose).toHaveBeenCalledWith(template);
     });
   });
 
   describe('Template content structure', () => {
     it('should have required template properties', () => {
-      mockTemplates.forEach(template => {
+      mockTemplates.forEach((template) => {
         expect(template).toHaveProperty('name');
         expect(template).toHaveProperty('content');
         expect(template).toHaveProperty('metadata');
@@ -379,10 +388,10 @@ describe('TemplateModal', () => {
     });
 
     it('should have valid metadata structure', () => {
-      mockTemplates.forEach(template => {
+      mockTemplates.forEach((template) => {
         expect(template.metadata).toHaveProperty('title');
         expect(typeof template.metadata.title).toBe('string');
-        
+
         if (template.metadata.description) {
           expect(typeof template.metadata.description).toBe('string');
         }
@@ -390,7 +399,7 @@ describe('TemplateModal', () => {
     });
 
     it('should have array of variables', () => {
-      mockTemplates.forEach(template => {
+      mockTemplates.forEach((template) => {
         expect(Array.isArray(template.variables)).toBe(true);
         template.variables.forEach((variable: any) => {
           expect(typeof variable).toBe('string');
@@ -399,7 +408,7 @@ describe('TemplateModal', () => {
     });
 
     it('should have boolean validation status', () => {
-      mockTemplates.forEach(template => {
+      mockTemplates.forEach((template) => {
         expect(typeof template.isValid).toBe('boolean');
         expect(Array.isArray(template.errors)).toBe(true);
       });
@@ -411,15 +420,20 @@ describe('TemplateModal', () => {
       const largeTemplateList = Array.from({ length: 100 }, (_, i) => ({
         ...mockTemplates[0],
         name: `Template ${i}`,
-        metadata: { ...mockTemplates[0].metadata, description: `Template number ${i}` }
+        metadata: { ...mockTemplates[0].metadata, description: `Template number ${i}` },
       }));
 
-      const largeModal = new MockTemplateModal(mockApp, largeTemplateList, mockOnChoose, mockTemplateEngine);
-      
+      const largeModal = new MockTemplateModal(
+        mockApp,
+        largeTemplateList,
+        mockOnChoose,
+        mockTemplateEngine
+      );
+
       // Filter should work efficiently even with many templates
       largeModal.filterTemplates('Template 50');
       const filtered = largeModal.getFilteredTemplates();
-      
+
       expect(filtered).toHaveLength(1);
       expect(filtered[0].name).toBe('Template 50');
     });
@@ -427,7 +441,7 @@ describe('TemplateModal', () => {
     it('should handle complex search queries', () => {
       modal.filterTemplates('daily tasks notes');
       const filtered = modal.getFilteredTemplates();
-      
+
       // Should find templates that match any of the search terms
       expect(filtered.length).toBeGreaterThanOrEqual(0);
     });

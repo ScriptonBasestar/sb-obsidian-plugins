@@ -17,7 +17,7 @@ describe('WeatherService', () => {
       unit: 'metric',
       language: 'kr',
     };
-    
+
     vi.clearAllMocks();
     weatherService.clearCache();
   });
@@ -149,21 +149,21 @@ describe('WeatherService', () => {
     it('should format weather string in Korean', () => {
       const koreanSettings = { ...mockSettings, language: 'kr' };
       const result = weatherService.formatWeatherString(mockWeather, koreanSettings);
-      
+
       expect(result).toBe('Seoul: 맑음, 22°C (체감 20°C)');
     });
 
     it('should format weather string in English', () => {
       const englishSettings = { ...mockSettings, language: 'en' };
       const result = weatherService.formatWeatherString(mockWeather, englishSettings);
-      
+
       expect(result).toBe('Seoul: 맑음, 22°C (feels like 20°C)');
     });
 
     it('should format detailed weather in Korean', () => {
       const koreanSettings = { ...mockSettings, language: 'kr' };
       const result = weatherService.formatDetailedWeather(mockWeather, koreanSettings);
-      
+
       expect(result).toContain('🌍 Seoul');
       expect(result).toContain('🌡️ 기온: 22°C (체감 20°C)');
       expect(result).toContain('☁️ 날씨: 맑음');
@@ -173,10 +173,14 @@ describe('WeatherService', () => {
     });
 
     it('should format detailed weather with imperial units', () => {
-      const imperialSettings: WeatherSettings = { ...mockSettings, unit: 'imperial', language: 'en' };
+      const imperialSettings: WeatherSettings = {
+        ...mockSettings,
+        unit: 'imperial',
+        language: 'en',
+      };
       const imperialWeather = { ...mockWeather, temperature: 72, feelsLike: 68 };
       const result = weatherService.formatDetailedWeather(imperialWeather, imperialSettings);
-      
+
       expect(result).toContain('Temperature: 72°F (feels like 68°F)');
       expect(result).toContain('Wind: 2.5 mph');
     });
@@ -236,7 +240,7 @@ describe('WeatherService', () => {
     it('should return null when API key is missing', async () => {
       const settingsWithoutKey = { ...mockSettings, apiKey: '' };
       const result = await weatherService.getWeather(settingsWithoutKey);
-      
+
       expect(result).toBeNull();
       expect(mockFetch).not.toHaveBeenCalled();
     });
@@ -244,7 +248,7 @@ describe('WeatherService', () => {
     it('should return null when location is missing', async () => {
       const settingsWithoutLocation = { ...mockSettings, location: '' };
       const result = await weatherService.getWeather(settingsWithoutLocation);
-      
+
       expect(result).toBeNull();
       expect(mockFetch).not.toHaveBeenCalled();
     });
@@ -258,7 +262,7 @@ describe('WeatherService', () => {
       });
 
       const result = await weatherService.getWeather(mockSettings);
-      
+
       expect(result).toBeNull();
     });
 
@@ -266,7 +270,7 @@ describe('WeatherService', () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       const result = await weatherService.getWeather(mockSettings);
-      
+
       expect(result).toBeNull();
     });
   });

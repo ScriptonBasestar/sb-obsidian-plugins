@@ -11,5 +11,5 @@ export const TAbstractFile = class MockTAbstractFile {};
 
 export const moment = vi.fn((dateString?: string, format?: string, strict?: boolean) => ({
   format: vi.fn().mockReturnValue('2024-01-01 12:00:00'),
-  isValid: vi.fn().mockReturnValue(dateString !== 'invalid-date')
+  isValid: vi.fn().mockReturnValue(dateString !== 'invalid-date'),
 }));

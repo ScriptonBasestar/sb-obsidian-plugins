@@ -7,19 +7,19 @@ describe('PromptTemplateService', () => {
       staged: ['file1.ts', 'file2.js'],
       unstaged: ['file3.md'],
       untracked: ['file4.json'],
-      total: 4
+      total: 4,
     },
     branch: 'feature/test',
     diff: 'some diff content',
     recentCommits: ['abc123: previous commit', 'def456: another commit'],
     timestamp: '2025-07-15 13:30:00',
-    author: 'Test User'
+    author: 'Test User',
   };
 
   describe('getDefaultTemplates', () => {
     it('should return default templates', () => {
       const templates = PromptTemplateService.getDefaultTemplates();
-      
+
       expect(templates).toBeDefined();
       expect(templates.length).toBeGreaterThan(0);
       expect(templates[0]).toHaveProperty('id');
@@ -30,8 +30,8 @@ describe('PromptTemplateService', () => {
 
     it('should include conventional commits template', () => {
       const templates = PromptTemplateService.getDefaultTemplates();
-      const conventional = templates.find(t => t.id === 'conventional');
-      
+      const conventional = templates.find((t) => t.id === 'conventional');
+
       expect(conventional).toBeDefined();
       expect(conventional?.name).toContain('Conventional');
       expect(conventional?.template).toContain('conventional commit');
@@ -39,8 +39,8 @@ describe('PromptTemplateService', () => {
 
     it('should include korean template', () => {
       const templates = PromptTemplateService.getDefaultTemplates();
-      const korean = templates.find(t => t.id === 'korean');
-      
+      const korean = templates.find((t) => t.id === 'korean');
+
       expect(korean).toBeDefined();
       expect(korean?.name).toContain('한국어');
       expect(korean?.template).toContain('한국어로');
@@ -50,14 +50,14 @@ describe('PromptTemplateService', () => {
   describe('getTemplate', () => {
     it('should return template by id', () => {
       const template = PromptTemplateService.getTemplate('conventional');
-      
+
       expect(template).toBeDefined();
       expect(template?.id).toBe('conventional');
     });
 
     it('should return undefined for non-existent template', () => {
       const template = PromptTemplateService.getTemplate('non-existent');
-      
+
       expect(template).toBeUndefined();
     });
   });
@@ -65,19 +65,20 @@ describe('PromptTemplateService', () => {
   describe('processTemplate', () => {
     it('should replace simple variables', () => {
       const template = 'Files: {{files.total}}, Branch: {{branch}}, Time: {{timestamp}}';
-      
+
       const result = PromptTemplateService.processTemplate(template, mockVariables);
-      
+
       expect(result).toContain('Files: 4');
       expect(result).toContain('Branch: feature/test');
       expect(result).toContain('Time: 2025-07-15 13:30:00');
     });
 
     it('should replace array variables', () => {
-      const template = 'Staged: {{files.staged}}, Unstaged: {{files.unstaged}}, New: {{files.untracked}}';
-      
+      const template =
+        'Staged: {{files.staged}}, Unstaged: {{files.unstaged}}, New: {{files.untracked}}';
+
       const result = PromptTemplateService.processTemplate(template, mockVariables);
-      
+
       expect(result).toContain('Staged: file1.ts, file2.js');
       expect(result).toContain('Unstaged: file3.md');
       expect(result).toContain('New: file4.json');
@@ -88,21 +89,29 @@ describe('PromptTemplateService', () => {
         ...mockVariables,
         files: {
           ...mockVariables.files,
-          staged: ['file1.ts', 'file2.js', 'file3.md', 'file4.json', 'file5.py', 'file6.go', 'file7.rb']
-        }
+          staged: [
+            'file1.ts',
+            'file2.js',
+            'file3.md',
+            'file4.json',
+            'file5.py',
+            'file6.go',
+            'file7.rb',
+          ],
+        },
       };
-      
+
       const template = 'Staged: {{files.staged}}';
       const result = PromptTemplateService.processTemplate(template, longVariables);
-      
+
       expect(result).toContain('and 2 more');
     });
 
     it('should process conditional blocks - with files', () => {
       const template = '{{#if files.staged}}Has staged files: {{files.staged}}{{/if}}';
-      
+
       const result = PromptTemplateService.processTemplate(template, mockVariables);
-      
+
       expect(result).toContain('Has staged files: file1.ts, file2.js');
     });
 
@@ -110,19 +119,19 @@ describe('PromptTemplateService', () => {
       const template = '{{#if files.staged}}Has staged files{{/if}}';
       const emptyVariables: PromptVariables = {
         ...mockVariables,
-        files: { staged: [], unstaged: [], untracked: [], total: 0 }
+        files: { staged: [], unstaged: [], untracked: [], total: 0 },
       };
-      
+
       const result = PromptTemplateService.processTemplate(template, emptyVariables);
-      
+
       expect(result).not.toContain('Has staged files');
     });
 
     it('should handle diff replacement', () => {
       const template = 'Changes: {{diff}}';
-      
+
       const result = PromptTemplateService.processTemplate(template, mockVariables);
-      
+
       expect(result).toContain('Changes: some diff content');
     });
 
@@ -130,12 +139,12 @@ describe('PromptTemplateService', () => {
       const longDiff = 'a'.repeat(1000);
       const longVariables: PromptVariables = {
         ...mockVariables,
-        diff: longDiff
+        diff: longDiff,
       };
-      
+
       const template = 'Changes: {{diff}}';
       const result = PromptTemplateService.processTemplate(template, longVariables);
-      
+
       expect(result).toContain('...');
     });
 
@@ -144,11 +153,11 @@ describe('PromptTemplateService', () => {
       const minimalVariables: PromptVariables = {
         files: { staged: [], unstaged: [], untracked: [], total: 0 },
         branch: 'main',
-        timestamp: '2025-07-15 13:30:00'
+        timestamp: '2025-07-15 13:30:00',
       };
-      
+
       const result = PromptTemplateService.processTemplate(template, minimalVariables);
-      
+
       expect(result).toContain('Diff: (no diff available)');
       expect(result).not.toContain('{{author}}'); // Should be removed
     });
@@ -163,9 +172,9 @@ Staged: {{files.staged}}
 Modified: {{files.unstaged}}
 {{/if}}
 {{/if}}`;
-      
+
       const result = PromptTemplateService.processTemplate(template, mockVariables);
-      
+
       expect(result).toContain('Total files: 4');
       expect(result).toContain('Staged: file1.ts, file2.js');
       expect(result).toContain('Modified: file3.md');
@@ -179,9 +188,9 @@ Modified: {{files.unstaged}}
 {{#if files.untracked}}New files exist{{/if}}
 {{#if recentCommits}}Recent commits exist{{/if}}
 {{#if diff}}Diff exists{{/if}}`;
-      
+
       const result = PromptTemplateService.processTemplate(template, mockVariables);
-      
+
       expect(result).toContain('Staged files exist');
       expect(result).toContain('Modified files exist');
       expect(result).toContain('New files exist');
@@ -196,16 +205,16 @@ Modified: {{files.unstaged}}
         files: {
           staged: ['file1.ts'],
           unstaged: ['file2.js'],
-          untracked: ['file3.md']
+          untracked: ['file3.md'],
         },
         branch: 'main',
         diff: 'some diff',
         recentCommits: ['commit1'],
-        author: 'Test User'
+        author: 'Test User',
       };
-      
+
       const variables = PromptTemplateService.createVariables(context);
-      
+
       expect(variables.files.total).toBe(3);
       expect(variables.branch).toBe('main');
       expect(variables.diff).toBe('some diff');
@@ -216,11 +225,11 @@ Modified: {{files.unstaged}}
 
     it('should handle missing context properties', () => {
       const context = {
-        files: { staged: ['file1.ts'] }
+        files: { staged: ['file1.ts'] },
       };
-      
+
       const variables = PromptTemplateService.createVariables(context);
-      
+
       expect(variables.files.staged).toEqual(['file1.ts']);
       expect(variables.files.unstaged).toEqual([]);
       expect(variables.files.untracked).toEqual([]);
@@ -233,12 +242,12 @@ Modified: {{files.unstaged}}
         files: {
           staged: ['a', 'b'],
           unstaged: ['c'],
-          untracked: ['d', 'e', 'f']
-        }
+          untracked: ['d', 'e', 'f'],
+        },
       };
-      
+
       const variables = PromptTemplateService.createVariables(context);
-      
+
       expect(variables.files.total).toBe(6);
     });
   });
@@ -246,38 +255,40 @@ Modified: {{files.unstaged}}
   describe('validateTemplate', () => {
     it('should validate correct template', () => {
       const template = '{{files.total}} files on {{branch}}';
-      
+
       const result = PromptTemplateService.validateTemplate(template);
-      
+
       expect(result.valid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
 
     it('should validate template with conditional blocks', () => {
       const template = '{{#if files.staged}}Staged: {{files.staged}}{{/if}}';
-      
+
       const result = PromptTemplateService.validateTemplate(template);
-      
+
       expect(result.valid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
 
     it('should detect unmatched conditional blocks', () => {
       const template = '{{#if files.staged}}Missing end tag';
-      
+
       const result = PromptTemplateService.validateTemplate(template);
-      
+
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Unmatched conditional blocks: {{#if}} and {{/if}} count mismatch');
+      expect(result.errors).toContain(
+        'Unmatched conditional blocks: {{#if}} and {{/if}} count mismatch'
+      );
     });
 
     it('should detect unknown variables', () => {
       const template = '{{unknown.variable}} is not valid';
-      
+
       const result = PromptTemplateService.validateTemplate(template);
-      
+
       expect(result.valid).toBe(false);
-      expect(result.errors.some(error => error.includes('Unknown variable'))).toBe(true);
+      expect(result.errors.some((error) => error.includes('Unknown variable'))).toBe(true);
     });
 
     it('should allow all valid variables', () => {
@@ -285,17 +296,17 @@ Modified: {{files.unstaged}}
         {{files.staged}} {{files.unstaged}} {{files.untracked}} {{files.total}}
         {{branch}} {{diff}} {{recentCommits}} {{timestamp}} {{author}}
       `;
-      
+
       const result = PromptTemplateService.validateTemplate(template);
-      
+
       expect(result.valid).toBe(true);
     });
 
     it('should ignore conditional prefixes in validation', () => {
       const template = '{{#if files.staged}}{{/if}}';
-      
+
       const result = PromptTemplateService.validateTemplate(template);
-      
+
       expect(result.valid).toBe(true);
     });
   });
@@ -303,7 +314,7 @@ Modified: {{files.unstaged}}
   describe('getTemplateHelp', () => {
     it('should return help documentation', () => {
       const help = PromptTemplateService.getTemplateHelp();
-      
+
       expect(help).toContain('Available template variables');
       expect(help).toContain('{{files.staged}}');
       expect(help).toContain('{{branch}}');
@@ -314,7 +325,7 @@ Modified: {{files.unstaged}}
 
     it('should include all variable types in help', () => {
       const help = PromptTemplateService.getTemplateHelp();
-      
+
       expect(help).toContain('{{files.total}}');
       expect(help).toContain('{{diff}}');
       expect(help).toContain('{{recentCommits}}');
@@ -327,10 +338,10 @@ Modified: {{files.unstaged}}
     it('should process conventional commits template', () => {
       const template = PromptTemplateService.getTemplate('conventional');
       expect(template).toBeDefined();
-      
+
       if (template) {
         const result = PromptTemplateService.processTemplate(template.template, mockVariables);
-        
+
         expect(result).toContain('conventional commit');
         expect(result).toContain('feature/test');
         expect(result).toContain('file1.ts, file2.js');
@@ -340,10 +351,10 @@ Modified: {{files.unstaged}}
     it('should process korean template', () => {
       const template = PromptTemplateService.getTemplate('korean');
       expect(template).toBeDefined();
-      
+
       if (template) {
         const result = PromptTemplateService.processTemplate(template.template, mockVariables);
-        
+
         expect(result).toContain('한국어로');
         expect(result).toContain('feature/test');
         expect(result).toContain('2025-07-15 13:30:00');
@@ -353,10 +364,10 @@ Modified: {{files.unstaged}}
     it('should process simple template', () => {
       const template = PromptTemplateService.getTemplate('simple');
       expect(template).toBeDefined();
-      
+
       if (template) {
         const result = PromptTemplateService.processTemplate(template.template, mockVariables);
-        
+
         expect(result).toContain('4 files changed');
         expect(result).toContain('feature/test');
       }
