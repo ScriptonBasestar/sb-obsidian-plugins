@@ -14,6 +14,7 @@ import { TemplateEngine, TemplateVariables } from './template-engine';
 
 interface AwesomePluginSettings {
   templateFolder: string;
+  defaultTemplate: string;
   autoMetadata: boolean;
   gitSync: boolean;
   publishEnabled: boolean;
@@ -32,6 +33,7 @@ interface AwesomePluginSettings {
 
 const DEFAULT_SETTINGS: AwesomePluginSettings = {
   templateFolder: 'templates',
+  defaultTemplate: '',
   autoMetadata: true,
   gitSync: false,
   publishEnabled: false,
@@ -109,6 +111,14 @@ export default class AwesomePlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: 'insert-default-template',
+      name: 'Insert Default Template',
+      editorCallback: async (editor: Editor, view: MarkdownView) => {
+        await this.insertDefaultTemplate(editor);
+      },
+    });
+
     this.addSettingTab(new AwesomePluginSettingTab(this.app, this));
 
     this.addRibbonIcon('file-plus', 'Insert Template', (evt: MouseEvent) => {
@@ -133,9 +143,14 @@ export default class AwesomePlugin extends Plugin {
       return;
     }
 
-    // Active editor exists, insert template
     const editor = activeView.editor;
-    this.insertTemplate(editor);
+    
+    // If default template is set, use it directly, otherwise show modal
+    if (this.settings.defaultTemplate) {
+      await this.insertDefaultTemplate(editor);
+    } else {
+      this.insertTemplate(editor);
+    }
   }
 
   private async createNewFileWithTemplate() {
@@ -290,7 +305,9 @@ export default class AwesomePlugin extends Plugin {
     // Update template cache if folder changed
     if (this.templateCache) {
       this.templateCache.updateTemplateFolder(this.settings.templateFolder);
-      // Note: Template commands will be updated on next plugin reload
+      // Refresh template commands when folder changes
+      this.templateCommandsRegistered = false;
+      await this.registerTemplateCommands();
     }
 
     // Update weather settings in template engine
@@ -325,7 +342,7 @@ export default class AwesomePlugin extends Plugin {
     }, this.templateEngine).open();
   }
 
-  private async getTemplates(): Promise<Array<ParsedTemplate>> {
+  async getTemplates(): Promise<Array<ParsedTemplate>> {
     // Use cache for file-based templates
     if (this.templateCache) {
       try {
@@ -503,6 +520,28 @@ variables: [title, date]
     }
 
     new Notice('Publish feature coming soon...');
+  }
+
+  private async insertDefaultTemplate(editor: Editor) {
+    if (!this.settings.defaultTemplate) {
+      new Notice('No default template set. Please configure one in settings.');
+      return;
+    }
+
+    try {
+      const templates = await this.getTemplates();
+      const defaultTemplate = templates.find(t => t.name === this.settings.defaultTemplate);
+      
+      if (!defaultTemplate) {
+        new Notice(`Default template "${this.settings.defaultTemplate}" not found. Please check your settings.`);
+        return;
+      }
+
+      await this.insertTemplateWithEngine(editor, defaultTemplate);
+    } catch (error) {
+      console.error('Failed to insert default template:', error);
+      new Notice('Failed to insert default template');
+    }
   }
 }
 
@@ -726,6 +765,30 @@ class AwesomePluginSettingTab extends PluginSettingTab {
             }
           })
       );
+
+    new Setting(containerEl)
+      .setName('Default Template')
+      .setDesc('Default template to use for quick insertion')
+      .addDropdown(async (dropdown) => {
+        // Add empty option
+        dropdown.addOption('', 'None');
+        
+        try {
+          const templates = await this.plugin.getTemplates();
+          templates.forEach(template => {
+            dropdown.addOption(template.name, template.name);
+          });
+        } catch (error) {
+          console.error('Failed to load templates for dropdown:', error);
+        }
+        
+        dropdown
+          .setValue(this.plugin.settings.defaultTemplate)
+          .onChange(async (value) => {
+            this.plugin.settings.defaultTemplate = value;
+            await this.plugin.saveSettings();
+          });
+      });
 
     new Setting(containerEl)
       .setName('Auto Metadata')
