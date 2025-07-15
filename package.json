@@ -5,10 +5,12 @@
   "description": "Monorepo for Obsidian plugins collection",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "prepare": "pnpm run build:shared",
+    "prepare": "husky install && pnpm run build:shared",
     "dev": "pnpm -r --parallel run dev",
     "build": "pnpm run build:shared && pnpm -r run build",
     "build:shared": "pnpm --filter @sb-obsidian-plugins/shared run build",
+    "build:prod": "pnpm run build:shared && pnpm -r run build production",
+    "build:analyze": "pnpm -r run build --analyze",
     "lint": "pnpm -r run lint",
     "lint:fix": "pnpm -r run lint --fix",
     "test": "pnpm -r run test",
