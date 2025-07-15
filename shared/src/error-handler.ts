@@ -6,7 +6,7 @@ export enum ErrorType {
   FILE_SYSTEM = 'FILE_SYSTEM',
   NETWORK = 'NETWORK',
   CONFIGURATION = 'CONFIGURATION',
-  UNKNOWN = 'UNKNOWN'
+  UNKNOWN = 'UNKNOWN',
 }
 
 export class PluginError extends Error {
@@ -41,7 +41,7 @@ export class PluginError extends Error {
       pluginName: this.pluginName,
       timestamp: this.timestamp.toISOString(),
       context: this.context,
-      stack: this.stack
+      stack: this.stack,
     };
   }
 }
@@ -59,9 +59,10 @@ export class ErrorHandler {
   }
 
   handle(error: Error | PluginError, pluginName?: string, showNotice = true): void {
-    const pluginError = error instanceof PluginError 
-      ? error 
-      : new PluginError(error.message, ErrorType.UNKNOWN, pluginName || 'Unknown');
+    const pluginError =
+      error instanceof PluginError
+        ? error
+        : new PluginError(error.message, ErrorType.UNKNOWN, pluginName || 'Unknown');
 
     // Log error
     console.error(pluginError.toString(), pluginError);
@@ -109,11 +110,11 @@ export class ErrorHandler {
   }
 
   getErrorsByPlugin(pluginName: string): PluginError[] {
-    return this.errors.filter(error => error.pluginName === pluginName);
+    return this.errors.filter((error) => error.pluginName === pluginName);
   }
 
   getErrorsByType(type: ErrorType): PluginError[] {
-    return this.errors.filter(error => error.type === type);
+    return this.errors.filter((error) => error.type === type);
   }
 }
 

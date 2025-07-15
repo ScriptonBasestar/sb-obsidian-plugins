@@ -20,6 +20,7 @@
 ### Installation
 
 1. **From Obsidian Community Plugins** (Recommended)
+
    - Open Settings → Community Plugins
    - Search for "Publisher Scripton"
    - Install and enable
@@ -32,11 +33,13 @@
 ### Basic Setup
 
 1. **Get API Key**
+
    - Sign up at [scripton.cloud](https://scripton.cloud)
    - Navigate to Settings → API Keys
    - Generate new API key
 
 2. **Configure Plugin**
+
    - Open Settings → Publisher Scripton
    - Enter your API key
    - Configure default visibility settings
@@ -49,17 +52,20 @@
 ## 📖 Publishing Options
 
 ### Visibility Settings
+
 - **Public**: Anyone can view with link
 - **Private**: Only you can access
 - **Unlisted**: Accessible with direct link only
 
 ### Content Processing
+
 - **Strip Frontmatter**: Remove YAML metadata before publishing
 - **Convert Wiki Links**: Transform `[[links]]` to web-friendly format
 - **Preserve Formatting**: Maintain markdown styling
 - **Custom CSS**: Apply custom styles to published content
 
 ### Attachment Handling
+
 - **Auto-Upload**: Automatically upload referenced images
 - **Link Preservation**: Maintain internal note links
 - **File Optimization**: Optimize images for web delivery
@@ -67,23 +73,27 @@
 ## ⚙️ Configuration
 
 ### API Settings
+
 - **API Key**: Your scripton.cloud authentication key
 - **API Endpoint**: Service endpoint (default: https://api.scripton.cloud)
 - **Timeout**: Request timeout in seconds
 
 ### Publishing Defaults
+
 - **Default Visibility**: Public, private, or unlisted
 - **Include Attachments**: Automatically upload images and files
 - **Preserve Links**: Maintain internal note connections
 - **Auto-Publish**: Enable automatic publishing for tagged content
 
 ### Content Processing
+
 - **Strip Frontmatter**: Remove YAML metadata
 - **Convert Wiki Links**: Transform Obsidian links
 - **Custom CSS**: Apply custom styling
 - **Markdown Processing**: Control markdown rendering
 
 ### Auto-Publishing
+
 - **Enable Auto-Publish**: Automatically publish on save
 - **Auto-Publish Folders**: Folders to monitor for changes
 - **Auto-Publish Tags**: Tags that trigger publishing
@@ -92,6 +102,7 @@
 ## 🎯 Usage Examples
 
 ### Single Note Publishing
+
 1. Open any note in Obsidian
 2. Use Command Palette (`Ctrl/Cmd + P`)
 3. Search for "Publish Note to Scripton"
@@ -99,6 +110,7 @@
 5. Click "Publish"
 
 ### Batch Publishing
+
 1. Use Command Palette
 2. Search for "Publish Folder to Scripton"
 3. Select folder to publish
@@ -106,6 +118,7 @@
 5. Monitor progress in status bar
 
 ### Auto-Publishing Setup
+
 ```yaml
 # Add to note frontmatter
 ---
@@ -114,7 +127,6 @@ publish: true
 visibility: public
 tags: [blog, public]
 ---
-
 # Note content here
 This note will be automatically published!
 ```
@@ -122,6 +134,7 @@ This note will be automatically published!
 ## 🔄 Publishing Workflow
 
 ### Manual Publishing
+
 1. **Select Content**: Choose note or folder
 2. **Configure Options**: Set visibility and processing options
 3. **Review Preview**: Check how content will appear
@@ -129,6 +142,7 @@ This note will be automatically published!
 5. **Get Link**: Receive shareable URL
 
 ### Automatic Publishing
+
 1. **Tag Content**: Add auto-publish tags
 2. **Save Note**: Plugin detects changes
 3. **Auto-Process**: Applies configured settings
@@ -151,6 +165,7 @@ Access via Command Palette (`Ctrl/Cmd + P`):
 ## 🎨 Advanced Features
 
 ### Custom Styling
+
 ```css
 /* Custom CSS for published content */
 .published-note {
@@ -173,6 +188,7 @@ Access via Command Palette (`Ctrl/Cmd + P`):
 ```
 
 ### Webhook Integration
+
 ```javascript
 // Custom webhook for publishing events
 {
@@ -187,8 +203,10 @@ Access via Command Palette (`Ctrl/Cmd + P`):
 ```
 
 ### Template Processing
+
 ```markdown
 <!-- Template variables available during publishing -->
+
 {{title}} - Note title
 {{date}} - Publication date
 {{author}} - Author name
@@ -200,17 +218,17 @@ Access via Command Palette (`Ctrl/Cmd + P`):
 ## 🔧 Integration Examples
 
 ### Blog Publishing
+
 ```yaml
 # Blog post template
 ---
-title: {{title}}
-author: {{author}}
-date: {{date}}
+title: { { title } }
+author: { { author } }
+date: { { date } }
 visibility: public
 tags: [blog]
 custom_css: blog-style.css
 ---
-
 # {{title}}
 
 Published on {{date}} by {{author}}
@@ -219,6 +237,7 @@ Published on {{date}} by {{author}}
 ```
 
 ### Documentation Publishing
+
 ```yaml
 # Documentation template
 ---
@@ -237,6 +256,7 @@ convert_wiki_links: true
 ```
 
 ### Team Knowledge Base
+
 ```yaml
 # Team knowledge template
 ---
@@ -248,7 +268,7 @@ tags: [knowledge-base, internal]
 
 # {{title}}
 
-**Team**: Development  
+**Team**: Development
 **Updated**: {{date}}
 
 <!-- Content here -->
@@ -259,37 +279,44 @@ tags: [knowledge-base, internal]
 ### Common Issues
 
 **Publishing fails?**
+
 - ✅ Check API key is valid and active
 - ✅ Verify internet connection
 - ✅ Check scripton.cloud service status
 - ✅ Review error messages in console
 
 **Attachments not uploading?**
+
 - ✅ Verify file formats are supported
 - ✅ Check file size limits
 - ✅ Ensure attachment paths are correct
 - ✅ Review upload permissions
 
 **Links not working?**
+
 - ✅ Enable "Preserve Links" option
 - ✅ Check wiki link conversion settings
 - ✅ Verify target notes are also published
 - ✅ Review link format in published content
 
 **Auto-publish not working?**
+
 - ✅ Check auto-publish is enabled
 - ✅ Verify folder/tag configuration
 - ✅ Review publish delay settings
 - ✅ Check for conflicting settings
 
 ### Debug Mode
+
 Enable detailed logging:
+
 1. Open Settings → Publisher Scripton
 2. Enable "Detailed Logs"
 3. Set log level to "debug"
 4. Check Developer Console for `[Publisher Scripton]` messages
 
 ### API Limits
+
 - **Rate Limiting**: 100 requests per minute
 - **File Size**: 10MB per file
 - **Daily Uploads**: 1GB per day
@@ -298,12 +325,14 @@ Enable detailed logging:
 ## 🔒 Security & Privacy
 
 ### Data Handling
+
 - **Secure Transmission**: All data encrypted in transit (HTTPS)
 - **API Key Storage**: Stored securely in Obsidian's local storage
 - **Content Privacy**: Only published content is sent to scripton.cloud
 - **No Tracking**: Plugin doesn't track user behavior
 
 ### Privacy Controls
+
 - **Selective Publishing**: Choose exactly what to publish
 - **Visibility Control**: Public, private, or unlisted options
 - **Content Filtering**: Strip sensitive metadata

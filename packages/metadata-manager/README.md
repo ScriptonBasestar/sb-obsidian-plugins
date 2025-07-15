@@ -19,6 +19,7 @@
 ### Installation
 
 1. **From Obsidian Community Plugins** (Recommended)
+
    - Open Settings → Community Plugins
    - Search for "Metadata Manager"
    - Install and enable
@@ -31,11 +32,13 @@
 ### Basic Usage
 
 1. **Create New Document**
+
    - Plugin automatically detects new files
    - Inserts frontmatter based on template
    - Validates metadata structure
 
 2. **Edit Existing Documents**
+
    - Real-time validation as you type
    - Auto-format on save
    - Helpful error messages
@@ -48,44 +51,46 @@
 ## 📖 Template System
 
 ### Default Template
+
 ```yaml
 ---
-title: 
-created: {{created}}
-modified: {{modified}}
+title:
+created: { { created } }
+modified: { { modified } }
 tags: []
 ---
 ```
 
 ### Folder-Specific Templates
+
 Configure different templates for different folders:
 
 ```yaml
 # /daily/ folder template
 ---
 title: Daily Note - {{date}}
-created: {{created}}
-modified: {{modified}}
+created: { { created } }
+modified: { { modified } }
 type: daily
-mood: 
-weather: 
+mood:
+weather:
 tags: [daily]
 ---
-
 # /projects/ folder template
 ---
-title: 
-created: {{created}}
-modified: {{modified}}
+title:
+created: { { created } }
+modified: { { modified } }
 type: project
 status: planning
 priority: medium
 tags: [project]
-due_date: 
+due_date:
 ---
 ```
 
 ### Template Variables
+
 - `{{created}}` - File creation timestamp
 - `{{modified}}` - Last modification timestamp
 - `{{date}}` - Current date (YYYY-MM-DD)
@@ -98,6 +103,7 @@ due_date:
 ## 🔍 Validation Rules
 
 ### Field Types
+
 - **string**: Text values
 - **number**: Numeric values
 - **boolean**: true/false values
@@ -106,6 +112,7 @@ due_date:
 - **enum**: Predefined options
 
 ### Example Validation Config
+
 ```yaml
 required_fields:
   - title (string)
@@ -132,23 +139,27 @@ field_constraints:
 ## ⚙️ Configuration
 
 ### Auto-Insert Settings
+
 - **Enable Auto-Insert**: Automatically add frontmatter to new files
 - **Insert Delay**: Delay before insertion (default: 1 second)
 - **New Files Only**: Only process completely new files
 - **Confirmation Modal**: Ask before inserting frontmatter
 
 ### Template Configuration
+
 - **Default Template**: Template for files without folder-specific rules
 - **Folder Templates**: Map folders to specific templates
 - **Template Variables**: Configure auto-generated values
 
 ### Validation Settings
+
 - **Required Fields**: Fields that must be present
 - **Optional Fields**: Fields that are allowed but not required
 - **Field Types**: Type validation for each field
 - **Auto-Format**: Automatically format and sort fields
 
 ### Auto-Generation
+
 - **Auto-Generate Created**: Add creation timestamp
 - **Auto-Generate Modified**: Update modification timestamp
 - **Auto-Generate ID**: Add unique identifier
@@ -157,6 +168,7 @@ field_constraints:
 ## 🎨 Advanced Features
 
 ### Conditional Templates
+
 Use folder paths and file names to determine templates:
 
 ```javascript
@@ -171,26 +183,28 @@ if (folder.startsWith('daily/')) {
 ```
 
 ### Custom Validation Rules
+
 ```javascript
 // Custom validation function
 function validateMetadata(metadata) {
   const errors = [];
-  
+
   // Custom title validation
   if (!metadata.title || metadata.title.trim() === '') {
     errors.push('Title is required');
   }
-  
+
   // Date validation
   if (metadata.due_date && new Date(metadata.due_date) < new Date()) {
     errors.push('Due date cannot be in the past');
   }
-  
+
   return errors;
 }
 ```
 
 ### Batch Processing
+
 - **Bulk Update**: Update metadata across multiple files
 - **Migration**: Migrate from old metadata format to new
 - **Validation Report**: Generate report of metadata issues
@@ -209,44 +223,43 @@ Access via Command Palette (`Ctrl/Cmd + P`):
 ## 🔧 Integration Examples
 
 ### Daily Note Setup
+
 ```yaml
 # Template for daily notes
 ---
 title: Daily Note - {{date}}
-created: {{created}}
-modified: {{modified}}
+created: { { created } }
+modified: { { modified } }
 type: daily
-date: {{date}}
-mood: 
-energy: 
-weather: 
-tags: [daily, {{date}}]
+date: { { date } }
+mood:
+energy:
+weather:
+tags: [daily, { { date } }]
 ---
-
 # Content starts here
 ## Today's Goals
-- [ ] 
-
+- []
 ## Reflection
 ```
 
 ### Project Management
+
 ```yaml
 # Template for project files
 ---
-title: 
-created: {{created}}
-modified: {{modified}}
+title:
+created: { { created } }
+modified: { { modified } }
 type: project
 status: planning
 priority: medium
-start_date: 
-due_date: 
-assigned_to: 
+start_date:
+due_date:
+assigned_to:
 tags: [project]
 progress: 0
 ---
-
 # Project Overview
 ## Goals
 ## Tasks
@@ -254,19 +267,19 @@ progress: 0
 ```
 
 ### Meeting Notes
+
 ```yaml
 # Template for meeting notes
 ---
 title: Meeting - {{date}}
-created: {{created}}
-modified: {{modified}}
+created: { { created } }
+modified: { { modified } }
 type: meeting
-date: {{date}}
+date: { { date } }
 attendees: []
-duration: 
+duration:
 tags: [meeting]
 ---
-
 ## Agenda
 ## Notes
 ## Action Items
@@ -277,31 +290,37 @@ tags: [meeting]
 ### Common Issues
 
 **Frontmatter not inserting?**
+
 - ✅ Check auto-insert is enabled
 - ✅ Verify file is new and empty
 - ✅ Check template is valid YAML
 - ✅ Review folder template mappings
 
 **Validation errors?**
+
 - ✅ Check required fields are present
 - ✅ Verify field types match expectations
 - ✅ Review YAML syntax
 - ✅ Check for invisible characters
 
 **Templates not applying?**
+
 - ✅ Verify folder path mappings
 - ✅ Check template syntax
 - ✅ Ensure variables are properly formatted
 - ✅ Review plugin settings
 
 **Performance issues?**
+
 - ✅ Reduce auto-insert delay
 - ✅ Limit batch processing scope
 - ✅ Disable unnecessary validations
 - ✅ Check for large files
 
 ### Debug Information
+
 Enable debug logging to troubleshoot:
+
 1. Open Developer Console (`Ctrl/Cmd + Shift + I`)
 2. Look for `[Metadata Manager]` messages
 3. Check for error messages and stack traces
@@ -310,18 +329,21 @@ Enable debug logging to troubleshoot:
 ## 🔒 Best Practices
 
 ### Template Design
+
 - **Keep it simple**: Start with basic templates
 - **Consistent naming**: Use consistent field names across templates
 - **Required vs optional**: Clearly separate required and optional fields
 - **Date formats**: Use ISO format (YYYY-MM-DD) for dates
 
 ### Field Naming
+
 - **Use lowercase**: `created_date` instead of `Created_Date`
 - **Underscores**: `due_date` instead of `due-date`
 - **Descriptive**: `meeting_attendees` instead of `people`
 - **Avoid spaces**: Use underscores or camelCase
 
 ### Validation Strategy
+
 - **Start permissive**: Begin with loose validation, tighten over time
 - **Gradual rollout**: Test with small subset of files first
 - **User feedback**: Make validation errors clear and actionable

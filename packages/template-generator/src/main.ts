@@ -18,7 +18,7 @@ interface AwesomePluginSettings {
   autoMetadata: boolean;
   gitSync: boolean;
   publishEnabled: boolean;
-  
+
   // Weather API settings
   weatherApiKey: string;
   weatherLocation: string;
@@ -37,7 +37,7 @@ const DEFAULT_SETTINGS: AwesomePluginSettings = {
   autoMetadata: true,
   gitSync: false,
   publishEnabled: false,
-  
+
   // Weather API defaults
   weatherApiKey: '',
   weatherLocation: 'Seoul,KR',
@@ -61,7 +61,7 @@ export default class AwesomePlugin extends Plugin {
 
     // Initialize template cache and engine
     this.templateCache = new TemplateCache(this.app.vault, this.settings.templateFolder);
-    
+
     // Create weather settings from plugin settings
     const weatherSettings = {
       apiKey: this.settings.weatherApiKey,
@@ -70,13 +70,13 @@ export default class AwesomePlugin extends Plugin {
       language: this.settings.weatherLanguage,
       weatherEnabled: this.settings.weatherEnabled,
     };
-    
+
     // Create fortune settings from plugin settings
     const fortuneSettings = {
       enabled: this.settings.fortuneEnabled,
       language: this.settings.fortuneLanguage,
     };
-    
+
     this.templateEngine = new TemplateEngine(weatherSettings, fortuneSettings);
 
     this.addCommand({
@@ -127,7 +127,7 @@ export default class AwesomePlugin extends Plugin {
 
     // Preload templates for better performance
     this.templateCache.preloadTemplates();
-    
+
     // Register individual template commands
     this.registerTemplateCommands();
   }
@@ -136,7 +136,7 @@ export default class AwesomePlugin extends Plugin {
 
   private async openTemplateModal() {
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    
+
     if (!activeView) {
       // No active editor, create new file with template
       this.createNewFileWithTemplate();
@@ -144,7 +144,7 @@ export default class AwesomePlugin extends Plugin {
     }
 
     const editor = activeView.editor;
-    
+
     // If default template is set, use it directly, otherwise show modal
     if (this.settings.defaultTemplate) {
       await this.insertDefaultTemplate(editor);
@@ -160,9 +160,14 @@ export default class AwesomePlugin extends Plugin {
       return;
     }
 
-    new TemplateModal(this.app, templates, async (template) => {
-      await this.createNewFileWithTemplateEngine(template);
-    }, this.templateEngine).open();
+    new TemplateModal(
+      this.app,
+      templates,
+      async (template) => {
+        await this.createNewFileWithTemplateEngine(template);
+      },
+      this.templateEngine
+    ).open();
   }
 
   private async registerTemplateCommands() {
@@ -173,7 +178,7 @@ export default class AwesomePlugin extends Plugin {
 
     try {
       const templates = await this.getTemplates();
-      
+
       for (const template of templates) {
         // Register command for inserting template in current editor
         this.addCommand({
@@ -193,7 +198,7 @@ export default class AwesomePlugin extends Plugin {
           },
         });
       }
-      
+
       this.templateCommandsRegistered = true;
       console.log(`Registered ${templates.length * 2} template commands`);
     } catch (error) {
@@ -202,26 +207,29 @@ export default class AwesomePlugin extends Plugin {
   }
 
   private sanitizeId(name: string): string {
-    return name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-');
   }
 
   private async insertTemplateWithEngine(editor: Editor, template: ParsedTemplate) {
     try {
       // Get user input for template variables if needed
       const userVariables = await this.promptForTemplateVariables(template);
-      
+
       // Render template with engine
       const renderedContent = await this.templateEngine.renderTemplate(template, userVariables);
-      
+
       // Insert at cursor position
       const cursor = editor.getCursor();
       editor.replaceRange(renderedContent, cursor);
-      
+
       new Notice(`Inserted template: ${template.name}`);
     } catch (error) {
       console.error('Template insertion error:', error);
       new Notice(`Failed to insert template: ${error.message}`);
-      
+
       // Fallback to raw template content
       const cursor = editor.getCursor();
       editor.replaceRange(template.content, cursor);
@@ -232,20 +240,20 @@ export default class AwesomePlugin extends Plugin {
     try {
       // Get user input for template variables if needed
       const userVariables = await this.promptForTemplateVariables(template);
-      
+
       // Render template with engine
       const renderedContent = await this.templateEngine.renderTemplate(template, userVariables);
-      
+
       // Create new file
-      const fileName = userVariables?.title 
+      const fileName = userVariables?.title
         ? `${userVariables.title}.md`
         : `${template.name}-${Date.now()}.md`;
-        
+
       const newFile = await this.app.vault.create(fileName, renderedContent);
-      
+
       // Open the new file
       await this.app.workspace.getLeaf().openFile(newFile);
-      
+
       new Notice(`Created new file with template: ${template.name}`);
     } catch (error) {
       console.error('Template file creation error:', error);
@@ -255,14 +263,23 @@ export default class AwesomePlugin extends Plugin {
 
   private async promptForTemplateVariables(template: ParsedTemplate): Promise<TemplateVariables> {
     const userVariables: TemplateVariables = {};
-    
+
     // Check if template has variables that need user input
     const builtInVariables = [
-      'date', 'time', 'datetime', 'today', 'tomorrow', 'yesterday',
-      '날짜', '오늘', '내일', '어제', '요일'
+      'date',
+      'time',
+      'datetime',
+      'today',
+      'tomorrow',
+      'yesterday',
+      '날짜',
+      '오늘',
+      '내일',
+      '어제',
+      '요일',
     ];
-    const interactiveVariables = template.variables.filter(variable => 
-      !builtInVariables.includes(variable.toLowerCase())
+    const interactiveVariables = template.variables.filter(
+      (variable) => !builtInVariables.includes(variable.toLowerCase())
     );
 
     if (interactiveVariables.length === 0) {
@@ -337,9 +354,14 @@ export default class AwesomePlugin extends Plugin {
       return;
     }
 
-    new TemplateModal(this.app, templates, async (template) => {
-      await this.insertTemplateWithEngine(editor, template);
-    }, this.templateEngine).open();
+    new TemplateModal(
+      this.app,
+      templates,
+      async (template) => {
+        await this.insertTemplateWithEngine(editor, template);
+      },
+      this.templateEngine
+    ).open();
   }
 
   async getTemplates(): Promise<Array<ParsedTemplate>> {
@@ -352,7 +374,9 @@ export default class AwesomePlugin extends Plugin {
         if (cachedTemplates.length === 0) {
           const folder = this.app.vault.getAbstractFileByPath(this.settings.templateFolder);
           if (!folder) {
-            new Notice(`Template folder '${this.settings.templateFolder}' not found. Using built-in templates.`);
+            new Notice(
+              `Template folder '${this.settings.templateFolder}' not found. Using built-in templates.`
+            );
             return this.getDefaultTemplates();
           }
         }
@@ -423,7 +447,7 @@ export default class AwesomePlugin extends Plugin {
    */
   private getDefaultTemplates(): Array<ParsedTemplate> {
     console.log('Using built-in fallback templates');
-    
+
     const defaultTemplates = [
       {
         name: 'Daily Note',
@@ -530,10 +554,12 @@ variables: [title, date]
 
     try {
       const templates = await this.getTemplates();
-      const defaultTemplate = templates.find(t => t.name === this.settings.defaultTemplate);
-      
+      const defaultTemplate = templates.find((t) => t.name === this.settings.defaultTemplate);
+
       if (!defaultTemplate) {
-        new Notice(`Default template "${this.settings.defaultTemplate}" not found. Please check your settings.`);
+        new Notice(
+          `Default template "${this.settings.defaultTemplate}" not found. Please check your settings.`
+        );
         return;
       }
 
@@ -572,7 +598,7 @@ class TemplateModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass('template-modal');
-    
+
     // Set modal size
     contentEl.style.width = '90vw';
     contentEl.style.maxWidth = '1200px';
@@ -644,10 +670,12 @@ class TemplateModal extends Modal {
 
   private filterTemplates() {
     const searchTerm = this.searchInput.value.toLowerCase();
-    this.filteredTemplates = this.templates.filter(template => 
-      template.name.toLowerCase().includes(searchTerm) ||
-      (template.metadata.description && template.metadata.description.toLowerCase().includes(searchTerm)) ||
-      template.variables.some(variable => variable.toLowerCase().includes(searchTerm))
+    this.filteredTemplates = this.templates.filter(
+      (template) =>
+        template.name.toLowerCase().includes(searchTerm) ||
+        (template.metadata.description &&
+          template.metadata.description.toLowerCase().includes(searchTerm)) ||
+        template.variables.some((variable) => variable.toLowerCase().includes(searchTerm))
     );
     this.renderTemplates();
   }
@@ -725,7 +753,7 @@ class TemplateModal extends Modal {
         varsEl.style.flexWrap = 'wrap';
         varsEl.style.gap = '4px';
 
-        template.variables.forEach(variable => {
+        template.variables.forEach((variable) => {
           const varTag = varsEl.createEl('span', {
             text: variable,
             cls: 'template-variable-tag',
@@ -763,7 +791,9 @@ class TemplateModal extends Modal {
       templateEl.addEventListener('mouseleave', () => {
         if (this.selectedTemplate !== template) {
           templateEl.style.backgroundColor = 'transparent';
-          templateEl.style.borderColor = template.isValid ? 'var(--background-modifier-border)' : 'var(--text-error)';
+          templateEl.style.borderColor = template.isValid
+            ? 'var(--background-modifier-border)'
+            : 'var(--text-error)';
         }
       });
     });
@@ -771,17 +801,18 @@ class TemplateModal extends Modal {
 
   private async selectTemplate(template: ParsedTemplate) {
     this.selectedTemplate = template;
-    
+
     // Update visual selection
-    this.templatesContainer.querySelectorAll('.template-item').forEach(el => {
+    this.templatesContainer.querySelectorAll('.template-item').forEach((el) => {
       const htmlEl = el as HTMLElement;
       htmlEl.style.backgroundColor = 'transparent';
       htmlEl.style.borderColor = 'var(--background-modifier-border)';
     });
 
-    const selectedEl = Array.from(this.templatesContainer.querySelectorAll('.template-item'))
-      .find(el => (el as HTMLElement).querySelector('.template-title')?.textContent === template.name) as HTMLElement;
-    
+    const selectedEl = Array.from(this.templatesContainer.querySelectorAll('.template-item')).find(
+      (el) => (el as HTMLElement).querySelector('.template-title')?.textContent === template.name
+    ) as HTMLElement;
+
     if (selectedEl) {
       selectedEl.style.backgroundColor = 'var(--background-modifier-active-hover)';
       selectedEl.style.borderColor = 'var(--text-accent)';
@@ -815,13 +846,13 @@ class TemplateModal extends Modal {
       varsLabel.style.fontSize = '12px';
       varsLabel.style.fontWeight = 'bold';
       varsLabel.style.marginBottom = '4px';
-      
+
       const varsContainer = infoEl.createEl('div');
       varsContainer.style.display = 'flex';
       varsContainer.style.flexWrap = 'wrap';
       varsContainer.style.gap = '4px';
 
-      template.variables.forEach(variable => {
+      template.variables.forEach((variable) => {
         const varTag = varsContainer.createEl('span', { text: variable });
         varTag.style.backgroundColor = 'var(--text-accent)';
         varTag.style.color = 'var(--text-on-accent)';
@@ -837,7 +868,9 @@ class TemplateModal extends Modal {
     previewLabel.style.fontWeight = 'bold';
     previewLabel.style.marginBottom = '8px';
 
-    const previewContent = this.previewContainer.createEl('div', { cls: 'template-preview-content' });
+    const previewContent = this.previewContainer.createEl('div', {
+      cls: 'template-preview-content',
+    });
     previewContent.style.padding = '12px';
     previewContent.style.backgroundColor = 'var(--background-primary)';
     previewContent.style.border = '1px solid var(--background-modifier-border)';
@@ -907,7 +940,7 @@ class VariableInputModal extends Modal {
 
     // Create input container
     const inputContainer = contentEl.createDiv({ cls: 'variable-input-container' });
-    
+
     const inputEl = inputContainer.createEl('input', {
       type: 'text',
       placeholder: `Enter ${this.variableName}...`,
@@ -1001,12 +1034,12 @@ class AwesomePluginSettingTab extends PluginSettingTab {
       .addButton((button) =>
         button
           .setButtonText('Create Folder')
-          .setTooltip('Create the template folder if it doesn\'t exist')
+          .setTooltip("Create the template folder if it doesn't exist")
           .onClick(async () => {
             try {
               const folderPath = this.plugin.settings.templateFolder;
               const folder = this.plugin.app.vault.getAbstractFileByPath(folderPath);
-              
+
               if (!folder) {
                 await this.plugin.app.vault.createFolder(folderPath);
                 new Notice(`Created template folder: ${folderPath}`);
@@ -1025,22 +1058,20 @@ class AwesomePluginSettingTab extends PluginSettingTab {
       .addDropdown(async (dropdown) => {
         // Add empty option
         dropdown.addOption('', 'None');
-        
+
         try {
           const templates = await this.plugin.getTemplates();
-          templates.forEach(template => {
+          templates.forEach((template) => {
             dropdown.addOption(template.name, template.name);
           });
         } catch (error) {
           console.error('Failed to load templates for dropdown:', error);
         }
-        
-        dropdown
-          .setValue(this.plugin.settings.defaultTemplate)
-          .onChange(async (value) => {
-            this.plugin.settings.defaultTemplate = value;
-            await this.plugin.saveSettings();
-          });
+
+        dropdown.setValue(this.plugin.settings.defaultTemplate).onChange(async (value) => {
+          this.plugin.settings.defaultTemplate = value;
+          await this.plugin.saveSettings();
+        });
       });
 
     new Setting(containerEl)

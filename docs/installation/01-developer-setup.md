@@ -5,6 +5,7 @@
 ## 🚀 개발 환경 요구사항
 
 ### 필수 소프트웨어
+
 - **Node.js**: v16 이상 (권장: v18+)
 - **pnpm**: v7 이상 (모노레포 워크스페이스 지원)
 - **Git**: 최신 버전
@@ -12,6 +13,7 @@
 - **IDE**: VS Code 또는 WebStorm 권장
 
 ### 권장 도구
+
 - **Git GUI**: SourceTree, GitHub Desktop
 - **Terminal**: iTerm2 (macOS), Windows Terminal (Windows)
 - **Docker**: 테스트 환경 격리용 (선택사항)
@@ -19,6 +21,7 @@
 ## 📦 로컬 환경 설치
 
 ### 1. 저장소 클론
+
 ```bash
 # 1. 저장소 클론
 git clone https://github.com/sb-obsidian-plugins/sb-obsidian-plugins.git
@@ -30,6 +33,7 @@ git checkout main
 ```
 
 ### 2. 의존성 설치
+
 ```bash
 # pnpm 설치 (없는 경우)
 npm install -g pnpm
@@ -42,6 +46,7 @@ pnpm -r list
 ```
 
 ### 3. 개발 환경 구성
+
 ```bash
 # 1. 환경 변수 설정 (선택사항)
 cp .env.example .env
@@ -57,6 +62,7 @@ pnpm run test:all
 ## 🎯 Obsidian 개발 환경 설정
 
 ### 1. 개발용 Vault 생성
+
 ```bash
 # 1. 개발용 vault 디렉토리 생성
 mkdir ~/obsidian-dev-vault
@@ -73,6 +79,7 @@ ln -s /path/to/sb-obsidian-plugins/packages/publisher-scripton .obsidian/plugins
 ```
 
 ### 2. Obsidian 설정
+
 ```javascript
 // .obsidian/config.json
 {
@@ -84,7 +91,7 @@ ln -s /path/to/sb-obsidian-plugins/packages/publisher-scripton .obsidian/plugins
   },
   "enabledPlugins": [
     "template-generator",
-    "git-sync", 
+    "git-sync",
     "metadata-manager",
     "publisher-scripton"
   ]
@@ -92,6 +99,7 @@ ln -s /path/to/sb-obsidian-plugins/packages/publisher-scripton .obsidian/plugins
 ```
 
 ### 3. 핫 리로드 설정
+
 ```bash
 # 각 플러그인 디렉토리에서 개발 모드 실행
 cd packages/template-generator
@@ -108,6 +116,7 @@ pnpm run dev:all
 ## 🔧 개발 워크플로우
 
 ### 1. 기능 개발 프로세스
+
 ```bash
 # 1. 새 기능 브랜치 생성
 git checkout -b feature/new-awesome-feature
@@ -128,6 +137,7 @@ git push origin feature/new-awesome-feature
 ```
 
 ### 2. 디버깅 설정
+
 ```javascript
 // VS Code launch.json
 {
@@ -147,6 +157,7 @@ git push origin feature/new-awesome-feature
 ```
 
 ### 3. 테스트 환경
+
 ```bash
 # 단위 테스트
 pnpm run test:unit
@@ -164,6 +175,7 @@ pnpm run test:coverage
 ## 🏗️ 모노레포 구조 이해
 
 ### 디렉토리 구조
+
 ```
 sb-obsidian-plugins/
 ├── packages/                    # 개별 플러그인
@@ -180,6 +192,7 @@ sb-obsidian-plugins/
 ```
 
 ### 공통 스크립트
+
 ```json
 {
   "scripts": {
@@ -195,6 +208,7 @@ sb-obsidian-plugins/
 ## 🧪 테스트 전략
 
 ### 1. 단위 테스트 (Vitest)
+
 ```typescript
 // packages/template-generator/src/__tests__/main.test.ts
 import { describe, it, expect, vi } from 'vitest';
@@ -210,6 +224,7 @@ describe('TemplateGenerator', () => {
 ```
 
 ### 2. 통합 테스트 (Obsidian Mock)
+
 ```typescript
 // packages/template-generator/src/__tests__/integration.test.ts
 import { App, TFile } from 'obsidian';
@@ -232,6 +247,7 @@ describe('TemplateGenerator Integration', () => {
 ```
 
 ### 3. E2E 테스트 (Playwright)
+
 ```typescript
 // e2e/template-generator.spec.ts
 import { test, expect } from '@playwright/test';
@@ -246,6 +262,7 @@ test('template generator workflow', async ({ page }) => {
 ## 🔍 디버깅 및 프로파일링
 
 ### 1. Chrome DevTools 연결
+
 ```bash
 # Obsidian 디버그 모드 실행
 /Applications/Obsidian.app/Contents/MacOS/Obsidian --remote-debugging-port=9222
@@ -254,6 +271,7 @@ test('template generator workflow', async ({ page }) => {
 ```
 
 ### 2. 로그 레벨 설정
+
 ```typescript
 // 개발 모드 로깅
 if (process.env.NODE_ENV === 'development') {
@@ -265,6 +283,7 @@ this.app.vault.adapter.write('.obsidian/logs/plugin.log', logData);
 ```
 
 ### 3. 성능 모니터링
+
 ```typescript
 // 성능 측정
 const start = performance.now();
@@ -276,18 +295,21 @@ console.log(`Operation took ${end - start} milliseconds`);
 ## 🚀 배포 전 체크리스트
 
 ### 코드 품질 확인
+
 - [ ] 모든 테스트 통과
 - [ ] ESLint 경고 없음
 - [ ] TypeScript 컴파일 오류 없음
 - [ ] 코드 커버리지 80% 이상
 
 ### 문서화 확인
+
 - [ ] README.md 업데이트
 - [ ] CHANGELOG.md 작성
 - [ ] API 문서 생성
 - [ ] 사용법 가이드 작성
 
 ### 성능 및 보안
+
 - [ ] 메모리 누수 검사
 - [ ] 보안 취약점 스캔
 - [ ] 번들 크기 최적화
@@ -296,16 +318,19 @@ console.log(`Operation took ${end - start} milliseconds`);
 ## 📚 참고 자료
 
 ### Obsidian 개발 문서
+
 - [Plugin API Documentation](https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin)
 - [Plugin Guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines)
 - [Sample Plugin](https://github.com/obsidianmd/obsidian-sample-plugin)
 
 ### 개발 도구
+
 - [Obsidian Plugin Template](https://github.com/obsidianmd/obsidian-plugin-template)
 - [Obsidian API Types](https://github.com/obsidianmd/obsidian-api)
 - [Hot Reload Plugin](https://github.com/pjeby/hot-reload)
 
 ### 커뮤니티 리소스
+
 - [Obsidian Plugin Dev Discord](https://discord.gg/obsidianmd)
 - [Plugin Development Forum](https://forum.obsidian.md/c/plugin-ideas)
 - [Community Plugins](https://github.com/obsidianmd/obsidian-releases)

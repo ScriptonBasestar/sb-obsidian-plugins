@@ -50,7 +50,7 @@ Requirements:
 - Keep subject line under 50 characters
 - Use lowercase after colon
 - Be concise and descriptive`,
-      variables: ['files', 'branch', 'recentCommits']
+      variables: ['files', 'branch', 'recentCommits'],
     },
     {
       id: 'detailed',
@@ -80,7 +80,7 @@ Please provide:
 2. A detailed body explaining what and why
 3. Use conventional commits format
 4. Include any breaking changes if applicable`,
-      variables: ['files', 'branch', 'diff']
+      variables: ['files', 'branch', 'diff'],
     },
     {
       id: 'korean',
@@ -107,7 +107,7 @@ Please provide:
 - 예: feat: 새로운 기능 추가, fix: 버그 수정, docs: 문서 업데이트
 - 제목은 50자 이내로 간결하게
 - 명확하고 이해하기 쉽게 작성`,
-      variables: ['files', 'branch', 'timestamp']
+      variables: ['files', 'branch', 'timestamp'],
     },
     {
       id: 'simple',
@@ -123,7 +123,7 @@ Branch: {{branch}}
 Focus on the main purpose of these changes.
 Use conventional commits format but keep it minimal and clear.
 One line preferred, maximum 50 characters.`,
-      variables: ['files', 'branch']
+      variables: ['files', 'branch'],
     },
     {
       id: 'team',
@@ -154,8 +154,8 @@ Requirements:
 - Include relevant scope/module
 - Use conventional commits format
 - Consider impact on team members`,
-      variables: ['files', 'branch', 'recentCommits']
-    }
+      variables: ['files', 'branch', 'recentCommits'],
+    },
   ];
 
   /**
@@ -169,7 +169,7 @@ Requirements:
    * Get a specific template by ID
    */
   static getTemplate(id: string): PromptTemplate | undefined {
-    return this.DEFAULT_TEMPLATES.find(template => template.id === id);
+    return this.DEFAULT_TEMPLATES.find((template) => template.id === id);
   }
 
   /**
@@ -182,30 +182,49 @@ Requirements:
     processed = processed.replace(/\{\{files\.total\}\}/g, variables.files.total.toString());
     processed = processed.replace(/\{\{branch\}\}/g, variables.branch);
     processed = processed.replace(/\{\{timestamp\}\}/g, variables.timestamp);
-    
+
     if (variables.author) {
       processed = processed.replace(/\{\{author\}\}/g, variables.author);
     }
 
     // Replace array variables
-    processed = processed.replace(/\{\{files\.staged\}\}/g, 
-      variables.files.staged.length > 0 ? variables.files.staged.slice(0, 5).join(', ') + 
-      (variables.files.staged.length > 5 ? ` and ${variables.files.staged.length - 5} more` : '') : '(none)');
-    
-    processed = processed.replace(/\{\{files\.unstaged\}\}/g, 
-      variables.files.unstaged.length > 0 ? variables.files.unstaged.slice(0, 5).join(', ') + 
-      (variables.files.unstaged.length > 5 ? ` and ${variables.files.unstaged.length - 5} more` : '') : '(none)');
-    
-    processed = processed.replace(/\{\{files\.untracked\}\}/g, 
-      variables.files.untracked.length > 0 ? variables.files.untracked.slice(0, 5).join(', ') + 
-      (variables.files.untracked.length > 5 ? ` and ${variables.files.untracked.length - 5} more` : '') : '(none)');
+    processed = processed.replace(
+      /\{\{files\.staged\}\}/g,
+      variables.files.staged.length > 0
+        ? variables.files.staged.slice(0, 5).join(', ') +
+            (variables.files.staged.length > 5
+              ? ` and ${variables.files.staged.length - 5} more`
+              : '')
+        : '(none)'
+    );
+
+    processed = processed.replace(
+      /\{\{files\.unstaged\}\}/g,
+      variables.files.unstaged.length > 0
+        ? variables.files.unstaged.slice(0, 5).join(', ') +
+            (variables.files.unstaged.length > 5
+              ? ` and ${variables.files.unstaged.length - 5} more`
+              : '')
+        : '(none)'
+    );
+
+    processed = processed.replace(
+      /\{\{files\.untracked\}\}/g,
+      variables.files.untracked.length > 0
+        ? variables.files.untracked.slice(0, 5).join(', ') +
+            (variables.files.untracked.length > 5
+              ? ` and ${variables.files.untracked.length - 5} more`
+              : '')
+        : '(none)'
+    );
 
     // Handle conditional blocks
     processed = this.processConditionalBlocks(processed, variables);
 
     // Replace diff (truncated)
     if (variables.diff) {
-      const truncatedDiff = variables.diff.length > 800 ? variables.diff.substring(0, 800) + '...' : variables.diff;
+      const truncatedDiff =
+        variables.diff.length > 800 ? variables.diff.substring(0, 800) + '...' : variables.diff;
       processed = processed.replace(/\{\{diff\}\}/g, truncatedDiff);
     } else {
       processed = processed.replace(/\{\{diff\}\}/g, '(no diff available)');
@@ -213,8 +232,10 @@ Requirements:
 
     // Replace recent commits
     if (variables.recentCommits && variables.recentCommits.length > 0) {
-      processed = processed.replace(/\{\{recentCommits\}\}/g, 
-        variables.recentCommits.slice(0, 3).join('\n'));
+      processed = processed.replace(
+        /\{\{recentCommits\}\}/g,
+        variables.recentCommits.slice(0, 3).join('\n')
+      );
     } else {
       processed = processed.replace(/\{\{recentCommits\}\}/g, '(no recent commits)');
     }
@@ -236,28 +257,40 @@ Requirements:
     let processed = template;
 
     // Process {{#if files.staged}}...{{/if}}
-    processed = processed.replace(/\{\{#if files\.staged\}\}([\s\S]*?)\{\{\/if\}\}/g, 
-      variables.files.staged.length > 0 ? '$1' : '');
+    processed = processed.replace(
+      /\{\{#if files\.staged\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.files.staged.length > 0 ? '$1' : ''
+    );
 
     // Process {{#if files.unstaged}}...{{/if}}
-    processed = processed.replace(/\{\{#if files\.unstaged\}\}([\s\S]*?)\{\{\/if\}\}/g, 
-      variables.files.unstaged.length > 0 ? '$1' : '');
+    processed = processed.replace(
+      /\{\{#if files\.unstaged\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.files.unstaged.length > 0 ? '$1' : ''
+    );
 
     // Process {{#if files.untracked}}...{{/if}}
-    processed = processed.replace(/\{\{#if files\.untracked\}\}([\s\S]*?)\{\{\/if\}\}/g, 
-      variables.files.untracked.length > 0 ? '$1' : '');
+    processed = processed.replace(
+      /\{\{#if files\.untracked\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.files.untracked.length > 0 ? '$1' : ''
+    );
 
     // Process {{#if files.total}}...{{/if}}
-    processed = processed.replace(/\{\{#if files\.total\}\}([\s\S]*?)\{\{\/if\}\}/g, 
-      variables.files.total > 0 ? '$1' : '');
+    processed = processed.replace(
+      /\{\{#if files\.total\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.files.total > 0 ? '$1' : ''
+    );
 
     // Process {{#if recentCommits}}...{{/if}}
-    processed = processed.replace(/\{\{#if recentCommits\}\}([\s\S]*?)\{\{\/if\}\}/g, 
-      variables.recentCommits && variables.recentCommits.length > 0 ? '$1' : '');
+    processed = processed.replace(
+      /\{\{#if recentCommits\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.recentCommits && variables.recentCommits.length > 0 ? '$1' : ''
+    );
 
     // Process {{#if diff}}...{{/if}}
-    processed = processed.replace(/\{\{#if diff\}\}([\s\S]*?)\{\{\/if\}\}/g, 
-      variables.diff && variables.diff.length > 0 ? '$1' : '');
+    processed = processed.replace(
+      /\{\{#if diff\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.diff && variables.diff.length > 0 ? '$1' : ''
+    );
 
     return processed;
   }
@@ -267,19 +300,22 @@ Requirements:
    */
   static createVariables(context: any): PromptVariables {
     const files = context.files || { staged: [], unstaged: [], untracked: [] };
-    
+
     return {
       files: {
         staged: files.staged || [],
         unstaged: files.unstaged || [],
         untracked: files.untracked || [],
-        total: (files.staged?.length || 0) + (files.unstaged?.length || 0) + (files.untracked?.length || 0)
+        total:
+          (files.staged?.length || 0) +
+          (files.unstaged?.length || 0) +
+          (files.untracked?.length || 0),
       },
       branch: context.branch || 'unknown',
       diff: context.diff,
       recentCommits: context.recentCommits,
       timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
-      author: context.author
+      author: context.author,
     };
   }
 
@@ -292,7 +328,7 @@ Requirements:
     // Check for unmatched conditional blocks
     const ifBlocks = template.match(/\{\{#if\s+[\w.]+\}\}/g) || [];
     const endifBlocks = template.match(/\{\{\/if\}\}/g) || [];
-    
+
     if (ifBlocks.length !== endifBlocks.length) {
       errors.push('Unmatched conditional blocks: {{#if}} and {{/if}} count mismatch');
     }
@@ -300,20 +336,27 @@ Requirements:
     // Check for unknown variables
     const variables = template.match(/\{\{[\w.]+\}\}/g) || [];
     const validVariables = [
-      'files.staged', 'files.unstaged', 'files.untracked', 'files.total',
-      'branch', 'diff', 'recentCommits', 'timestamp', 'author'
+      'files.staged',
+      'files.unstaged',
+      'files.untracked',
+      'files.total',
+      'branch',
+      'diff',
+      'recentCommits',
+      'timestamp',
+      'author',
     ];
-    
+
     const conditionalPrefixes = ['#if ', '/if'];
-    
+
     for (const variable of variables) {
       const cleanVar = variable.replace(/\{\{|\}\}/g, '');
-      
+
       // Skip conditional blocks
-      if (conditionalPrefixes.some(prefix => cleanVar.startsWith(prefix))) {
+      if (conditionalPrefixes.some((prefix) => cleanVar.startsWith(prefix))) {
         continue;
       }
-      
+
       if (!validVariables.includes(cleanVar)) {
         errors.push(`Unknown variable: ${variable}`);
       }
@@ -321,7 +364,7 @@ Requirements:
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 

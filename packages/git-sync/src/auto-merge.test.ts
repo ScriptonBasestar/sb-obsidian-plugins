@@ -5,7 +5,7 @@ import { GitService } from './git-service';
 // Mock dependencies
 vi.mock('./git-service');
 vi.mock('obsidian', () => ({
-  Vault: class MockVault {}
+  Vault: class MockVault {},
 }));
 
 describe('AutoCommitService - Auto Merge', () => {
@@ -16,7 +16,7 @@ describe('AutoCommitService - Auto Merge', () => {
   beforeEach(() => {
     mockGitService = new GitService('');
     mockVault = {};
-    
+
     const settings = {
       enableAutoCommit: true,
       commitIntervalMinutes: 10,
@@ -32,7 +32,7 @@ describe('AutoCommitService - Auto Merge', () => {
       apiKey: '',
       commitPrompt: '',
       useTemplateEngine: false,
-      selectedTemplate: ''
+      selectedTemplate: '',
     };
 
     service = new AutoCommitService(mockGitService, settings, mockVault);
@@ -60,12 +60,12 @@ describe('AutoCommitService - Auto Merge', () => {
         untracked: [],
         currentBranch: 'main',
         ahead: 0,
-        behind: 0
+        behind: 0,
       });
       vi.mocked(mockGitService.pullRebase).mockResolvedValue({ success: true });
       vi.mocked(mockGitService.mergeBranches).mockResolvedValue({
         success: true,
-        conflicts: false
+        conflicts: false,
       });
       vi.mocked(mockGitService.push).mockResolvedValue({ success: true });
 
@@ -82,14 +82,16 @@ describe('AutoCommitService - Auto Merge', () => {
     it('should skip merge when safety check fails', async () => {
       vi.mocked(mockGitService.isSafeToAutoMerge).mockResolvedValue({
         safe: false,
-        reason: 'No commits ahead on temp branch'
+        reason: 'No commits ahead on temp branch',
       });
 
       await service.performManualAutoMerge();
 
       expect(mockGitService.isSafeToAutoMerge).toHaveBeenCalled();
       expect(mockGitService.switchBranch).not.toHaveBeenCalled();
-      expect(console.log).toHaveBeenCalledWith('Skipping auto merge: No commits ahead on temp branch');
+      expect(console.log).toHaveBeenCalledWith(
+        'Skipping auto merge: No commits ahead on temp branch'
+      );
     });
 
     it('should skip merge when main branch has uncommitted changes', async () => {
@@ -103,14 +105,16 @@ describe('AutoCommitService - Auto Merge', () => {
         untracked: [],
         currentBranch: 'main',
         ahead: 0,
-        behind: 0
+        behind: 0,
       });
 
       await service.performManualAutoMerge();
 
       expect(mockGitService.switchBranch).toHaveBeenCalledWith('main');
       expect(mockGitService.pullRebase).not.toHaveBeenCalled();
-      expect(console.warn).toHaveBeenCalledWith('Main branch has uncommitted changes, skipping auto merge');
+      expect(console.warn).toHaveBeenCalledWith(
+        'Main branch has uncommitted changes, skipping auto merge'
+      );
     });
 
     it('should handle merge conflicts gracefully', async () => {
@@ -124,20 +128,22 @@ describe('AutoCommitService - Auto Merge', () => {
         untracked: [],
         currentBranch: 'main',
         ahead: 0,
-        behind: 0
+        behind: 0,
       });
       vi.mocked(mockGitService.pullRebase).mockResolvedValue({ success: true });
       vi.mocked(mockGitService.mergeBranches).mockResolvedValue({
         success: true,
         conflicts: true,
-        error: 'Merge conflicts detected'
+        error: 'Merge conflicts detected',
       });
 
       await service.performManualAutoMerge();
 
       expect(mockGitService.mergeBranches).toHaveBeenCalled();
       expect(mockGitService.push).not.toHaveBeenCalled(); // No push on conflicts
-      expect(console.warn).toHaveBeenCalledWith('Auto merge has conflicts - manual resolution required');
+      expect(console.warn).toHaveBeenCalledWith(
+        'Auto merge has conflicts - manual resolution required'
+      );
     });
 
     it('should handle merge failure and switch back to temp branch', async () => {
@@ -151,12 +157,12 @@ describe('AutoCommitService - Auto Merge', () => {
         untracked: [],
         currentBranch: 'main',
         ahead: 0,
-        behind: 0
+        behind: 0,
       });
       vi.mocked(mockGitService.pullRebase).mockResolvedValue({ success: true });
       vi.mocked(mockGitService.mergeBranches).mockResolvedValue({
         success: false,
-        error: 'Merge failed'
+        error: 'Merge failed',
       });
 
       await service.performManualAutoMerge();
@@ -177,16 +183,16 @@ describe('AutoCommitService - Auto Merge', () => {
         untracked: [],
         currentBranch: 'main',
         ahead: 0,
-        behind: 0
+        behind: 0,
       });
       vi.mocked(mockGitService.pullRebase).mockResolvedValue({ success: true });
       vi.mocked(mockGitService.mergeBranches).mockResolvedValue({
         success: true,
-        conflicts: false
+        conflicts: false,
       });
       vi.mocked(mockGitService.push).mockResolvedValue({
         success: false,
-        error: 'Push failed'
+        error: 'Push failed',
       });
 
       await service.performManualAutoMerge();
@@ -229,7 +235,7 @@ describe('AutoCommitService - Auto Merge', () => {
         apiKey: '',
         commitPrompt: 'test commit',
         useTemplateEngine: false,
-        selectedTemplate: ''
+        selectedTemplate: '',
       };
 
       service.updateSettings(settings);
@@ -240,7 +246,7 @@ describe('AutoCommitService - Auto Merge', () => {
         .mockResolvedValueOnce('tmp') // For merge safety check
         .mockResolvedValueOnce('main') // After switching to main
         .mockResolvedValueOnce('tmp'); // Final switch back
-      
+
       vi.mocked(mockGitService.getStatus)
         .mockResolvedValueOnce({
           hasChanges: true,
@@ -249,7 +255,7 @@ describe('AutoCommitService - Auto Merge', () => {
           untracked: [],
           currentBranch: 'tmp',
           ahead: 1,
-          behind: 0
+          behind: 0,
         })
         .mockResolvedValueOnce({
           hasChanges: false,
@@ -258,21 +264,21 @@ describe('AutoCommitService - Auto Merge', () => {
           untracked: [],
           currentBranch: 'main',
           ahead: 0,
-          behind: 0
+          behind: 0,
         });
       vi.mocked(mockGitService.addAndCommit).mockResolvedValue({
         success: true,
-        data: { hash: 'abc123' }
+        data: { hash: 'abc123' },
       });
       vi.mocked(mockGitService.push).mockResolvedValue({ success: true });
-      
+
       // Mock auto merge success - need to setup all the calls in sequence
       vi.mocked(mockGitService.isSafeToAutoMerge).mockResolvedValue({ safe: true });
       vi.mocked(mockGitService.switchBranch).mockResolvedValue({ success: true });
       vi.mocked(mockGitService.pullRebase).mockResolvedValue({ success: true });
       vi.mocked(mockGitService.mergeBranches).mockResolvedValue({
         success: true,
-        conflicts: false
+        conflicts: false,
       });
 
       const result = await service.performCommit();
@@ -301,7 +307,7 @@ describe('AutoCommitService - Auto Merge', () => {
         apiKey: '',
         commitPrompt: '',
         useTemplateEngine: false,
-        selectedTemplate: ''
+        selectedTemplate: '',
       };
 
       service.updateSettings(settings);
@@ -315,11 +321,11 @@ describe('AutoCommitService - Auto Merge', () => {
         untracked: [],
         currentBranch: 'tmp',
         ahead: 1,
-        behind: 0
+        behind: 0,
       });
       vi.mocked(mockGitService.addAndCommit).mockResolvedValue({
         success: true,
-        data: { hash: 'abc123' }
+        data: { hash: 'abc123' },
       });
       vi.mocked(mockGitService.push).mockResolvedValue({ success: true });
 

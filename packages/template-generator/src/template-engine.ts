@@ -15,26 +15,26 @@ export interface TemplateContext {
   today: string;
   tomorrow: string;
   yesterday: string;
-  
+
   // Korean date variables
   날짜: string;
   오늘: string;
   내일: string;
   어제: string;
   요일: string;
-  
+
   // Weather variables
   날씨: string;
   weather: string;
-  
+
   // Fortune variables
   운세: string;
   fortune: string;
-  
+
   // User-provided variables
   title?: string;
   author?: string;
-  
+
   // Custom variables
   [key: string]: any;
 }
@@ -66,7 +66,7 @@ export class TemplateEngine {
       } else {
         dateObj = date;
       }
-      
+
       switch (format) {
         case 'YYYY-MM-DD':
           return dateObj.toISOString().split('T')[0];
@@ -75,10 +75,10 @@ export class TemplateEngine {
         case 'DD/MM/YYYY':
           return dateObj.toLocaleDateString('en-GB');
         case 'MMMM DD, YYYY':
-          return dateObj.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+          return dateObj.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
           });
         default:
           return dateObj.toLocaleDateString();
@@ -95,17 +95,17 @@ export class TemplateEngine {
       } else {
         dateObj = date;
       }
-      
+
       switch (format) {
         case '24':
-          return dateObj.toLocaleTimeString('en-GB', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+          return dateObj.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
           });
         case '12':
-          return dateObj.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit' 
+          return dateObj.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
           });
         default:
           return dateObj.toLocaleTimeString();
@@ -126,7 +126,7 @@ export class TemplateEngine {
     });
 
     // Conditional helpers
-    this.handlebars.registerHelper('if_eq', function(a: any, b: any, options: any) {
+    this.handlebars.registerHelper('if_eq', function (a: any, b: any, options: any) {
       if (a === b) {
         return options.fn(this);
       }
@@ -162,13 +162,17 @@ export class TemplateEngine {
     this.handlebars.registerHelper('weatherSimple', async () => {
       if (!this.weatherSettings) return '날씨 정보 없음';
       const weather = await this.weatherService.getWeather(this.weatherSettings);
-      return weather ? this.weatherService.formatWeatherString(weather, this.weatherSettings) : '날씨 정보를 가져올 수 없습니다';
+      return weather
+        ? this.weatherService.formatWeatherString(weather, this.weatherSettings)
+        : '날씨 정보를 가져올 수 없습니다';
     });
 
     this.handlebars.registerHelper('weatherDetailed', async () => {
       if (!this.weatherSettings) return '날씨 정보 없음';
       const weather = await this.weatherService.getWeather(this.weatherSettings);
-      return weather ? this.weatherService.formatDetailedWeather(weather, this.weatherSettings) : '날씨 정보를 가져올 수 없습니다';
+      return weather
+        ? this.weatherService.formatDetailedWeather(weather, this.weatherSettings)
+        : '날씨 정보를 가져올 수 없습니다';
     });
 
     // Fortune helpers
@@ -229,18 +233,18 @@ export class TemplateEngine {
       today: today.toISOString().split('T')[0],
       tomorrow: tomorrow.toISOString().split('T')[0],
       yesterday: yesterday.toISOString().split('T')[0],
-      
+
       // Korean date variables
       날짜: this.formatKoreanDate(now),
       오늘: this.formatKoreanDate(today),
       내일: this.formatKoreanDate(tomorrow),
       어제: this.formatKoreanDate(yesterday),
       요일: this.formatKoreanDay(now),
-      
+
       // Weather variables
       날씨: weatherInfo,
       weather: weatherInfo,
-      
+
       // Fortune variables
       운세: fortuneInfo,
       fortune: fortuneInfo,
@@ -251,7 +255,7 @@ export class TemplateEngine {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
-    
+
     return `${year}년 ${month}월 ${day}일`;
   }
 
@@ -263,16 +267,19 @@ export class TemplateEngine {
   private formatKoreanDateTime(date: Date): string {
     const koreanDate = this.formatKoreanDate(date);
     const koreanDay = this.formatKoreanDay(date);
-    const time = date.toLocaleTimeString('ko-KR', { 
-      hour: '2-digit', 
+    const time = date.toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     });
-    
+
     return `${koreanDate} ${koreanDay} ${time}`;
   }
 
-  async renderTemplate(template: ParsedTemplate, userVariables?: TemplateVariables): Promise<string> {
+  async renderTemplate(
+    template: ParsedTemplate,
+    userVariables?: TemplateVariables
+  ): Promise<string> {
     try {
       // Combine default context with user variables
       const defaultContext = await this.getDefaultContext();
@@ -290,7 +297,10 @@ export class TemplateEngine {
     }
   }
 
-  async renderTemplateString(templateString: string, userVariables?: TemplateVariables): Promise<string> {
+  async renderTemplateString(
+    templateString: string,
+    userVariables?: TemplateVariables
+  ): Promise<string> {
     try {
       const defaultContext = await this.getDefaultContext();
       const context: TemplateContext = {
@@ -306,7 +316,10 @@ export class TemplateEngine {
     }
   }
 
-  async previewTemplate(template: ParsedTemplate, userVariables?: TemplateVariables): Promise<string> {
+  async previewTemplate(
+    template: ParsedTemplate,
+    userVariables?: TemplateVariables
+  ): Promise<string> {
     try {
       // Use sample data for preview
       const defaultContext = await this.getDefaultContext();
@@ -348,7 +361,7 @@ export class TemplateEngine {
     // Check for common issues
     const openBraces = (templateString.match(/\{\{/g) || []).length;
     const closeBraces = (templateString.match(/\}\}/g) || []).length;
-    
+
     if (openBraces !== closeBraces) {
       errors.push('Mismatched template braces {{ }}');
     }
@@ -377,7 +390,7 @@ export class TemplateEngine {
     return [
       // English variables
       'date',
-      'time', 
+      'time',
       'datetime',
       'today',
       'tomorrow',
@@ -386,7 +399,7 @@ export class TemplateEngine {
       'author',
       'weather',
       'fortune',
-      
+
       // Korean variables
       '날짜',
       '오늘',
@@ -404,21 +417,21 @@ export class TemplateEngine {
       'formatDate',
       'formatTime',
       'uppercase',
-      'lowercase', 
+      'lowercase',
       'capitalize',
       'if_eq',
       'add',
       'subtract',
-      
+
       // Korean helpers
       'koreanDate',
       'koreanDay',
       'koreanDateTime',
-      
+
       // Weather helpers
       'weatherSimple',
       'weatherDetailed',
-      
+
       // Fortune helpers
       'fortuneSimple',
       'fortuneDetailed',

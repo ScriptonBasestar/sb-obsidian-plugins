@@ -53,9 +53,9 @@ export class ScriptonApiService {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.settings.apiKey}`,
-        'User-Agent': 'obsidian-publisher-scripton/1.0.0'
-      }
+        Authorization: `Bearer ${this.settings.apiKey}`,
+        'User-Agent': 'obsidian-publisher-scripton/1.0.0',
+      },
     });
 
     // Request interceptor for logging
@@ -70,7 +70,9 @@ export class ScriptonApiService {
     this.api.interceptors.response.use(
       (response) => {
         if (this.settings.enableDetailedLogs && this.shouldLog('debug')) {
-          this.log('debug', `API Response: ${response.status} ${response.config.url}`, { response: response.data });
+          this.log('debug', `API Response: ${response.status} ${response.config.url}`, {
+            response: response.data,
+          });
         }
         return response;
       },
@@ -89,21 +91,21 @@ export class ScriptonApiService {
   async testConnection(): Promise<ApiTestResult> {
     try {
       this.log('info', 'Testing API connection...');
-      
+
       const response: AxiosResponse = await this.api.get('/auth/test');
-      
+
       this.log('info', 'API connection test successful');
       return {
         success: true,
-        user: response.data.user
+        user: response.data.user,
       };
     } catch (error: any) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', 'API connection test failed', errorMessage);
-      
+
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -111,7 +113,7 @@ export class ScriptonApiService {
   async publishNote(options: PublishNoteOptions): Promise<PublishResult> {
     try {
       this.log('info', `Publishing note: ${options.title}`);
-      
+
       const payload = {
         title: options.title,
         content: options.content,
@@ -122,48 +124,51 @@ export class ScriptonApiService {
           source: 'obsidian',
           includeAttachments: options.includeAttachments,
           preserveLinks: options.preserveLinks,
-          publishedAt: new Date().toISOString()
-        }
+          publishedAt: new Date().toISOString(),
+        },
       };
 
       const response: AxiosResponse = await this.api.post('/notes', payload);
-      
+
       this.log('info', `Note published successfully: ${response.data.url}`);
       return {
         success: true,
         url: response.data.url,
-        id: response.data.id
+        id: response.data.id,
       };
     } catch (error: any) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', `Failed to publish note: ${options.title}`, errorMessage);
-      
+
       // Retry logic
       if (this.settings.enableRetry && this.shouldRetry(error)) {
         return this.retryPublishNote(options);
       }
-      
+
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
 
-  private async retryPublishNote(options: PublishNoteOptions, attempt: number = 1): Promise<PublishResult> {
+  private async retryPublishNote(
+    options: PublishNoteOptions,
+    attempt: number = 1
+  ): Promise<PublishResult> {
     if (attempt > this.settings.maxRetries) {
       this.log('error', `Max retries exceeded for note: ${options.title}`);
       return {
         success: false,
-        error: 'Max retries exceeded'
+        error: 'Max retries exceeded',
       };
     }
 
     this.log('warn', `Retrying publish attempt ${attempt} for note: ${options.title}`);
-    
+
     // Wait before retry
-    await new Promise(resolve => setTimeout(resolve, this.settings.retryDelay * attempt));
-    
+    await new Promise((resolve) => setTimeout(resolve, this.settings.retryDelay * attempt));
+
     try {
       const result = await this.publishNote(options);
       if (result.success) {
@@ -180,33 +185,33 @@ export class ScriptonApiService {
   async uploadAttachment(file: TFile): Promise<UploadResult> {
     try {
       this.log('info', `Uploading attachment: ${file.name}`);
-      
+
       // Read file as array buffer
       const arrayBuffer = await this.app.vault.readBinary(file);
       const blob = new Blob([arrayBuffer]);
-      
+
       const formData = new FormData();
       formData.append('file', blob, file.name);
       formData.append('type', 'attachment');
-      
+
       const response: AxiosResponse = await this.api.post('/uploads', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      
+
       this.log('info', `Attachment uploaded successfully: ${response.data.url}`);
       return {
         success: true,
-        url: response.data.url
+        url: response.data.url,
       };
     } catch (error: any) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', `Failed to upload attachment: ${file.name}`, errorMessage);
-      
+
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -214,22 +219,22 @@ export class ScriptonApiService {
   async updateNote(id: string, options: Partial<PublishNoteOptions>): Promise<PublishResult> {
     try {
       this.log('info', `Updating note: ${id}`);
-      
+
       const response: AxiosResponse = await this.api.put(`/notes/${id}`, options);
-      
+
       this.log('info', `Note updated successfully: ${response.data.url}`);
       return {
         success: true,
         url: response.data.url,
-        id: response.data.id
+        id: response.data.id,
       };
     } catch (error: any) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', `Failed to update note: ${id}`, errorMessage);
-      
+
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -237,18 +242,18 @@ export class ScriptonApiService {
   async deleteNote(id: string): Promise<{ success: boolean; error?: string }> {
     try {
       this.log('info', `Deleting note: ${id}`);
-      
+
       await this.api.delete(`/notes/${id}`);
-      
+
       this.log('info', `Note deleted successfully: ${id}`);
       return { success: true };
     } catch (error: any) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', `Failed to delete note: ${id}`, errorMessage);
-      
+
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -256,17 +261,17 @@ export class ScriptonApiService {
   async getUserInfo(): Promise<{ success: boolean; user?: any; error?: string }> {
     try {
       const response: AxiosResponse = await this.api.get('/user');
-      
+
       return {
         success: true,
-        user: response.data
+        user: response.data,
       };
     } catch (error: any) {
       const errorMessage = this.extractErrorMessage(error);
-      
+
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -274,17 +279,17 @@ export class ScriptonApiService {
   async getPublishedNotes(): Promise<{ success: boolean; notes?: any[]; error?: string }> {
     try {
       const response: AxiosResponse = await this.api.get('/notes');
-      
+
       return {
         success: true,
-        notes: response.data.notes
+        notes: response.data.notes,
       };
     } catch (error: any) {
       const errorMessage = this.extractErrorMessage(error);
-      
+
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -307,7 +312,7 @@ export class ScriptonApiService {
       timestamp: Date.now(),
       level,
       message,
-      error: error ? (typeof error === 'string' ? error : JSON.stringify(error)) : undefined
+      error: error ? (typeof error === 'string' ? error : JSON.stringify(error)) : undefined,
     };
 
     this.logs.push(logEntry);
@@ -327,7 +332,7 @@ export class ScriptonApiService {
     const levels = ['error', 'warn', 'info', 'debug'];
     const currentLevelIndex = levels.indexOf(this.settings.logLevel);
     const messageLevelIndex = levels.indexOf(level);
-    
+
     return messageLevelIndex <= currentLevelIndex;
   }
 
@@ -341,15 +346,15 @@ export class ScriptonApiService {
     if (error.response?.data?.message) {
       return error.response.data.message;
     }
-    
+
     if (error.response?.data?.error) {
       return error.response.data.error;
     }
-    
+
     if (error.message) {
       return error.message;
     }
-    
+
     return 'Unknown error occurred';
   }
 }

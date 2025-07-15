@@ -101,8 +101,8 @@ class MockAwesomePlugin {
     }
 
     const templates = await this.getTemplates();
-    const defaultTemplate = templates.find(t => t.name === this.settings.defaultTemplate);
-    
+    const defaultTemplate = templates.find((t) => t.name === this.settings.defaultTemplate);
+
     if (!defaultTemplate) {
       throw new Error(`Default template "${this.settings.defaultTemplate}" not found`);
     }
@@ -123,19 +123,21 @@ describe('Template Settings', () => {
   describe('Default template functionality', () => {
     it('should handle empty default template setting', async () => {
       plugin.settings.defaultTemplate = '';
-      
+
       await expect(plugin.insertDefaultTemplate({})).rejects.toThrow('No default template set');
     });
 
     it('should handle invalid default template setting', async () => {
       plugin.settings.defaultTemplate = 'Non-existent Template';
-      
-      await expect(plugin.insertDefaultTemplate({})).rejects.toThrow('Default template "Non-existent Template" not found');
+
+      await expect(plugin.insertDefaultTemplate({})).rejects.toThrow(
+        'Default template "Non-existent Template" not found'
+      );
     });
 
     it('should successfully insert valid default template', async () => {
       plugin.settings.defaultTemplate = 'Daily Note';
-      
+
       const result = await plugin.insertDefaultTemplate({});
       expect(result.name).toBe('Daily Note');
       expect(result.variables).toContain('date');
@@ -143,7 +145,7 @@ describe('Template Settings', () => {
 
     it('should find template by exact name match', async () => {
       plugin.settings.defaultTemplate = 'Meeting Notes';
-      
+
       const result = await plugin.insertDefaultTemplate({});
       expect(result.name).toBe('Meeting Notes');
       expect(result.variables).toContain('title');
@@ -168,7 +170,7 @@ describe('Template Settings', () => {
       plugin.templateCache = {
         updateTemplateFolder: vi.fn(),
       };
-      
+
       plugin.templateCommandsRegistered = true;
       await plugin.saveSettings();
 
@@ -177,10 +179,10 @@ describe('Template Settings', () => {
 
     it('should handle template folder validation', () => {
       expect(plugin.settings.templateFolder).toBe('templates');
-      
+
       plugin.settings.templateFolder = '';
       expect(plugin.settings.templateFolder).toBe('');
-      
+
       plugin.settings.templateFolder = 'custom/template/folder';
       expect(plugin.settings.templateFolder).toBe('custom/template/folder');
     });
@@ -189,7 +191,7 @@ describe('Template Settings', () => {
   describe('Settings persistence', () => {
     it('should load default settings correctly', async () => {
       await plugin.loadSettings();
-      
+
       expect(plugin.settings.templateFolder).toBe('templates');
       expect(plugin.settings.defaultTemplate).toBe('');
       expect(plugin.settings.autoMetadata).toBe(true);
@@ -201,10 +203,10 @@ describe('Template Settings', () => {
       plugin.settings.templateFolder = 'my-templates';
       plugin.settings.defaultTemplate = 'Daily Note';
       plugin.settings.autoMetadata = false;
-      
+
       await plugin.saveSettings();
       await plugin.loadSettings();
-      
+
       expect(plugin.settings.templateFolder).toBe('my-templates');
       expect(plugin.settings.defaultTemplate).toBe('Daily Note');
       expect(plugin.settings.autoMetadata).toBe(false);
@@ -214,7 +216,7 @@ describe('Template Settings', () => {
   describe('Template listing', () => {
     it('should return available templates', async () => {
       const templates = await plugin.getTemplates();
-      
+
       expect(templates).toHaveLength(2);
       expect(templates[0].name).toBe('Daily Note');
       expect(templates[1].name).toBe('Meeting Notes');
@@ -222,8 +224,8 @@ describe('Template Settings', () => {
 
     it('should return templates with valid structure', async () => {
       const templates = await plugin.getTemplates();
-      
-      templates.forEach(template => {
+
+      templates.forEach((template) => {
         expect(template).toHaveProperty('name');
         expect(template).toHaveProperty('content');
         expect(template).toHaveProperty('metadata');
@@ -239,7 +241,7 @@ describe('Template Settings', () => {
   describe('Error handling', () => {
     it('should handle missing template gracefully', async () => {
       plugin.settings.defaultTemplate = 'Nonexistent Template';
-      
+
       await expect(plugin.insertDefaultTemplate({})).rejects.toThrow();
     });
 
@@ -247,7 +249,7 @@ describe('Template Settings', () => {
       // Mock empty template list
       plugin.getTemplates = vi.fn().mockResolvedValue([]);
       plugin.settings.defaultTemplate = 'Any Template';
-      
+
       await expect(plugin.insertDefaultTemplate({})).rejects.toThrow('not found');
     });
   });
