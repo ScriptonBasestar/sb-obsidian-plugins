@@ -17,6 +17,10 @@ export interface AutoCommitSettings {
   enableAutoPush: boolean;
   pushAfterCommits: number;
   tempBranch: string;
+  mainBranch: string;
+  // Merge settings
+  enableAutoMerge: boolean;
+  mergeStrategy: 'merge' | 'rebase' | 'squash';
   // LLM settings
   enableAICommitMessages: boolean;
   llmProvider: 'openai' | 'anthropic' | 'none';
@@ -161,6 +165,11 @@ export class AutoCommitService {
         if (pushResult.success) {
           this.commitCount = 0; // Reset counter after successful push
           console.log('Auto push successful');
+          
+          // Auto merge if enabled and push was successful
+          if (this.settings.enableAutoMerge) {
+            await this.performAutoMerge();
+          }
         } else {
           console.warn('Auto push failed:', pushResult.error);
         }
@@ -187,6 +196,96 @@ export class AutoCommitService {
    */
   async performCommit(): Promise<CommitResult> {
     return this.performAutoCommit();
+  }
+
+  /**
+   * Perform a manual auto-merge (can be called from command)
+   */
+  async performManualAutoMerge(): Promise<void> {
+    await this.performAutoMerge();
+  }
+
+  /**
+   * Perform automatic merge from temp branch to main branch
+   */
+  private async performAutoMerge(): Promise<void> {
+    try {
+      console.log('Starting auto merge...');
+      
+      // Check if it's safe to perform auto-merge
+      const safetyCheck = await this.gitService.isSafeToAutoMerge(
+        this.settings.tempBranch, 
+        this.settings.mainBranch
+      );
+      
+      if (!safetyCheck.safe) {
+        console.log(`Skipping auto merge: ${safetyCheck.reason}`);
+        return;
+      }
+
+      // Switch to main branch
+      const currentBranch = await this.gitService.getCurrentBranch();
+      if (currentBranch !== this.settings.mainBranch) {
+        const switchResult = await this.gitService.switchBranch(this.settings.mainBranch);
+        if (!switchResult.success) {
+          console.warn(`Failed to switch to ${this.settings.mainBranch}: ${switchResult.error}`);
+          return;
+        }
+      }
+
+      // Check if main branch is clean
+      const mainStatus = await this.gitService.getStatus();
+      if (mainStatus.hasChanges) {
+        console.warn('Main branch has uncommitted changes, skipping auto merge');
+        return;
+      }
+
+      // Pull latest changes from remote main branch
+      const pullResult = await this.gitService.pullRebase(this.settings.mainBranch);
+      if (!pullResult.success && !pullResult.conflicts) {
+        console.warn('Failed to pull latest changes to main branch:', pullResult.error);
+        return;
+      }
+
+      // Perform the merge
+      const mergeResult = await this.gitService.mergeBranches(
+        this.settings.tempBranch,
+        this.settings.mainBranch,
+        this.settings.mergeStrategy
+      );
+
+      if (mergeResult.success && !mergeResult.conflicts) {
+        console.log(`Auto merge successful: ${this.settings.tempBranch} → ${this.settings.mainBranch}`);
+        
+        // Push merged changes to remote main branch
+        const pushMainResult = await this.gitService.push(this.settings.mainBranch);
+        if (pushMainResult.success) {
+          console.log('Auto merge push successful');
+        } else {
+          console.warn(`Auto merge push failed: ${pushMainResult.error}`);
+        }
+        
+        // Switch back to temp branch for continued development
+        await this.gitService.switchBranch(this.settings.tempBranch);
+        
+      } else if (mergeResult.conflicts) {
+        console.warn('Auto merge has conflicts - manual resolution required');
+        // Stay on main branch so user can resolve conflicts
+      } else {
+        console.warn(`Auto merge failed: ${mergeResult.error}`);
+        // Switch back to temp branch
+        await this.gitService.switchBranch(this.settings.tempBranch);
+      }
+
+    } catch (error) {
+      console.error('Auto merge error:', error);
+      // Try to switch back to temp branch on error
+      try {
+        await this.gitService.switchBranch(this.settings.tempBranch);
+      } catch (switchError) {
+        console.error('Failed to switch back to temp branch:', switchError);
+      }
+    }
   }
 
   /**

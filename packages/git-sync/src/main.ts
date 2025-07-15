@@ -166,6 +166,12 @@ export default class GitSyncPlugin extends Plugin {
       callback: () => this.testStartupPull(),
     });
 
+    this.addCommand({
+      id: 'test-auto-merge',
+      name: 'Test Auto Merge',
+      callback: () => this.testAutoMerge(),
+    });
+
     // Add settings tab
     this.addSettingTab(new GitSyncSettingTab(this.app, this));
 
@@ -510,6 +516,37 @@ export default class GitSyncPlugin extends Plugin {
       new Notice(`Test failed: ${error.message}`);
     }
   }
+
+  private async testAutoMerge() {
+    try {
+      new Notice('Testing auto merge functionality...');
+      
+      // Check if auto merge is enabled
+      if (!this.settings.enableAutoMerge) {
+        new Notice('Auto merge is disabled. Enable it in settings first.');
+        return;
+      }
+
+      // Check safety conditions
+      const safetyCheck = await this.gitService.isSafeToAutoMerge(
+        this.settings.tempBranch,
+        this.settings.mainBranch
+      );
+
+      if (!safetyCheck.safe) {
+        new Notice(`Cannot auto merge: ${safetyCheck.reason}`);
+        return;
+      }
+
+      // Trigger the auto-merge via auto-commit service
+      await this.autoCommitService.performManualAutoMerge();
+      new Notice('Auto merge test completed - check console for details');
+      
+    } catch (error) {
+      console.error('Test auto merge error:', error);
+      new Notice(`Auto merge test failed: ${error.message}`);
+    }
+  }
 }
 
 class PromptPreviewModal extends Modal {
@@ -749,6 +786,16 @@ class GitSyncSettingTab extends PluginSettingTab {
 
     // Merge Settings
     containerEl.createEl('h3', { text: 'Merge Settings' });
+
+    new Setting(containerEl)
+      .setName('Enable Auto Merge')
+      .setDesc('Automatically merge temp branch to main after successful auto-push')
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.enableAutoMerge)
+        .onChange(async (value) => {
+          this.plugin.settings.enableAutoMerge = value;
+          await this.plugin.saveSettings();
+        }));
 
     new Setting(containerEl)
       .setName('Merge Strategy')
