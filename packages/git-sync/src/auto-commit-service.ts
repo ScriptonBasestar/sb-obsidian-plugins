@@ -49,7 +49,7 @@ export class AutoCommitService {
       commitPrompt: settings.commitPrompt,
       enabled: settings.enableAICommitMessages,
       useTemplateEngine: settings.useTemplateEngine || false,
-      selectedTemplate: settings.selectedTemplate || 'conventional'
+      selectedTemplate: settings.selectedTemplate || 'conventional',
     });
   }
 
@@ -70,7 +70,9 @@ export class AutoCommitService {
       this.performAutoCommit();
     }, intervalMs);
 
-    console.log(`Auto commit service started with ${this.settings.commitIntervalMinutes} minute interval`);
+    console.log(
+      `Auto commit service started with ${this.settings.commitIntervalMinutes} minute interval`
+    );
   }
 
   /**
@@ -89,7 +91,7 @@ export class AutoCommitService {
    */
   updateSettings(settings: AutoCommitSettings): void {
     this.settings = settings;
-    
+
     // Update LLM service settings
     this.llmService.updateSettings({
       provider: settings.llmProvider,
@@ -97,9 +99,9 @@ export class AutoCommitService {
       commitPrompt: settings.commitPrompt,
       enabled: settings.enableAICommitMessages,
       useTemplateEngine: settings.useTemplateEngine || false,
-      selectedTemplate: settings.selectedTemplate || 'conventional'
+      selectedTemplate: settings.selectedTemplate || 'conventional',
     });
-    
+
     if (this.settings.enableAutoCommit) {
       this.start(); // This will stop and restart with new interval
     } else {
@@ -113,7 +115,7 @@ export class AutoCommitService {
   private async performAutoCommit(): Promise<CommitResult> {
     try {
       console.log('Starting auto commit...');
-      
+
       // Switch to temp branch if not already on it
       const currentBranch = await this.gitService.getCurrentBranch();
       if (currentBranch !== this.settings.tempBranch) {
@@ -121,7 +123,7 @@ export class AutoCommitService {
         if (!switchResult.success) {
           return {
             success: false,
-            error: `Failed to switch to ${this.settings.tempBranch}: ${switchResult.error}`
+            error: `Failed to switch to ${this.settings.tempBranch}: ${switchResult.error}`,
           };
         }
       }
@@ -132,7 +134,7 @@ export class AutoCommitService {
         console.log('No changes to commit');
         return {
           success: true,
-          message: 'No changes to commit'
+          message: 'No changes to commit',
         };
       }
 
@@ -148,7 +150,7 @@ export class AutoCommitService {
       if (!commitResult.success) {
         return {
           success: false,
-          error: commitResult.error
+          error: commitResult.error,
         };
       }
 
@@ -159,13 +161,12 @@ export class AutoCommitService {
 
       // Auto push if enabled
       let pushResult: GitResult | null = null;
-      if (this.settings.enableAutoPush && 
-          this.commitCount >= this.settings.pushAfterCommits) {
+      if (this.settings.enableAutoPush && this.commitCount >= this.settings.pushAfterCommits) {
         pushResult = await this.gitService.push(this.settings.tempBranch);
         if (pushResult.success) {
           this.commitCount = 0; // Reset counter after successful push
           console.log('Auto push successful');
-          
+
           // Auto merge if enabled and push was successful
           if (this.settings.enableAutoMerge) {
             await this.performAutoMerge();
@@ -179,14 +180,13 @@ export class AutoCommitService {
         success: true,
         message: commitMessage,
         filesChanged: status.staged.length + status.unstaged.length + status.untracked.length,
-        hash: commitResult.data?.hash
+        hash: commitResult.data?.hash,
       };
-
     } catch (error) {
       console.error('Auto commit failed:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -211,13 +211,13 @@ export class AutoCommitService {
   private async performAutoMerge(): Promise<void> {
     try {
       console.log('Starting auto merge...');
-      
+
       // Check if it's safe to perform auto-merge
       const safetyCheck = await this.gitService.isSafeToAutoMerge(
-        this.settings.tempBranch, 
+        this.settings.tempBranch,
         this.settings.mainBranch
       );
-      
+
       if (!safetyCheck.safe) {
         console.log(`Skipping auto merge: ${safetyCheck.reason}`);
         return;
@@ -255,8 +255,10 @@ export class AutoCommitService {
       );
 
       if (mergeResult.success && !mergeResult.conflicts) {
-        console.log(`Auto merge successful: ${this.settings.tempBranch} → ${this.settings.mainBranch}`);
-        
+        console.log(
+          `Auto merge successful: ${this.settings.tempBranch} → ${this.settings.mainBranch}`
+        );
+
         // Push merged changes to remote main branch
         const pushMainResult = await this.gitService.push(this.settings.mainBranch);
         if (pushMainResult.success) {
@@ -264,10 +266,9 @@ export class AutoCommitService {
         } else {
           console.warn(`Auto merge push failed: ${pushMainResult.error}`);
         }
-        
+
         // Switch back to temp branch for continued development
         await this.gitService.switchBranch(this.settings.tempBranch);
-        
       } else if (mergeResult.conflicts) {
         console.warn('Auto merge has conflicts - manual resolution required');
         // Stay on main branch so user can resolve conflicts
@@ -276,7 +277,6 @@ export class AutoCommitService {
         // Switch back to temp branch
         await this.gitService.switchBranch(this.settings.tempBranch);
       }
-
     } catch (error) {
       console.error('Auto merge error:', error);
       // Try to switch back to temp branch on error
@@ -299,23 +299,24 @@ export class AutoCommitService {
           files: {
             staged: status.staged || [],
             unstaged: status.unstaged || [],
-            untracked: status.untracked || []
+            untracked: status.untracked || [],
           },
-          branch: status.currentBranch || 'unknown'
+          branch: status.currentBranch || 'unknown',
         };
 
         // Get recent commits for context
         try {
           const recentCommits = await this.gitService.getRecentCommits(3);
-          commitContext.recentCommits = recentCommits.map((commit: any) => 
-            `${commit.hash?.substring(0, 7) || 'unknown'}: ${commit.message || 'no message'}`
+          commitContext.recentCommits = recentCommits.map(
+            (commit: any) =>
+              `${commit.hash?.substring(0, 7) || 'unknown'}: ${commit.message || 'no message'}`
           );
         } catch (error) {
           console.warn('Failed to get recent commits for context:', error);
         }
 
         const llmResult = await this.llmService.generateCommitMessage(commitContext);
-        
+
         if (llmResult.success && llmResult.message) {
           console.log('Generated commit message using LLM:', llmResult.message);
           return llmResult.message;
@@ -338,9 +339,9 @@ export class AutoCommitService {
    */
   private generateFallbackCommitMessage(status: any): string {
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    
+
     const totalChanges = status.staged.length + status.unstaged.length + status.untracked.length;
-    
+
     if (totalChanges === 0) {
       return `chore: auto commit at ${timestamp}`;
     }
@@ -350,12 +351,12 @@ export class AutoCommitService {
       added: status.untracked.length,
       modified: status.unstaged.filter((f: string) => !f.includes('deleted')).length,
       deleted: status.unstaged.filter((f: string) => f.includes('deleted')).length,
-      staged: status.staged.length
+      staged: status.staged.length,
     };
 
     // Generate descriptive message
     const parts: string[] = [];
-    
+
     if (categories.added > 0) {
       parts.push(`${categories.added} added`);
     }
@@ -374,12 +375,16 @@ export class AutoCommitService {
     // Check for specific file types to make message more descriptive
     const allFiles = [...status.staged, ...status.unstaged, ...status.untracked];
     const hasMarkdown = allFiles.some((f: string) => f.endsWith('.md'));
-    const hasAttachments = allFiles.some((f: string) => 
-      f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.jpeg') || 
-      f.endsWith('.gif') || f.endsWith('.pdf')
+    const hasAttachments = allFiles.some(
+      (f: string) =>
+        f.endsWith('.png') ||
+        f.endsWith('.jpg') ||
+        f.endsWith('.jpeg') ||
+        f.endsWith('.gif') ||
+        f.endsWith('.pdf')
     );
-    const hasConfigs = allFiles.some((f: string) => 
-      f.endsWith('.json') || f.endsWith('.yaml') || f.endsWith('.yml')
+    const hasConfigs = allFiles.some(
+      (f: string) => f.endsWith('.json') || f.endsWith('.yaml') || f.endsWith('.yml')
     );
 
     let prefix = 'docs';
@@ -454,14 +459,14 @@ Auto-committed at ${timestamp}`;
   }> {
     try {
       const status = await this.gitService.getStatus();
-      
+
       return {
         hasChanges: status.hasChanges,
         totalFiles: status.staged.length + status.unstaged.length + status.untracked.length,
         added: status.staged.length,
         modified: status.unstaged.filter((f: string) => !f.includes('deleted')).length,
         deleted: status.unstaged.filter((f: string) => f.includes('deleted')).length,
-        untracked: status.untracked.length
+        untracked: status.untracked.length,
       };
     } catch (error) {
       console.error('Failed to get pending changes summary:', error);
@@ -471,7 +476,7 @@ Auto-committed at ${timestamp}`;
         added: 0,
         modified: 0,
         deleted: 0,
-        untracked: 0
+        untracked: 0,
       };
     }
   }
@@ -485,7 +490,7 @@ Auto-committed at ${timestamp}`;
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -507,11 +512,11 @@ Auto-committed at ${timestamp}`;
         files: {
           staged: status.staged || [],
           unstaged: status.unstaged || [],
-          untracked: status.untracked || []
+          untracked: status.untracked || [],
         },
-        branch: status.currentBranch || 'unknown'
+        branch: status.currentBranch || 'unknown',
       };
-      
+
       return this.llmService.estimateTokens(context);
     } catch (error) {
       console.error('Failed to estimate tokens:', error);
@@ -536,21 +541,22 @@ Auto-committed at ${timestamp}`;
         files: {
           staged: status.staged || [],
           unstaged: status.unstaged || [],
-          untracked: status.untracked || []
+          untracked: status.untracked || [],
         },
-        branch: status.currentBranch || 'unknown'
+        branch: status.currentBranch || 'unknown',
       };
 
       // Get recent commits for context
       try {
         const recentCommits = await this.gitService.getRecentCommits(3);
-        context.recentCommits = recentCommits.map((commit: any) => 
-          `${commit.hash?.substring(0, 7) || 'unknown'}: ${commit.message || 'no message'}`
+        context.recentCommits = recentCommits.map(
+          (commit: any) =>
+            `${commit.hash?.substring(0, 7) || 'unknown'}: ${commit.message || 'no message'}`
         );
       } catch (error) {
         console.warn('Failed to get recent commits for preview:', error);
       }
-      
+
       return this.llmService.previewPrompt(context);
     } catch (error) {
       console.error('Failed to preview prompt:', error);

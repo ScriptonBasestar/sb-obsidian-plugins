@@ -43,7 +43,10 @@ export class TemplateCache {
     });
 
     this.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
-      if ((file instanceof TFile && this.isTemplateFile(file)) || oldPath.startsWith(this.templateFolder)) {
+      if (
+        (file instanceof TFile && this.isTemplateFile(file)) ||
+        oldPath.startsWith(this.templateFolder)
+      ) {
         this.removeFromCache(oldPath);
         if (file instanceof TFile) {
           this.removeFromCache(file.path);

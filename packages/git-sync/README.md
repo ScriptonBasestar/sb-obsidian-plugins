@@ -19,6 +19,7 @@
 ### Installation
 
 1. **From Obsidian Community Plugins** (Recommended)
+
    - Open Settings → Community Plugins
    - Search for "Git Sync"
    - Install and enable
@@ -31,12 +32,14 @@
 ### Basic Setup
 
 1. **Initialize Git Repository**
+
    ```bash
    git init
    git remote add origin <your-repo-url>
    ```
 
 2. **Configure Plugin**
+
    - Open Settings → Git Sync
    - Set your preferred commit interval
    - Configure AI provider (optional)
@@ -50,11 +53,13 @@
 ## 📖 Core Concepts
 
 ### Branch Strategy
+
 - **Main Branch**: Your stable branch (usually `main` or `master`)
 - **Temp Branch**: Automatic commits go here (default: `tmp`)
 - **Workflow**: `work → auto-commit to tmp → periodic merge to main`
 
 ### Auto-Commit Flow
+
 1. **Timer-based commits** to temporary branch
 2. **AI-generated commit messages** based on changes
 3. **Automatic push** to remote repository
@@ -63,18 +68,21 @@
 ## ⚙️ Configuration
 
 ### Basic Settings
+
 - **Commit Interval**: How often to auto-commit (default: 5 minutes)
 - **Main Branch**: Your primary branch name
 - **Temp Branch**: Branch for automatic commits
 - **Include Untracked**: Whether to include new files
 
 ### AI Integration
+
 - **Provider**: Choose between OpenAI or Anthropic
 - **API Key**: Your AI service API key
 - **Commit Prompt**: Template for generating commit messages
 - **Template Engine**: Use advanced templating for messages
 
 ### Merge Strategy
+
 - **Auto-merge**: Automatically merge temp branch to main
 - **Strategy**: Choose merge, rebase, or squash
 - **Conflict Resolution**: Open external editor on conflicts
@@ -82,11 +90,13 @@
 ## 🤖 AI Commit Messages
 
 ### Setup
+
 1. Choose your AI provider (OpenAI or Anthropic)
 2. Add your API key in settings
 3. Customize the commit prompt template
 
 ### Default Prompt Template
+
 ```
 Analyze the following git diff and generate a concise, descriptive commit message:
 
@@ -100,6 +110,7 @@ Rules:
 ```
 
 ### Example Generated Messages
+
 - `feat: add daily note template with weather integration`
 - `fix: resolve metadata validation for empty frontmatter`
 - `docs: update installation instructions and examples`
@@ -107,11 +118,13 @@ Rules:
 ## 🔄 Workflow Examples
 
 ### Daily Writing Workflow
+
 1. **Morning**: Plugin pulls latest changes
 2. **Throughout day**: Auto-commits every 5 minutes to `tmp`
 3. **Evening**: Auto-merge `tmp` to `main` and push
 
 ### Collaborative Workflow
+
 1. **Pull on startup**: Get latest team changes
 2. **Work isolation**: Your commits stay in `tmp`
 3. **Conflict detection**: External editor opens if conflicts
@@ -132,6 +145,7 @@ Access via Command Palette (`Ctrl/Cmd + P`):
 ## 📊 Status Bar
 
 The status bar shows:
+
 - **🔄 Syncing**: Currently performing git operations
 - **✅ Clean**: Repository is clean and synced
 - **⚠️ Conflicts**: Merge conflicts need resolution
@@ -141,6 +155,7 @@ The status bar shows:
 ## 🔧 Advanced Configuration
 
 ### Custom Commit Templates
+
 ```javascript
 // Template variables available:
 // {{diff}} - Full git diff
@@ -148,15 +163,17 @@ The status bar shows:
 // {{timestamp}} - Current timestamp
 // {{vault}} - Vault name
 
-"feat({{vault}}): update {{files.length}} files at {{timestamp}}"
+'feat({{vault}}): update {{files.length}} files at {{timestamp}}';
 ```
 
 ### Conflict Resolution
+
 1. **External Editor**: Automatically opens VS Code or configured editor
 2. **Manual Resolution**: Edit files to resolve conflicts
 3. **Continue Merge**: Plugin detects resolution and continues
 
 ### Branch Protection
+
 - **Protected branches**: Configure branches that won't be auto-merged
 - **Backup strategy**: Create backup branches before risky operations
 - **Rollback**: Easy rollback to previous states
@@ -166,31 +183,37 @@ The status bar shows:
 ### Common Issues
 
 **Auto-commit not working?**
+
 - ✅ Check git repository is initialized
 - ✅ Verify remote is configured
 - ✅ Ensure plugin is enabled
 - ✅ Check console for errors
 
 **AI commit messages failing?**
+
 - ✅ Verify API key is valid
 - ✅ Check internet connection
 - ✅ Verify API quota limits
 - ✅ Try different AI provider
 
 **Merge conflicts?**
+
 - ✅ Use external editor integration
 - ✅ Check conflict markers in files
 - ✅ Manually resolve and save
 - ✅ Use "Continue Merge" command
 
 **Push failures?**
+
 - ✅ Check authentication credentials
 - ✅ Verify remote repository exists
 - ✅ Check network connectivity
 - ✅ Review branch permissions
 
 ### Debug Mode
+
 Enable detailed logging in settings:
+
 1. Set log level to "debug"
 2. Open Developer Console (`Ctrl/Cmd + Shift + I`)
 3. Look for `[Git Sync]` messages

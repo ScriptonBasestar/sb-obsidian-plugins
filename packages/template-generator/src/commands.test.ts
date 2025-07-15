@@ -6,7 +6,7 @@ describe('Template Commands', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockApp = {
       workspace: {
         getActiveViewOfType: vi.fn(),
@@ -23,7 +23,11 @@ describe('Template Commands', () => {
       app: mockApp,
       addCommand: vi.fn(),
       getTemplates: vi.fn(),
-      sanitizeId: (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'),
+      sanitizeId: (name: string) =>
+        name
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '-')
+          .replace(/-+/g, '-'),
     };
   });
 
@@ -72,7 +76,7 @@ describe('Template Commands', () => {
   describe('File Creation', () => {
     it('should create new file with correct content', async () => {
       const mockTemplate = { name: 'Daily Note', content: '# Daily {{date}}' };
-      
+
       mockApp.vault.create.mockResolvedValue({ path: 'Daily Note-123456.md' });
 
       // Simulate file creation with template
@@ -89,10 +93,10 @@ describe('Template Commands', () => {
   describe('Modal Integration', () => {
     it('should handle no active view scenario', () => {
       mockApp.workspace.getActiveViewOfType.mockReturnValue(null);
-      
+
       const noActiveView = mockApp.workspace.getActiveViewOfType();
       expect(noActiveView).toBeNull();
-      
+
       // Should trigger new file creation flow
       expect(mockApp.workspace.getActiveViewOfType).toHaveBeenCalled();
     });
@@ -104,12 +108,12 @@ describe('Template Commands', () => {
           replaceRange: vi.fn(),
         },
       };
-      
+
       mockApp.workspace.getActiveViewOfType.mockReturnValue(mockView);
-      
+
       const activeView = mockApp.workspace.getActiveViewOfType();
       expect(activeView).toBe(mockView);
-      
+
       // Should trigger template insertion flow
       expect(mockView.editor).toBeDefined();
     });

@@ -23,7 +23,7 @@ export class StateManager<T extends Record<string, any>> extends EventEmitter {
 
   set<K extends keyof T>(key: K, value: T[K]): void {
     const previousValue = this.state[key];
-    
+
     if (previousValue === value) {
       return; // No change
     }
@@ -40,7 +40,7 @@ export class StateManager<T extends Record<string, any>> extends EventEmitter {
     // Notify subscribers
     const subscribers = this.subscribers.get(key);
     if (subscribers) {
-      subscribers.forEach(callback => callback(value));
+      subscribers.forEach((callback) => callback(value));
     }
   }
 
@@ -52,14 +52,14 @@ export class StateManager<T extends Record<string, any>> extends EventEmitter {
       if (this.state[key as keyof T] !== value) {
         hasChanges = true;
         this.state[key as keyof T] = value;
-        
+
         // Emit individual property changes
         this.emit(`change:${key}`, value, previousState[key as keyof T]);
-        
+
         // Notify subscribers
         const subscribers = this.subscribers.get(key as keyof T);
         if (subscribers) {
-          subscribers.forEach(callback => callback(value));
+          subscribers.forEach((callback) => callback(value));
         }
       }
     });
@@ -77,7 +77,7 @@ export class StateManager<T extends Record<string, any>> extends EventEmitter {
   setState(newState: T): void {
     const previousState = { ...this.state };
     this.state = { ...newState };
-    
+
     this.recordHistory(previousState, this.state);
     this.emit('setState', this.state, previousState);
   }
@@ -86,7 +86,7 @@ export class StateManager<T extends Record<string, any>> extends EventEmitter {
     if (!this.subscribers.has(key)) {
       this.subscribers.set(key, new Set());
     }
-    
+
     this.subscribers.get(key)!.add(callback);
 
     // Return unsubscribe function
@@ -105,7 +105,7 @@ export class StateManager<T extends Record<string, any>> extends EventEmitter {
     this.history.push({
       previousValue: previousState,
       currentValue: currentState,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     // Limit history size
@@ -140,9 +140,9 @@ export class PersistedStateManager<T extends Record<string, any>> extends StateM
     // Load from storage or use initial state
     const savedState = PersistedStateManager.loadFromStorage<T>(storageKey);
     super(savedState || initialState);
-    
+
     this.storageKey = storageKey;
-    
+
     // Save on changes
     this.on('update', () => this.scheduleSave());
     this.on('setState', () => this.scheduleSave());
@@ -200,7 +200,7 @@ export class ComputedValue<T extends Record<string, any>, D> {
     this.dependencies = dependencies;
 
     // Subscribe to dependency changes
-    dependencies.forEach(dep => {
+    dependencies.forEach((dep) => {
       stateManager.on(`change:${String(dep)}`, () => {
         this.isValid = false;
       });

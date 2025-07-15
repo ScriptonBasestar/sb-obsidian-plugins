@@ -4,18 +4,18 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: ['./tsconfig.json', './packages/*/tsconfig.json', './shared/tsconfig.json']
+    project: ['./tsconfig.json', './packages/*/tsconfig.json', './shared/tsconfig.json'],
   },
   env: {
     browser: true,
     es2020: true,
-    node: true
+    node: true,
   },
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    'prettier'
+    'prettier',
   ],
   plugins: ['@typescript-eslint', 'import'],
   rules: {
@@ -27,25 +27,25 @@ module.exports = {
         allowExpressions: true,
         allowTypedFunctionExpressions: true,
         allowHigherOrderFunctions: true,
-        allowDirectConstAssertionInArrowFunctions: true
-      }
+        allowDirectConstAssertionInArrowFunctions: true,
+      },
     ],
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_'
-      }
+        caughtErrorsIgnorePattern: '^_',
+      },
     ],
     '@typescript-eslint/explicit-member-accessibility': [
       'error',
       {
         accessibility: 'explicit',
         overrides: {
-          constructors: 'no-public'
-        }
-      }
+          constructors: 'no-public',
+        },
+      },
     ],
     '@typescript-eslint/no-non-null-assertion': 'error',
     '@typescript-eslint/strict-boolean-expressions': 'error',
@@ -55,67 +55,51 @@ module.exports = {
     '@typescript-eslint/no-unnecessary-type-assertion': 'error',
     '@typescript-eslint/prefer-nullish-coalescing': 'error',
     '@typescript-eslint/prefer-optional-chain': 'error',
-    
+
     // Import rules
     'import/order': [
       'error',
       {
-        groups: [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
-          'object',
-          'type'
-        ],
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
         'newlines-between': 'always',
         alphabetize: {
           order: 'asc',
-          caseInsensitive: true
-        }
-      }
+          caseInsensitive: true,
+        },
+      },
     ],
     'import/no-duplicates': 'error',
-    
+
     // General rules
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-debugger': 'error',
     'no-alert': 'error',
     'prefer-const': 'error',
-    'eqeqeq': ['error', 'always'],
-    'curly': ['error', 'all'],
+    eqeqeq: ['error', 'always'],
+    curly: ['error', 'all'],
     'no-var': 'error',
     'prefer-template': 'error',
     'object-shorthand': 'error',
     'prefer-arrow-callback': 'error',
-    'arrow-body-style': ['error', 'as-needed']
+    'arrow-body-style': ['error', 'as-needed'],
   },
   overrides: [
     {
       files: ['*.test.ts', '*.spec.ts'],
       env: {
-        jest: true
+        jest: true,
       },
       rules: {
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/no-non-null-assertion': 'off'
-      }
+        '@typescript-eslint/no-non-null-assertion': 'off',
+      },
     },
     {
       files: ['*.js'],
       rules: {
-        '@typescript-eslint/no-var-requires': 'off'
-      }
-    }
+        '@typescript-eslint/no-var-requires': 'off',
+      },
+    },
   ],
-  ignorePatterns: [
-    'node_modules',
-    'dist',
-    'build',
-    '.obsidian',
-    'main.js',
-    'data.json'
-  ]
+  ignorePatterns: ['node_modules', 'dist', 'build', '.obsidian', 'main.js', 'data.json'],
 };

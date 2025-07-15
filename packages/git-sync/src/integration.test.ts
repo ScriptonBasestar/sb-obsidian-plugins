@@ -4,7 +4,7 @@ describe('Git Sync Plugin Integration', () => {
   it('should have valid manifest', async () => {
     const fs = await import('fs/promises');
     const path = await import('path');
-    
+
     const manifestPath = path.resolve(__dirname, '../manifest.json');
     const manifestContent = await fs.readFile(manifestPath, 'utf-8');
     const manifest = JSON.parse(manifestContent);
@@ -18,7 +18,7 @@ describe('Git Sync Plugin Integration', () => {
   it('should have correct package.json structure', async () => {
     const fs = await import('fs/promises');
     const path = await import('path');
-    
+
     const packagePath = path.resolve(__dirname, '../package.json');
     const packageContent = await fs.readFile(packagePath, 'utf-8');
     const packageJson = JSON.parse(packageContent);

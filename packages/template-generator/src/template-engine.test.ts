@@ -14,13 +14,13 @@ describe('TemplateEngine', () => {
   describe('Basic rendering', () => {
     it('should render built-in date variables', async () => {
       const result = await engine.renderTemplateString('Today is {{date}}');
-      
+
       expect(result).toMatch(/Today is \d{4}-\d{2}-\d{2}/);
     });
 
     it('should render time variables', () => {
       const result = engine.renderTemplateString('Current time: {{time}}');
-      
+
       expect(result).toMatch(/Current time: \d{2}:\d{2}/);
     });
 
@@ -37,14 +37,14 @@ describe('TemplateEngine', () => {
 
     it('should render user variables', () => {
       const result = engine.renderTemplateString('Hello {{name}}!', { name: 'World' });
-      
+
       expect(result).toBe('Hello World!');
     });
 
     it('should combine built-in and user variables', () => {
       const template = 'Meeting on {{date}} with {{attendee}}';
       const result = engine.renderTemplateString(template, { attendee: 'John' });
-      
+
       expect(result).toMatch(/Meeting on \d{4}-\d{2}-\d{2} with John/);
     });
   });
@@ -54,7 +54,7 @@ describe('TemplateEngine', () => {
       const now = new Date();
       const template = '{{formatDate myDate "YYYY-MM-DD"}}';
       const result = engine.renderTemplateString(template, { myDate: now });
-      
+
       expect(result).toMatch(/\d{4}-\d{2}-\d{2}/);
     });
 
@@ -62,28 +62,28 @@ describe('TemplateEngine', () => {
       const now = new Date();
       const template = '{{formatTime myDate "24"}}';
       const result = engine.renderTemplateString(template, { myDate: now });
-      
+
       expect(result).toMatch(/\d{2}:\d{2}/);
     });
 
     it('should uppercase text', () => {
       const template = '{{uppercase title}}';
       const result = engine.renderTemplateString(template, { title: 'hello world' });
-      
+
       expect(result).toBe('HELLO WORLD');
     });
 
     it('should lowercase text', () => {
       const template = '{{lowercase title}}';
       const result = engine.renderTemplateString(template, { title: 'HELLO WORLD' });
-      
+
       expect(result).toBe('hello world');
     });
 
     it('should capitalize text', () => {
       const template = '{{capitalize title}}';
       const result = engine.renderTemplateString(template, { title: 'hello world' });
-      
+
       expect(result).toBe('Hello world');
     });
 
@@ -93,15 +93,20 @@ describe('TemplateEngine', () => {
       expect(addResult).toBe('8');
 
       const subtractTemplate = '{{subtract total discount}}';
-      const subtractResult = engine.renderTemplateString(subtractTemplate, { total: 100, discount: 15 });
+      const subtractResult = engine.renderTemplateString(subtractTemplate, {
+        total: 100,
+        discount: 15,
+      });
       expect(subtractResult).toBe('85');
     });
 
     it('should format Korean dates with helpers', () => {
       const testDate = new Date('2025-01-15');
-      
+
       const koreanDateTemplate = '{{koreanDate myDate}}';
-      const koreanDateResult = engine.renderTemplateString(koreanDateTemplate, { myDate: testDate });
+      const koreanDateResult = engine.renderTemplateString(koreanDateTemplate, {
+        myDate: testDate,
+      });
       expect(koreanDateResult).toBe('2025년 1월 15일');
 
       const koreanDayTemplate = '{{koreanDay myDate}}';
@@ -109,13 +114,16 @@ describe('TemplateEngine', () => {
       expect(koreanDayResult).toBe('수요일');
 
       const koreanDateTimeTemplate = '{{koreanDateTime myDate}}';
-      const koreanDateTimeResult = engine.renderTemplateString(koreanDateTimeTemplate, { myDate: testDate });
+      const koreanDateTimeResult = engine.renderTemplateString(koreanDateTimeTemplate, {
+        myDate: testDate,
+      });
       expect(koreanDateTimeResult).toMatch(/2025년 1월 15일 수요일 오전 \d{2}:\d{2}/);
     });
 
     it('should handle conditional rendering with if_eq', () => {
-      const template = '{{#if_eq status "active"}}Status is active{{else}}Status is not active{{/if_eq}}';
-      
+      const template =
+        '{{#if_eq status "active"}}Status is active{{else}}Status is not active{{/if_eq}}';
+
       const activeResult = engine.renderTemplateString(template, { status: 'active' });
       expect(activeResult).toBe('Status is active');
 
@@ -128,7 +136,7 @@ describe('TemplateEngine', () => {
     it('should validate correct templates', () => {
       const template = 'Hello {{name}}, today is {{date}}';
       const validation = engine.validateTemplate(template);
-      
+
       expect(validation.isValid).toBe(true);
       expect(validation.errors).toHaveLength(0);
     });
@@ -136,7 +144,7 @@ describe('TemplateEngine', () => {
     it('should detect mismatched braces', () => {
       const template = 'Hello {{name}, today is {{date}}';
       const validation = engine.validateTemplate(template);
-      
+
       expect(validation.isValid).toBe(false);
       expect(validation.errors).toContain('Mismatched template braces {{ }}');
     });
@@ -144,7 +152,7 @@ describe('TemplateEngine', () => {
     it('should detect handlebars syntax errors', () => {
       const template = 'Hello {{#if name}}{{/if';
       const validation = engine.validateTemplate(template);
-      
+
       expect(validation.isValid).toBe(false);
       expect(validation.errors.length).toBeGreaterThan(0);
     });
@@ -152,9 +160,11 @@ describe('TemplateEngine', () => {
     it('should warn about triple braces', () => {
       const template = 'Content: {{{rawHtml}}}';
       const validation = engine.validateTemplate(template);
-      
+
       expect(validation.isValid).toBe(false);
-      expect(validation.errors).toContain('Triple braces {{{ }}} found - use with caution for unescaped HTML');
+      expect(validation.errors).toContain(
+        'Triple braces {{{ }}} found - use with caution for unescaped HTML'
+      );
     });
   });
 
@@ -168,9 +178,9 @@ title: Test Template
 Created on {{date}} by {{author}}`;
 
       const parsedTemplate = TemplateParser.parseTemplate('test', content, 'test.md');
-      const result = await engine.renderTemplate(parsedTemplate, { 
+      const result = await engine.renderTemplate(parsedTemplate, {
         title: 'My Note',
-        author: 'John Doe' 
+        author: 'John Doe',
       });
 
       expect(result).toMatch(/# My Note/);
@@ -214,7 +224,7 @@ Meeting with {{attendee}} on {{date}}`;
   describe('Available variables and helpers', () => {
     it('should list available variables', () => {
       const variables = engine.getAvailableVariables();
-      
+
       // English variables
       expect(variables).toContain('date');
       expect(variables).toContain('time');
@@ -223,7 +233,7 @@ Meeting with {{attendee}} on {{date}}`;
       expect(variables).toContain('today');
       expect(variables).toContain('tomorrow');
       expect(variables).toContain('yesterday');
-      
+
       // Korean variables
       expect(variables).toContain('날짜');
       expect(variables).toContain('오늘');
@@ -234,7 +244,7 @@ Meeting with {{attendee}} on {{date}}`;
 
     it('should list available helpers', () => {
       const helpers = engine.getAvailableHelpers();
-      
+
       // English helpers
       expect(helpers).toContain('formatDate');
       expect(helpers).toContain('formatTime');
@@ -244,7 +254,7 @@ Meeting with {{attendee}} on {{date}}`;
       expect(helpers).toContain('if_eq');
       expect(helpers).toContain('add');
       expect(helpers).toContain('subtract');
-      
+
       // Korean helpers
       expect(helpers).toContain('koreanDate');
       expect(helpers).toContain('koreanDay');
@@ -256,14 +266,14 @@ Meeting with {{attendee}} on {{date}}`;
     it('should handle missing variables gracefully', () => {
       const template = 'Hello {{undefinedVariable}}';
       const result = engine.renderTemplateString(template);
-      
+
       // Handlebars renders undefined variables as empty string
       expect(result).toBe('Hello ');
     });
 
     it('should handle template rendering gracefully', () => {
       const template = 'Hello {{#each items}}{{name}}{{/each}}';
-      
+
       // Should not throw with valid template and data
       expect(() => {
         engine.renderTemplateString(template, { items: [{ name: 'test' }] });
@@ -277,28 +287,28 @@ Meeting with {{attendee}} on {{date}}`;
   describe('Weather integration', () => {
     it('should include weather variables in available variables list', () => {
       const variables = engine.getAvailableVariables();
-      
+
       expect(variables).toContain('날씨');
       expect(variables).toContain('weather');
     });
 
     it('should include fortune variables in available variables list', () => {
       const variables = engine.getAvailableVariables();
-      
+
       expect(variables).toContain('운세');
       expect(variables).toContain('fortune');
     });
 
     it('should include weather helpers in available helpers list', () => {
       const helpers = engine.getAvailableHelpers();
-      
+
       expect(helpers).toContain('weatherSimple');
       expect(helpers).toContain('weatherDetailed');
     });
 
     it('should include fortune helpers in available helpers list', () => {
       const helpers = engine.getAvailableHelpers();
-      
+
       expect(helpers).toContain('fortuneSimple');
       expect(helpers).toContain('fortuneDetailed');
     });
@@ -306,7 +316,7 @@ Meeting with {{attendee}} on {{date}}`;
     it('should show fallback message when weather settings are not configured', async () => {
       const engineWithoutWeather = new TemplateEngine();
       const result = await engineWithoutWeather.renderTemplateString('오늘 날씨: {{날씨}}');
-      
+
       expect(result).toBe('오늘 날씨: 날씨 정보 없음');
     });
 
@@ -318,10 +328,10 @@ Meeting with {{attendee}} on {{date}}`;
         language: 'kr',
         weatherEnabled: false,
       };
-      
+
       const engineWithDisabledWeather = new TemplateEngine(weatherSettings);
       const result = await engineWithDisabledWeather.renderTemplateString('오늘 날씨: {{날씨}}');
-      
+
       expect(result).toBe('오늘 날씨: 날씨 정보 없음');
     });
 
@@ -333,9 +343,9 @@ Meeting with {{attendee}} on {{date}}`;
         language: 'kr',
         weatherEnabled: true,
       };
-      
+
       const engineWithWeather = new TemplateEngine(initialSettings);
-      
+
       const updatedSettings: WeatherSettings = {
         apiKey: 'test-key-2',
         location: 'Tokyo,JP',
@@ -343,7 +353,7 @@ Meeting with {{attendee}} on {{date}}`;
         language: 'ja',
         weatherEnabled: false,
       };
-      
+
       // Should not throw when updating settings
       expect(() => {
         engineWithWeather.updateWeatherSettings(updatedSettings);
@@ -359,15 +369,15 @@ Meeting with {{attendee}} on {{date}}`;
         language: 'kr',
         weatherEnabled: true,
       };
-      
+
       const engineWithBadWeather = new TemplateEngine(weatherSettings);
-      
+
       // Mock console.warn to avoid test output noise
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       try {
         const result = await engineWithBadWeather.renderTemplateString('날씨: {{날씨}}');
-        
+
         // Should show error message instead of crashing
         expect(result).toMatch(/날씨: (날씨 정보를 가져올 수 없습니다|날씨 서비스 오류)/);
         expect(consoleWarnSpy).toHaveBeenCalled();
@@ -381,7 +391,7 @@ Meeting with {{attendee}} on {{date}}`;
     it('should show fallback message when fortune settings are not configured', async () => {
       const engineWithoutFortune = new TemplateEngine();
       const result = await engineWithoutFortune.renderTemplateString('오늘 운세: {{운세}}');
-      
+
       expect(result).toBe('오늘 운세: 운세 정보 없음');
     });
 
@@ -390,10 +400,10 @@ Meeting with {{attendee}} on {{date}}`;
         enabled: false,
         language: 'kr',
       };
-      
+
       const engineWithDisabledFortune = new TemplateEngine(undefined, fortuneSettings);
       const result = await engineWithDisabledFortune.renderTemplateString('오늘 운세: {{운세}}');
-      
+
       expect(result).toBe('오늘 운세: 운세 정보 없음');
     });
 
@@ -402,10 +412,10 @@ Meeting with {{attendee}} on {{date}}`;
         enabled: true,
         language: 'kr',
       };
-      
+
       const engineWithFortune = new TemplateEngine(undefined, fortuneSettings);
       const result = await engineWithFortune.renderTemplateString('오늘 운세: {{운세}}');
-      
+
       expect(result).toContain('오늘 운세: 🔮');
       expect(result).not.toBe('오늘 운세: 운세 정보 없음');
     });
@@ -415,10 +425,12 @@ Meeting with {{attendee}} on {{date}}`;
         enabled: true,
         language: 'en',
       };
-      
+
       const engineWithEnglishFortune = new TemplateEngine(undefined, fortuneSettings);
-      const result = await engineWithEnglishFortune.renderTemplateString('Today fortune: {{fortune}}');
-      
+      const result = await engineWithEnglishFortune.renderTemplateString(
+        'Today fortune: {{fortune}}'
+      );
+
       expect(result).toContain('Today fortune: 🔮');
       expect(result).not.toBe('Today fortune: Fortune unavailable');
     });
@@ -428,14 +440,14 @@ Meeting with {{attendee}} on {{date}}`;
         enabled: true,
         language: 'kr',
       };
-      
+
       const engineWithFortune = new TemplateEngine(undefined, initialSettings);
-      
+
       const updatedSettings: FortuneSettings = {
         enabled: false,
         language: 'en',
       };
-      
+
       // Should not throw when updating settings
       expect(() => {
         engineWithFortune.updateFortuneSettings(updatedSettings);
@@ -447,12 +459,12 @@ Meeting with {{attendee}} on {{date}}`;
         enabled: true,
         language: 'kr',
       };
-      
+
       const engineWithFortune = new TemplateEngine(undefined, fortuneSettings);
-      
+
       const result1 = await engineWithFortune.renderTemplateString('{{운세}}');
       const result2 = await engineWithFortune.renderTemplateString('{{운세}}');
-      
+
       expect(result1).toBe(result2);
     });
   });

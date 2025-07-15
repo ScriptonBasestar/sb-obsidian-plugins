@@ -6,7 +6,7 @@ import {
   TFile,
   Notice,
   TAbstractFile,
-  moment
+  moment,
 } from 'obsidian';
 
 interface MetadataManagerSettings {
@@ -14,20 +14,20 @@ interface MetadataManagerSettings {
   enableAutoInsert: boolean;
   autoInsertOnNewFiles: boolean;
   autoInsertDelay: number;
-  
+
   // Template settings
   defaultTemplate: string;
   templatesByFolder: Record<string, string>;
-  
+
   // Field settings
   requiredFields: string[];
   optionalFields: string[];
-  
+
   // Auto-generation settings
   autoGenerateCreated: boolean;
   autoGenerateModified: boolean;
   autoGenerateId: boolean;
-  
+
   // Formatting settings
   enableAutoFormat: boolean;
   fieldOrder: string[];
@@ -39,7 +39,7 @@ const DEFAULT_SETTINGS: MetadataManagerSettings = {
   enableAutoInsert: true,
   autoInsertOnNewFiles: true,
   autoInsertDelay: 1000,
-  
+
   // Template settings
   defaultTemplate: `---
 title: 
@@ -48,20 +48,20 @@ modified: {{modified}}
 tags: []
 ---`,
   templatesByFolder: {},
-  
+
   // Field settings
   requiredFields: ['title', 'created'],
   optionalFields: ['tags', 'author', 'description'],
-  
+
   // Auto-generation settings
   autoGenerateCreated: true,
   autoGenerateModified: true,
   autoGenerateId: false,
-  
+
   // Formatting settings
   enableAutoFormat: true,
   fieldOrder: ['title', 'created', 'modified', 'tags', 'author', 'description'],
-  dateFormat: 'YYYY-MM-DD HH:mm:ss'
+  dateFormat: 'YYYY-MM-DD HH:mm:ss',
 };
 
 export default class MetadataManagerPlugin extends Plugin {
@@ -72,13 +72,9 @@ export default class MetadataManagerPlugin extends Plugin {
     await this.loadSettings();
 
     // Register event handlers
-    this.registerEvent(
-      this.app.vault.on('create', (file) => this.onFileCreate(file))
-    );
+    this.registerEvent(this.app.vault.on('create', (file) => this.onFileCreate(file)));
 
-    this.registerEvent(
-      this.app.vault.on('modify', (file) => this.onFileModify(file))
-    );
+    this.registerEvent(this.app.vault.on('modify', (file) => this.onFileModify(file)));
 
     // Commands
     this.addCommand({
@@ -86,7 +82,7 @@ export default class MetadataManagerPlugin extends Plugin {
       name: 'Insert Frontmatter Template',
       editorCallback: (editor, view) => {
         this.insertFrontmatter(view.file);
-      }
+      },
     });
 
     this.addCommand({
@@ -94,7 +90,7 @@ export default class MetadataManagerPlugin extends Plugin {
       name: 'Format Frontmatter',
       editorCallback: (editor, view) => {
         this.formatFrontmatter(view.file);
-      }
+      },
     });
 
     this.addCommand({
@@ -102,7 +98,7 @@ export default class MetadataManagerPlugin extends Plugin {
       name: 'Lint Frontmatter',
       editorCallback: (editor, view) => {
         this.lintFrontmatter(view.file);
-      }
+      },
     });
 
     // Settings tab
@@ -134,7 +130,7 @@ export default class MetadataManagerPlugin extends Plugin {
 
     // Add to queue and process after delay
     this.newFileQueue.add(file.path);
-    
+
     setTimeout(async () => {
       if (this.newFileQueue.has(file.path)) {
         this.newFileQueue.delete(file.path);
@@ -157,7 +153,7 @@ export default class MetadataManagerPlugin extends Plugin {
   private async processNewFile(file: TFile) {
     try {
       const content = await this.app.vault.read(file);
-      
+
       // Check if file already has frontmatter
       if (content.startsWith('---')) {
         return;
@@ -184,12 +180,12 @@ export default class MetadataManagerPlugin extends Plugin {
         `Add frontmatter to "${file.name}"? Click to confirm, or wait 5 seconds to skip.`,
         5000
       );
-      
+
       notice.noticeEl.addEventListener('click', () => {
         notice.hide();
         resolve(true);
       });
-      
+
       setTimeout(() => resolve(false), 5000);
     });
   }
@@ -197,7 +193,7 @@ export default class MetadataManagerPlugin extends Plugin {
   async insertFrontmatter(file: TFile) {
     try {
       const content = await this.app.vault.read(file);
-      
+
       // Skip if already has frontmatter
       if (content.startsWith('---')) {
         new Notice('File already has frontmatter');
@@ -206,10 +202,10 @@ export default class MetadataManagerPlugin extends Plugin {
 
       const template = this.getTemplateForFile(file);
       const processedTemplate = this.processTemplate(template, file);
-      
+
       const newContent = processedTemplate + '\n\n' + content;
       await this.app.vault.modify(file, newContent);
-      
+
       new Notice(`Frontmatter added to ${file.name}`);
     } catch (error) {
       console.error('Error inserting frontmatter:', error);
@@ -220,20 +216,20 @@ export default class MetadataManagerPlugin extends Plugin {
   private getTemplateForFile(file: TFile): string {
     // Check for folder-specific template
     const folderPath = file.parent?.path || '';
-    
+
     for (const [folder, template] of Object.entries(this.settings.templatesByFolder)) {
       if (folderPath.startsWith(folder)) {
         return template;
       }
     }
-    
+
     return this.settings.defaultTemplate;
   }
 
   private processTemplate(template: string, file: TFile): string {
     const now = moment();
     const fileName = file.basename;
-    
+
     return template
       .replace(/\{\{title\}\}/g, fileName)
       .replace(/\{\{created\}\}/g, now.format(this.settings.dateFormat))
@@ -253,7 +249,7 @@ export default class MetadataManagerPlugin extends Plugin {
     try {
       const content = await this.app.vault.read(file);
       const { frontmatter, body } = this.parseFrontmatter(content);
-      
+
       if (!frontmatter) {
         new Notice('No frontmatter found');
         return;
@@ -261,7 +257,7 @@ export default class MetadataManagerPlugin extends Plugin {
 
       const formattedFrontmatter = this.formatFrontmatterObject(frontmatter);
       const newContent = `---\n${formattedFrontmatter}\n---\n\n${body}`;
-      
+
       await this.app.vault.modify(file, newContent);
       new Notice(`Frontmatter formatted in ${file.name}`);
     } catch (error) {
@@ -274,14 +270,14 @@ export default class MetadataManagerPlugin extends Plugin {
     try {
       const content = await this.app.vault.read(file);
       const { frontmatter } = this.parseFrontmatter(content);
-      
+
       if (!frontmatter) {
         new Notice('No frontmatter found');
         return;
       }
 
       const issues = this.validateFrontmatter(frontmatter);
-      
+
       if (issues.length === 0) {
         new Notice('Frontmatter is valid');
       } else {
@@ -293,14 +289,14 @@ export default class MetadataManagerPlugin extends Plugin {
     }
   }
 
-  private parseFrontmatter(content: string): { frontmatter: any, body: string } {
+  private parseFrontmatter(content: string): { frontmatter: any; body: string } {
     const frontmatterRegex = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
     const match = content.match(frontmatterRegex);
-    
+
     if (!match) {
       return { frontmatter: null, body: content };
     }
-    
+
     try {
       const yaml = require('yaml');
       const frontmatter = yaml.parse(match[1]);
@@ -314,47 +310,51 @@ export default class MetadataManagerPlugin extends Plugin {
   private formatFrontmatterObject(frontmatter: any): string {
     const yaml = require('yaml');
     const orderedData: any = {};
-    
+
     // Add fields in specified order
     for (const field of this.settings.fieldOrder) {
       if (frontmatter.hasOwnProperty(field)) {
         orderedData[field] = frontmatter[field];
       }
     }
-    
+
     // Add remaining fields
     for (const [key, value] of Object.entries(frontmatter)) {
       if (!orderedData.hasOwnProperty(key)) {
         orderedData[key] = value;
       }
     }
-    
+
     return yaml.stringify(orderedData).trim();
   }
 
   private validateFrontmatter(frontmatter: any): string[] {
     const issues: string[] = [];
-    
+
     // Check required fields
     for (const field of this.settings.requiredFields) {
-      if (!frontmatter.hasOwnProperty(field) || frontmatter[field] === '' || frontmatter[field] == null) {
+      if (
+        !frontmatter.hasOwnProperty(field) ||
+        frontmatter[field] === '' ||
+        frontmatter[field] == null
+      ) {
         issues.push(`Missing required field: ${field}`);
       }
     }
-    
+
     // Check field types
     if (frontmatter.created && !this.isValidDate(frontmatter.created)) {
       issues.push('Invalid created date format');
     }
-    
+
     if (frontmatter.modified && !this.isValidDate(frontmatter.modified)) {
       issues.push('Invalid modified date format');
     }
-    
+
     if (frontmatter.tags && !Array.isArray(frontmatter.tags)) {
       issues.push('Tags should be an array');
     }
-    
+
     return issues;
   }
 
@@ -367,15 +367,15 @@ export default class MetadataManagerPlugin extends Plugin {
     try {
       const content = await this.app.vault.read(file);
       const { frontmatter, body } = this.parseFrontmatter(content);
-      
+
       if (!frontmatter) {
         return;
       }
-      
+
       frontmatter.modified = moment().format(this.settings.dateFormat);
       const formattedFrontmatter = this.formatFrontmatterObject(frontmatter);
       const newContent = `---\n${formattedFrontmatter}\n---\n\n${body}`;
-      
+
       await this.app.vault.modify(file, newContent);
     } catch (error) {
       console.error('Error updating modified timestamp:', error);
@@ -403,34 +403,36 @@ class MetadataManagerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Enable Auto Insert')
       .setDesc('Automatically insert frontmatter in new files')
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.enableAutoInsert)
-        .onChange(async (value) => {
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.enableAutoInsert).onChange(async (value) => {
           this.plugin.settings.enableAutoInsert = value;
           await this.plugin.saveSettings();
-        }));
+        })
+      );
 
     new Setting(containerEl)
       .setName('Auto Insert on New Files')
       .setDesc('Insert frontmatter when creating new markdown files')
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.autoInsertOnNewFiles)
-        .onChange(async (value) => {
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.autoInsertOnNewFiles).onChange(async (value) => {
           this.plugin.settings.autoInsertOnNewFiles = value;
           await this.plugin.saveSettings();
-        }));
+        })
+      );
 
     new Setting(containerEl)
       .setName('Auto Insert Delay (ms)')
       .setDesc('Delay before inserting frontmatter in new files')
-      .addSlider(slider => slider
-        .setLimits(500, 5000, 500)
-        .setValue(this.plugin.settings.autoInsertDelay)
-        .setDynamicTooltip()
-        .onChange(async (value) => {
-          this.plugin.settings.autoInsertDelay = value;
-          await this.plugin.saveSettings();
-        }));
+      .addSlider((slider) =>
+        slider
+          .setLimits(500, 5000, 500)
+          .setValue(this.plugin.settings.autoInsertDelay)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.autoInsertDelay = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     // Template settings
     containerEl.createEl('h3', { text: 'Template Settings' });
@@ -438,13 +440,17 @@ class MetadataManagerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Default Template')
       .setDesc('Default frontmatter template for new files')
-      .addTextArea(text => text
-        .setPlaceholder('---\ntitle: \ncreated: {{created}}\nmodified: {{modified}}\ntags: []\n---')
-        .setValue(this.plugin.settings.defaultTemplate)
-        .onChange(async (value) => {
-          this.plugin.settings.defaultTemplate = value;
-          await this.plugin.saveSettings();
-        }));
+      .addTextArea((text) =>
+        text
+          .setPlaceholder(
+            '---\ntitle: \ncreated: {{created}}\nmodified: {{modified}}\ntags: []\n---'
+          )
+          .setValue(this.plugin.settings.defaultTemplate)
+          .onChange(async (value) => {
+            this.plugin.settings.defaultTemplate = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     // Auto-generation settings
     containerEl.createEl('h3', { text: 'Auto-Generation Settings' });
@@ -452,33 +458,35 @@ class MetadataManagerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Auto Generate Created')
       .setDesc('Automatically add created timestamp')
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.autoGenerateCreated)
-        .onChange(async (value) => {
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.autoGenerateCreated).onChange(async (value) => {
           this.plugin.settings.autoGenerateCreated = value;
           await this.plugin.saveSettings();
-        }));
+        })
+      );
 
     new Setting(containerEl)
       .setName('Auto Generate Modified')
       .setDesc('Automatically update modified timestamp on file changes')
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.autoGenerateModified)
-        .onChange(async (value) => {
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.autoGenerateModified).onChange(async (value) => {
           this.plugin.settings.autoGenerateModified = value;
           await this.plugin.saveSettings();
-        }));
+        })
+      );
 
     new Setting(containerEl)
       .setName('Date Format')
       .setDesc('Format for date fields (using moment.js format)')
-      .addText(text => text
-        .setPlaceholder('YYYY-MM-DD HH:mm:ss')
-        .setValue(this.plugin.settings.dateFormat)
-        .onChange(async (value) => {
-          this.plugin.settings.dateFormat = value;
-          await this.plugin.saveSettings();
-        }));
+      .addText((text) =>
+        text
+          .setPlaceholder('YYYY-MM-DD HH:mm:ss')
+          .setValue(this.plugin.settings.dateFormat)
+          .onChange(async (value) => {
+            this.plugin.settings.dateFormat = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     // Field settings
     containerEl.createEl('h3', { text: 'Field Settings' });
@@ -486,24 +494,34 @@ class MetadataManagerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Required Fields')
       .setDesc('Comma-separated list of required frontmatter fields')
-      .addText(text => text
-        .setPlaceholder('title, created')
-        .setValue(this.plugin.settings.requiredFields.join(', '))
-        .onChange(async (value) => {
-          this.plugin.settings.requiredFields = value.split(',').map(s => s.trim()).filter(s => s);
-          await this.plugin.saveSettings();
-        }));
+      .addText((text) =>
+        text
+          .setPlaceholder('title, created')
+          .setValue(this.plugin.settings.requiredFields.join(', '))
+          .onChange(async (value) => {
+            this.plugin.settings.requiredFields = value
+              .split(',')
+              .map((s) => s.trim())
+              .filter((s) => s);
+            await this.plugin.saveSettings();
+          })
+      );
 
     new Setting(containerEl)
       .setName('Optional Fields')
       .setDesc('Comma-separated list of optional frontmatter fields')
-      .addText(text => text
-        .setPlaceholder('tags, author, description')
-        .setValue(this.plugin.settings.optionalFields.join(', '))
-        .onChange(async (value) => {
-          this.plugin.settings.optionalFields = value.split(',').map(s => s.trim()).filter(s => s);
-          await this.plugin.saveSettings();
-        }));
+      .addText((text) =>
+        text
+          .setPlaceholder('tags, author, description')
+          .setValue(this.plugin.settings.optionalFields.join(', '))
+          .onChange(async (value) => {
+            this.plugin.settings.optionalFields = value
+              .split(',')
+              .map((s) => s.trim())
+              .filter((s) => s);
+            await this.plugin.saveSettings();
+          })
+      );
 
     // Formatting settings
     containerEl.createEl('h3', { text: 'Formatting Settings' });
@@ -511,22 +529,27 @@ class MetadataManagerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Enable Auto Format')
       .setDesc('Automatically format frontmatter when saving')
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.enableAutoFormat)
-        .onChange(async (value) => {
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.enableAutoFormat).onChange(async (value) => {
           this.plugin.settings.enableAutoFormat = value;
           await this.plugin.saveSettings();
-        }));
+        })
+      );
 
     new Setting(containerEl)
       .setName('Field Order')
       .setDesc('Comma-separated list defining the order of frontmatter fields')
-      .addText(text => text
-        .setPlaceholder('title, created, modified, tags')
-        .setValue(this.plugin.settings.fieldOrder.join(', '))
-        .onChange(async (value) => {
-          this.plugin.settings.fieldOrder = value.split(',').map(s => s.trim()).filter(s => s);
-          await this.plugin.saveSettings();
-        }));
+      .addText((text) =>
+        text
+          .setPlaceholder('title, created, modified, tags')
+          .setValue(this.plugin.settings.fieldOrder.join(', '))
+          .onChange(async (value) => {
+            this.plugin.settings.fieldOrder = value
+              .split(',')
+              .map((s) => s.trim())
+              .filter((s) => s);
+            await this.plugin.saveSettings();
+          })
+      );
   }
 }

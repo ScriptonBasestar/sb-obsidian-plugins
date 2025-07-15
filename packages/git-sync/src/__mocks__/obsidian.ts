@@ -3,10 +3,16 @@ export class Plugin {
   app: any;
   addCommand() {}
   addSettingTab() {}
-  addStatusBarItem() { return { setText: () => {} }; }
+  addStatusBarItem() {
+    return { setText: () => {} };
+  }
   addRibbonIcon() {}
-  loadData() { return Promise.resolve({}); }
-  saveData() { return Promise.resolve(); }
+  loadData() {
+    return Promise.resolve({});
+  }
+  saveData() {
+    return Promise.resolve();
+  }
 }
 
 export class Notice {
@@ -15,13 +21,27 @@ export class Notice {
 
 export class Setting {
   constructor(containerEl: any) {}
-  setName() { return this; }
-  setDesc() { return this; }
-  addText() { return this; }
-  addToggle() { return this; }
-  addSlider() { return this; }
-  addDropdown() { return this; }
-  addButton() { return this; }
+  setName() {
+    return this;
+  }
+  setDesc() {
+    return this;
+  }
+  addText() {
+    return this;
+  }
+  addToggle() {
+    return this;
+  }
+  addSlider() {
+    return this;
+  }
+  addDropdown() {
+    return this;
+  }
+  addButton() {
+    return this;
+  }
 }
 
 export class PluginSettingTab {
@@ -34,9 +54,9 @@ export class Modal {
   contentEl: any = {
     createEl: () => ({ style: {}, createEl: () => ({}) }),
     empty: () => {},
-    addClass: () => {}
+    addClass: () => {},
   };
-  
+
   constructor(app: any) {}
   open() {}
   close() {}

@@ -12,7 +12,7 @@ export const DEFAULT_BASE_SETTINGS: BasePluginSettings = {
 
 export abstract class BasePlugin<T extends BasePluginSettings> extends Plugin {
   settings: T;
-  
+
   abstract getDefaultSettings(): T;
   abstract getPluginName(): string;
   abstract getSettingTab(): PluginSettingTab;
@@ -134,9 +134,8 @@ export abstract class BasePluginSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Debug mode')
       .setDesc('Enable debug logging')
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.debug)
-        .onChange(async (value) => {
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.debug).onChange(async (value) => {
           this.plugin.settings.debug = value;
           await this.plugin.saveSettings();
         })
@@ -146,9 +145,9 @@ export abstract class BasePluginSettingTab extends PluginSettingTab {
     this.displayPluginSettings(containerEl);
 
     // Version info
-    containerEl.createEl('small', { 
+    containerEl.createEl('small', {
       text: `Version: ${this.plugin.getVersion()}`,
-      cls: 'setting-item-description'
+      cls: 'setting-item-description',
     });
   }
 

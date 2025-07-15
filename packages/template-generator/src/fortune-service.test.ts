@@ -16,18 +16,18 @@ describe('FortuneService', () => {
   describe('Fortune generation', () => {
     it('should generate fortune data with all required fields', () => {
       const fortune = fortuneService.getFortune(mockSettings);
-      
+
       expect(fortune).toHaveProperty('general');
       expect(fortune).toHaveProperty('love');
       expect(fortune).toHaveProperty('work');
       expect(fortune).toHaveProperty('health');
       expect(fortune).toHaveProperty('lucky');
       expect(fortune).toHaveProperty('warning');
-      
+
       expect(fortune.lucky).toHaveProperty('number');
       expect(fortune.lucky).toHaveProperty('color');
       expect(fortune.lucky).toHaveProperty('item');
-      
+
       expect(typeof fortune.general).toBe('string');
       expect(typeof fortune.love).toBe('string');
       expect(typeof fortune.work).toBe('string');
@@ -41,7 +41,7 @@ describe('FortuneService', () => {
     it('should generate consistent fortune for the same day', () => {
       const fortune1 = fortuneService.getFortune(mockSettings);
       const fortune2 = fortuneService.getFortune(mockSettings);
-      
+
       expect(fortune1).toEqual(fortune2);
     });
 
@@ -50,9 +50,9 @@ describe('FortuneService', () => {
         enabled: true,
         language: 'kr',
       };
-      
+
       const fortune = fortuneService.getFortune(koreanSettings);
-      
+
       // Check that Korean text is generated (contains Korean characters)
       expect(fortune.general).toMatch(/[가-힣]/);
       expect(fortune.love).toMatch(/[가-힣]/);
@@ -68,9 +68,9 @@ describe('FortuneService', () => {
         enabled: true,
         language: 'en',
       };
-      
+
       const fortune = fortuneService.getFortune(englishSettings);
-      
+
       // Check that English text is generated (no Korean characters)
       expect(fortune.general).not.toMatch(/[가-힣]/);
       expect(fortune.love).not.toMatch(/[가-힣]/);
@@ -86,9 +86,9 @@ describe('FortuneService', () => {
         enabled: false,
         language: 'kr',
       };
-      
+
       const fortune = fortuneService.getFortune(disabledSettings);
-      
+
       expect(fortune.general).toBe('운세 정보 없음');
       expect(fortune.love).toBe('운세 정보 없음');
       expect(fortune.work).toBe('운세 정보 없음');
@@ -104,7 +104,7 @@ describe('FortuneService', () => {
     it('should format simple fortune string in Korean', () => {
       const fortune = fortuneService.getFortune(mockSettings);
       const formatted = fortuneService.formatFortune(fortune, mockSettings);
-      
+
       expect(formatted).toContain('🔮');
       expect(formatted).toContain(fortune.general);
     });
@@ -114,10 +114,10 @@ describe('FortuneService', () => {
         enabled: true,
         language: 'en',
       };
-      
+
       const fortune = fortuneService.getFortune(englishSettings);
       const formatted = fortuneService.formatFortune(fortune, englishSettings);
-      
+
       expect(formatted).toContain('🔮');
       expect(formatted).toContain(fortune.general);
     });
@@ -125,7 +125,7 @@ describe('FortuneService', () => {
     it('should format detailed fortune with all sections in Korean', () => {
       const fortune = fortuneService.getFortune(mockSettings);
       const detailed = fortuneService.formatDetailedFortune(fortune, mockSettings);
-      
+
       expect(detailed).toContain('🔮');
       expect(detailed).toContain('오늘의 운세');
       expect(detailed).toContain('💫 종합운');
@@ -149,10 +149,10 @@ describe('FortuneService', () => {
         enabled: true,
         language: 'en',
       };
-      
+
       const fortune = fortuneService.getFortune(englishSettings);
       const detailed = fortuneService.formatDetailedFortune(fortune, englishSettings);
-      
+
       expect(detailed).toContain('🔮');
       expect(detailed).toContain("Today's Fortune");
       expect(detailed).toContain('💫 General');
@@ -176,11 +176,11 @@ describe('FortuneService', () => {
         enabled: false,
         language: 'kr',
       };
-      
+
       const fortune = fortuneService.getFortune(disabledSettings);
       const formatted = fortuneService.formatFortune(fortune, disabledSettings);
       const detailed = fortuneService.formatDetailedFortune(fortune, disabledSettings);
-      
+
       expect(formatted).toBe('운세 정보 없음');
       expect(detailed).toBe('운세 정보 없음');
     });
@@ -190,11 +190,11 @@ describe('FortuneService', () => {
         enabled: false,
         language: 'en',
       };
-      
+
       const fortune = fortuneService.getFortune(disabledEnglishSettings);
       const formatted = fortuneService.formatFortune(fortune, disabledEnglishSettings);
       const detailed = fortuneService.formatDetailedFortune(fortune, disabledEnglishSettings);
-      
+
       expect(formatted).toBe('Fortune unavailable');
       expect(detailed).toBe('Fortune unavailable');
     });
@@ -204,7 +204,7 @@ describe('FortuneService', () => {
     it('should generate valid lucky numbers', () => {
       const fortune = fortuneService.getFortune(mockSettings);
       const validNumbers = [1, 3, 7, 9, 13, 21, 27, 33, 42, 88];
-      
+
       expect(validNumbers).toContain(fortune.lucky.number);
     });
   });
@@ -215,9 +215,9 @@ describe('FortuneService', () => {
         enabled: true,
         language: 'kr',
       };
-      
+
       const fortune = fortuneService.getFortune(koreanSettings);
-      
+
       expect(fortune.lucky.color).toMatch(/[가-힣]/);
       expect(fortune.lucky.item).toMatch(/[가-힣]/);
     });
@@ -227,9 +227,9 @@ describe('FortuneService', () => {
         enabled: true,
         language: 'en',
       };
-      
+
       const fortune = fortuneService.getFortune(englishSettings);
-      
+
       expect(fortune.lucky.color).not.toMatch(/[가-힣]/);
       expect(fortune.lucky.item).not.toMatch(/[가-힣]/);
     });
