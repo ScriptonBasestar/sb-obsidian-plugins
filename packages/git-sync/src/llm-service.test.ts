@@ -13,7 +13,9 @@ describe('LLMService', () => {
       provider: 'openai',
       apiKey: 'test-api-key',
       commitPrompt: 'Generate a commit message:',
-      enabled: true
+      enabled: true,
+      useTemplateEngine: false,
+      selectedTemplate: 'conventional'
     };
     llmService = new LLMService(mockSettings);
     vi.clearAllMocks();
@@ -31,7 +33,9 @@ describe('LLMService', () => {
         provider: 'anthropic',
         apiKey: 'new-key',
         commitPrompt: 'New prompt',
-        enabled: false
+        enabled: false,
+        useTemplateEngine: true,
+        selectedTemplate: 'korean'
       };
       
       llmService.updateSettings(newSettings);
@@ -308,6 +312,140 @@ describe('LLMService', () => {
       
       expect(tokens).toBeGreaterThan(0);
       expect(typeof tokens).toBe('number');
+    });
+  });
+
+  describe('template engine features', () => {
+    it('should get available templates', () => {
+      const templates = llmService.getAvailableTemplates();
+      
+      expect(templates).toBeDefined();
+      expect(templates.length).toBeGreaterThan(0);
+      expect(templates[0]).toHaveProperty('id');
+      expect(templates[0]).toHaveProperty('name');
+    });
+
+    it('should preview prompt', () => {
+      const context: CommitContext = {
+        files: {
+          staged: ['test.ts'],
+          unstaged: [],
+          untracked: []
+        },
+        branch: 'main'
+      };
+      
+      const preview = llmService.previewPrompt(context);
+      
+      expect(preview).toBeDefined();
+      expect(typeof preview).toBe('string');
+      expect(preview.length).toBeGreaterThan(0);
+    });
+
+    it('should validate template', () => {
+      const validTemplate = '{{files.total}} files on {{branch}}';
+      const invalidTemplate = '{{unknown.variable}}';
+      
+      const validResult = llmService.validatePromptTemplate(validTemplate);
+      const invalidResult = llmService.validatePromptTemplate(invalidTemplate);
+      
+      expect(validResult.valid).toBe(true);
+      expect(invalidResult.valid).toBe(false);
+    });
+
+    it('should provide template help', () => {
+      const help = llmService.getTemplateHelp();
+      
+      expect(help).toBeDefined();
+      expect(help).toContain('Available template variables');
+      expect(help).toContain('{{files.staged}}');
+    });
+
+    it('should use template engine when enabled', async () => {
+      // Enable template engine
+      llmService.updateSettings({
+        ...mockSettings,
+        useTemplateEngine: true,
+        selectedTemplate: 'simple'
+      });
+
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{
+            message: {
+              content: 'feat: add new feature'
+            }
+          }]
+        })
+      };
+      
+      (global.fetch as any).mockResolvedValueOnce(mockResponse);
+      
+      const context: CommitContext = {
+        files: {
+          staged: ['test.ts'],
+          unstaged: [],
+          untracked: []
+        },
+        branch: 'main'
+      };
+      
+      const result = await llmService.generateCommitMessage(context);
+      
+      expect(result.success).toBe(true);
+      expect(fetch).toHaveBeenCalled();
+      
+      // Verify that the request body contains processed template
+      const fetchCall = (fetch as any).mock.calls[0];
+      const requestBody = JSON.parse(fetchCall[1].body);
+      const prompt = requestBody.messages[1].content;
+      
+      // Should contain processed template content
+      expect(prompt).toContain('1 files changed');
+      expect(prompt).toContain('main');
+    });
+
+    it('should process custom template with variables', async () => {
+      // Set custom template with variables
+      llmService.updateSettings({
+        ...mockSettings,
+        commitPrompt: 'Custom prompt for {{files.total}} files on {{branch}}:\n{{#if files.staged}}\nStaged: {{files.staged}}\n{{/if}}'
+      });
+
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{
+            message: {
+              content: 'feat: custom template result'
+            }
+          }]
+        })
+      };
+      
+      (global.fetch as any).mockResolvedValueOnce(mockResponse);
+      
+      const context: CommitContext = {
+        files: {
+          staged: ['file1.ts', 'file2.js'],
+          unstaged: [],
+          untracked: []
+        },
+        branch: 'feature/test'
+      };
+      
+      const result = await llmService.generateCommitMessage(context);
+      
+      expect(result.success).toBe(true);
+      
+      // Verify that the request body contains processed custom template
+      const fetchCall = (fetch as any).mock.calls[0];
+      const requestBody = JSON.parse(fetchCall[1].body);
+      const prompt = requestBody.messages[1].content;
+      
+      expect(prompt).toContain('Custom prompt for 2 files on feature/test');
+      expect(prompt).toContain('Staged: file1.ts, file2.js');
     });
   });
 

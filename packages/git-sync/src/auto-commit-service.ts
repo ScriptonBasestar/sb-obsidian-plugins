@@ -22,6 +22,8 @@ export interface AutoCommitSettings {
   llmProvider: 'openai' | 'anthropic' | 'none';
   apiKey: string;
   commitPrompt: string;
+  useTemplateEngine: boolean;
+  selectedTemplate: string;
 }
 
 export class AutoCommitService {
@@ -41,7 +43,9 @@ export class AutoCommitService {
       provider: settings.llmProvider,
       apiKey: settings.apiKey,
       commitPrompt: settings.commitPrompt,
-      enabled: settings.enableAICommitMessages
+      enabled: settings.enableAICommitMessages,
+      useTemplateEngine: settings.useTemplateEngine || false,
+      selectedTemplate: settings.selectedTemplate || 'conventional'
     });
   }
 
@@ -87,7 +91,9 @@ export class AutoCommitService {
       provider: settings.llmProvider,
       apiKey: settings.apiKey,
       commitPrompt: settings.commitPrompt,
-      enabled: settings.enableAICommitMessages
+      enabled: settings.enableAICommitMessages,
+      useTemplateEngine: settings.useTemplateEngine || false,
+      selectedTemplate: settings.selectedTemplate || 'conventional'
     });
     
     if (this.settings.enableAutoCommit) {
@@ -412,5 +418,58 @@ Auto-committed at ${timestamp}`;
       console.error('Failed to estimate tokens:', error);
       return 0;
     }
+  }
+
+  /**
+   * Get available prompt templates from LLM service
+   */
+  getAvailablePromptTemplates(): any[] {
+    return this.llmService.getAvailableTemplates();
+  }
+
+  /**
+   * Preview prompt with current changes
+   */
+  async previewPromptWithCurrentChanges(): Promise<string> {
+    try {
+      const status = await this.gitService.getStatus();
+      const context: CommitContext = {
+        files: {
+          staged: status.staged || [],
+          unstaged: status.unstaged || [],
+          untracked: status.untracked || []
+        },
+        branch: status.currentBranch || 'unknown'
+      };
+
+      // Get recent commits for context
+      try {
+        const recentCommits = await this.gitService.getRecentCommits(3);
+        context.recentCommits = recentCommits.map((commit: any) => 
+          `${commit.hash?.substring(0, 7) || 'unknown'}: ${commit.message || 'no message'}`
+        );
+      } catch (error) {
+        console.warn('Failed to get recent commits for preview:', error);
+      }
+      
+      return this.llmService.previewPrompt(context);
+    } catch (error) {
+      console.error('Failed to preview prompt:', error);
+      return 'Error generating preview: ' + error.message;
+    }
+  }
+
+  /**
+   * Validate custom prompt template
+   */
+  validatePromptTemplate(template: string): { valid: boolean; errors: string[] } {
+    return this.llmService.validatePromptTemplate(template);
+  }
+
+  /**
+   * Get template help documentation
+   */
+  getTemplateHelp(): string {
+    return this.llmService.getTemplateHelp();
   }
 }
