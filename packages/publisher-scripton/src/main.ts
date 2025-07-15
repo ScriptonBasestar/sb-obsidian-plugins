@@ -11,37 +11,8 @@ import {
   Component,
 } from 'obsidian';
 import { ScriptonApiService } from './scripton-api-service';
+import { PublisherScriptonSettings, PublishOptions, PublishResult, getErrorMessage } from './types';
 
-interface PublisherScriptonSettings {
-  // API settings
-  apiKey: string;
-  apiEndpoint: string;
-
-  // Publishing settings
-  enablePublishing: boolean;
-  defaultVisibility: 'public' | 'private' | 'unlisted';
-  includeAttachments: boolean;
-  preserveLinks: boolean;
-
-  // Content processing
-  stripFrontmatter: boolean;
-  convertWikiLinks: boolean;
-  customCssStyles: string;
-
-  // Auto-publishing
-  enableAutoPublish: boolean;
-  autoPublishFolders: string[];
-  autoPublishTags: string[];
-
-  // Retry settings
-  enableRetry: boolean;
-  maxRetries: number;
-  retryDelay: number;
-
-  // Log settings
-  enableDetailedLogs: boolean;
-  logLevel: 'error' | 'warn' | 'info' | 'debug';
-}
 
 const DEFAULT_SETTINGS: PublisherScriptonSettings = {
   // API settings
@@ -200,7 +171,7 @@ export default class PublisherScriptonPlugin extends Plugin {
       }
     } catch (error) {
       console.error('Publish error:', error);
-      new Notice(`Publish error: ${error.message}`);
+      new Notice(`Publish error: ${getErrorMessage(error)}`);
       this.updateStatusBar('Error');
     }
   }

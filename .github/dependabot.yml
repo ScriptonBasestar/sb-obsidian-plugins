@@ -1,0 +1,51 @@
+version: 2
+updates:
+  # Maintain dependencies for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 10
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+      development-dependencies:
+        dependency-type: "development"
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "obsidian"
+    labels:
+      - "dependencies"
+      - "automated"
+    reviewers:
+      - "archmagece"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    ignore:
+      # Don't update Obsidian API - we control this manually
+      - dependency-name: "obsidian"
+      # Major version updates that might break compatibility
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+        
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    labels:
+      - "github-actions"
+      - "automated"
+    reviewers:
+      - "archmagece"
+    commit-message:
+      prefix: "ci"
