@@ -549,6 +549,11 @@ class TemplateModal extends Modal {
   templates: Array<ParsedTemplate>;
   onChoose: (template: ParsedTemplate) => void;
   templateEngine: TemplateEngine;
+  private selectedTemplate: ParsedTemplate | null = null;
+  private searchInput: HTMLInputElement;
+  private templatesContainer: HTMLElement;
+  private previewContainer: HTMLElement;
+  private filteredTemplates: Array<ParsedTemplate>;
 
   constructor(
     app: App,
@@ -558,36 +563,140 @@ class TemplateModal extends Modal {
   ) {
     super(app);
     this.templates = templates;
+    this.filteredTemplates = [...templates];
     this.onChoose = onChoose;
     this.templateEngine = templateEngine || new TemplateEngine();
   }
 
   onOpen() {
     const { contentEl } = this;
-    contentEl.createEl('h2', { text: 'Choose Template' });
+    contentEl.empty();
+    contentEl.addClass('template-modal');
+    
+    // Set modal size
+    contentEl.style.width = '90vw';
+    contentEl.style.maxWidth = '1200px';
+    contentEl.style.height = '80vh';
+    contentEl.style.maxHeight = '800px';
 
-    this.templates.forEach((template) => {
-      const templateEl = contentEl.createEl('div', { cls: 'template-item' });
+    // Header
+    const headerEl = contentEl.createEl('div', { cls: 'template-modal-header' });
+    headerEl.createEl('h2', { text: 'Choose Template' });
+
+    // Search bar
+    const searchContainer = headerEl.createEl('div', { cls: 'template-search-container' });
+    this.searchInput = searchContainer.createEl('input', {
+      type: 'text',
+      placeholder: 'Search templates...',
+      cls: 'template-search-input',
+    });
+    this.searchInput.style.width = '300px';
+    this.searchInput.style.padding = '8px';
+    this.searchInput.style.border = '1px solid var(--background-modifier-border)';
+    this.searchInput.style.borderRadius = '4px';
+    this.searchInput.style.marginBottom = '16px';
+
+    // Main content area (two columns)
+    const mainEl = contentEl.createEl('div', { cls: 'template-modal-main' });
+    mainEl.style.display = 'flex';
+    mainEl.style.gap = '16px';
+    mainEl.style.height = 'calc(100% - 120px)';
+
+    // Templates list (left side)
+    const leftPanel = mainEl.createEl('div', { cls: 'template-list-panel' });
+    leftPanel.style.flex = '1';
+    leftPanel.style.minWidth = '400px';
+    leftPanel.style.borderRight = '1px solid var(--background-modifier-border)';
+    leftPanel.style.paddingRight = '16px';
+
+    leftPanel.createEl('h3', { text: 'Templates' });
+    this.templatesContainer = leftPanel.createEl('div', { cls: 'templates-container' });
+    this.templatesContainer.style.overflowY = 'auto';
+    this.templatesContainer.style.height = 'calc(100% - 40px)';
+
+    // Preview panel (right side)
+    const rightPanel = mainEl.createEl('div', { cls: 'template-preview-panel' });
+    rightPanel.style.flex = '1';
+    rightPanel.style.minWidth = '400px';
+    rightPanel.style.paddingLeft = '16px';
+
+    rightPanel.createEl('h3', { text: 'Preview' });
+    this.previewContainer = rightPanel.createEl('div', { cls: 'template-preview-container' });
+    this.previewContainer.style.height = 'calc(100% - 40px)';
+    this.previewContainer.style.overflowY = 'auto';
+    this.previewContainer.style.padding = '16px';
+    this.previewContainer.style.border = '1px solid var(--background-modifier-border)';
+    this.previewContainer.style.borderRadius = '4px';
+    this.previewContainer.style.backgroundColor = 'var(--background-secondary)';
+
+    // Default preview message
+    this.previewContainer.createEl('div', {
+      text: 'Select a template to see preview',
+      cls: 'template-preview-placeholder',
+    }).style.color = 'var(--text-muted)';
+
+    // Event listeners
+    this.searchInput.addEventListener('input', () => this.filterTemplates());
+
+    // Initial render
+    this.renderTemplates();
+  }
+
+  private filterTemplates() {
+    const searchTerm = this.searchInput.value.toLowerCase();
+    this.filteredTemplates = this.templates.filter(template => 
+      template.name.toLowerCase().includes(searchTerm) ||
+      (template.metadata.description && template.metadata.description.toLowerCase().includes(searchTerm)) ||
+      template.variables.some(variable => variable.toLowerCase().includes(searchTerm))
+    );
+    this.renderTemplates();
+  }
+
+  private renderTemplates() {
+    this.templatesContainer.empty();
+
+    if (this.filteredTemplates.length === 0) {
+      const noResultsEl = this.templatesContainer.createEl('div', {
+        text: 'No templates found',
+        cls: 'template-no-results',
+      });
+      noResultsEl.style.color = 'var(--text-muted)';
+      noResultsEl.style.textAlign = 'center';
+      noResultsEl.style.padding = '20px';
+      return;
+    }
+
+    this.filteredTemplates.forEach((template) => {
+      const templateEl = this.templatesContainer.createEl('div', { cls: 'template-item' });
+      templateEl.style.padding = '12px';
+      templateEl.style.marginBottom = '8px';
+      templateEl.style.border = '1px solid var(--background-modifier-border)';
+      templateEl.style.borderRadius = '6px';
+      templateEl.style.cursor = 'pointer';
+      templateEl.style.transition = 'all 0.2s ease';
 
       // Add validation status indicator
       if (!template.isValid) {
-        templateEl.style.border = '1px solid var(--text-error)';
-        templateEl.style.borderRadius = '4px';
-        templateEl.style.padding = '8px';
-        templateEl.style.marginBottom = '8px';
+        templateEl.style.borderColor = 'var(--text-error)';
+        templateEl.style.backgroundColor = 'var(--background-modifier-error)';
       }
 
       const headerEl = templateEl.createEl('div', { cls: 'template-header' });
+      headerEl.style.display = 'flex';
+      headerEl.style.alignItems = 'center';
+      headerEl.style.justifyContent = 'space-between';
 
-      const button = headerEl.createEl('button', {
+      const titleEl = headerEl.createEl('span', {
         text: template.name,
-        cls: 'mod-cta',
+        cls: 'template-title',
       });
+      titleEl.style.fontWeight = 'bold';
+      titleEl.style.fontSize = '14px';
 
       // Show validation status
       if (!template.isValid) {
         const warningEl = headerEl.createEl('span', {
-          text: ' ⚠️',
+          text: '⚠️',
           cls: 'template-warning',
         });
         warningEl.title = template.errors.join('; ');
@@ -599,20 +708,34 @@ class TemplateModal extends Modal {
           text: template.metadata.description,
           cls: 'template-description',
         });
-        descEl.style.fontSize = '0.85em';
+        descEl.style.fontSize = '12px';
         descEl.style.color = 'var(--text-muted)';
-        descEl.style.marginTop = '2px';
+        descEl.style.marginTop = '4px';
       }
 
       // Show template variables
       if (template.variables.length > 0) {
         const varsEl = templateEl.createEl('div', {
-          text: `Variables: ${template.variables.join(', ')}`,
           cls: 'template-variables',
         });
-        varsEl.style.fontSize = '0.8em';
+        varsEl.style.fontSize = '11px';
         varsEl.style.color = 'var(--text-accent)';
-        varsEl.style.marginTop = '2px';
+        varsEl.style.marginTop = '4px';
+        varsEl.style.display = 'flex';
+        varsEl.style.flexWrap = 'wrap';
+        varsEl.style.gap = '4px';
+
+        template.variables.forEach(variable => {
+          const varTag = varsEl.createEl('span', {
+            text: variable,
+            cls: 'template-variable-tag',
+          });
+          varTag.style.backgroundColor = 'var(--text-accent)';
+          varTag.style.color = 'var(--text-on-accent)';
+          varTag.style.padding = '2px 6px';
+          varTag.style.borderRadius = '3px';
+          varTag.style.fontSize = '10px';
+        });
       }
 
       // Show template source (file path or built-in)
@@ -620,15 +743,145 @@ class TemplateModal extends Modal {
         text: template.path.startsWith('built-in/') ? 'Built-in template' : template.path,
         cls: 'template-path',
       });
-      pathEl.style.fontSize = '0.8em';
+      pathEl.style.fontSize = '10px';
       pathEl.style.color = 'var(--text-muted)';
-      pathEl.style.marginTop = '4px';
+      pathEl.style.marginTop = '6px';
 
-      button.onclick = () => {
+      // Click handlers
+      templateEl.addEventListener('click', () => this.selectTemplate(template));
+      templateEl.addEventListener('dblclick', () => {
         this.onChoose(template);
         this.close();
-      };
+      });
+
+      // Hover effects
+      templateEl.addEventListener('mouseenter', () => {
+        templateEl.style.backgroundColor = 'var(--background-modifier-hover)';
+        templateEl.style.borderColor = 'var(--text-accent)';
+      });
+
+      templateEl.addEventListener('mouseleave', () => {
+        if (this.selectedTemplate !== template) {
+          templateEl.style.backgroundColor = 'transparent';
+          templateEl.style.borderColor = template.isValid ? 'var(--background-modifier-border)' : 'var(--text-error)';
+        }
+      });
     });
+  }
+
+  private async selectTemplate(template: ParsedTemplate) {
+    this.selectedTemplate = template;
+    
+    // Update visual selection
+    this.templatesContainer.querySelectorAll('.template-item').forEach(el => {
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.backgroundColor = 'transparent';
+      htmlEl.style.borderColor = 'var(--background-modifier-border)';
+    });
+
+    const selectedEl = Array.from(this.templatesContainer.querySelectorAll('.template-item'))
+      .find(el => (el as HTMLElement).querySelector('.template-title')?.textContent === template.name) as HTMLElement;
+    
+    if (selectedEl) {
+      selectedEl.style.backgroundColor = 'var(--background-modifier-active-hover)';
+      selectedEl.style.borderColor = 'var(--text-accent)';
+    }
+
+    // Show preview
+    await this.showPreview(template);
+  }
+
+  private async showPreview(template: ParsedTemplate) {
+    this.previewContainer.empty();
+
+    // Template info header
+    const infoEl = this.previewContainer.createEl('div', { cls: 'template-preview-info' });
+    infoEl.style.marginBottom = '16px';
+    infoEl.style.paddingBottom = '12px';
+    infoEl.style.borderBottom = '1px solid var(--background-modifier-border)';
+
+    const titleEl = infoEl.createEl('h4', { text: template.name });
+    titleEl.style.margin = '0 0 8px 0';
+
+    if (template.metadata.description) {
+      const descEl = infoEl.createEl('p', { text: template.metadata.description });
+      descEl.style.margin = '0 0 8px 0';
+      descEl.style.color = 'var(--text-muted)';
+      descEl.style.fontSize = '14px';
+    }
+
+    if (template.variables.length > 0) {
+      const varsLabel = infoEl.createEl('div', { text: 'Variables:' });
+      varsLabel.style.fontSize = '12px';
+      varsLabel.style.fontWeight = 'bold';
+      varsLabel.style.marginBottom = '4px';
+      
+      const varsContainer = infoEl.createEl('div');
+      varsContainer.style.display = 'flex';
+      varsContainer.style.flexWrap = 'wrap';
+      varsContainer.style.gap = '4px';
+
+      template.variables.forEach(variable => {
+        const varTag = varsContainer.createEl('span', { text: variable });
+        varTag.style.backgroundColor = 'var(--text-accent)';
+        varTag.style.color = 'var(--text-on-accent)';
+        varTag.style.padding = '2px 6px';
+        varTag.style.borderRadius = '3px';
+        varTag.style.fontSize = '11px';
+      });
+    }
+
+    // Preview content
+    const previewLabel = this.previewContainer.createEl('div', { text: 'Preview:' });
+    previewLabel.style.fontSize = '12px';
+    previewLabel.style.fontWeight = 'bold';
+    previewLabel.style.marginBottom = '8px';
+
+    const previewContent = this.previewContainer.createEl('div', { cls: 'template-preview-content' });
+    previewContent.style.padding = '12px';
+    previewContent.style.backgroundColor = 'var(--background-primary)';
+    previewContent.style.border = '1px solid var(--background-modifier-border)';
+    previewContent.style.borderRadius = '4px';
+    previewContent.style.fontFamily = 'var(--font-monospace)';
+    previewContent.style.fontSize = '12px';
+    previewContent.style.whiteSpace = 'pre-wrap';
+    previewContent.style.maxHeight = '300px';
+    previewContent.style.overflowY = 'auto';
+
+    try {
+      const preview = await this.templateEngine.previewTemplate(template);
+      previewContent.textContent = preview;
+    } catch (error) {
+      previewContent.textContent = 'Error generating preview: ' + error.message;
+      previewContent.style.color = 'var(--text-error)';
+    }
+
+    // Action buttons
+    const actionsEl = this.previewContainer.createEl('div', { cls: 'template-preview-actions' });
+    actionsEl.style.marginTop = '16px';
+    actionsEl.style.paddingTop = '12px';
+    actionsEl.style.borderTop = '1px solid var(--background-modifier-border)';
+    actionsEl.style.display = 'flex';
+    actionsEl.style.gap = '8px';
+    actionsEl.style.justifyContent = 'flex-end';
+
+    const useButton = actionsEl.createEl('button', {
+      text: 'Use This Template',
+      cls: 'mod-cta',
+    });
+    useButton.style.padding = '8px 16px';
+
+    const cancelButton = actionsEl.createEl('button', { text: 'Cancel' });
+    cancelButton.style.padding = '8px 16px';
+
+    useButton.onclick = () => {
+      this.onChoose(template);
+      this.close();
+    };
+
+    cancelButton.onclick = () => {
+      this.close();
+    };
   }
 
   onClose() {
