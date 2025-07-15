@@ -6209,12 +6209,252 @@ var WeatherService = class {
   }
 };
 
+// src/fortune-service.ts
+var FortuneService = class {
+  constructor() {
+    this.fortunes = {
+      kr: {
+        general: [
+          "\uC624\uB298\uC740 \uC0C8\uB85C\uC6B4 \uAE30\uD68C\uAC00 \uCC3E\uC544\uC62C \uC218 \uC788\uB294 \uB0A0\uC785\uB2C8\uB2E4.",
+          "\uD3C9\uC18C\uBCF4\uB2E4 \uC2E0\uC911\uD55C \uD310\uB2E8\uC774 \uD544\uC694\uD55C \uD558\uB8E8\uAC00 \uB420 \uAC83 \uAC19\uC2B5\uB2C8\uB2E4.",
+          "\uC88B\uC740 \uC18C\uC2DD\uC774 \uB4E4\uB824\uC62C \uAC00\uB2A5\uC131\uC774 \uB192\uC2B5\uB2C8\uB2E4.",
+          "\uC778\uAC04\uAD00\uACC4\uC5D0\uC11C \uC88B\uC740 \uBCC0\uD654\uAC00 \uC788\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+          "\uCC3D\uC758\uC801\uC778 \uC544\uC774\uB514\uC5B4\uAC00 \uB5A0\uC624\uB97C \uC218 \uC788\uB294 \uB0A0\uC785\uB2C8\uB2E4.",
+          "\uC548\uC815\uC801\uC774\uACE0 \uD3C9\uD654\uB85C\uC6B4 \uD558\uB8E8\uAC00 \uB420 \uAC83 \uAC19\uC2B5\uB2C8\uB2E4.",
+          "\uC608\uC0C1\uCE58 \uBABB\uD55C \uD589\uC6B4\uC774 \uB530\uB97C \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+          "\uC9D1\uC911\uB825\uC774 \uB192\uC544\uC838 \uC77C\uC758 \uD6A8\uC728\uC774 \uC88B\uC744 \uAC83 \uAC19\uC2B5\uB2C8\uB2E4.",
+          "\uC8FC\uBCC0 \uC0AC\uB78C\uB4E4\uACFC\uC758 \uC18C\uD1B5\uC774 \uC6D0\uD65C\uD55C \uB0A0\uC785\uB2C8\uB2E4.",
+          "\uC0C8\uB85C\uC6B4 \uBC30\uC6C0\uC758 \uAE30\uD68C\uAC00 \uC0DD\uAE38 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+        ],
+        love: [
+          "\uC5F0\uC778\uACFC\uC758 \uAD00\uACC4\uAC00 \uB354\uC6B1 \uAE4A\uC5B4\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+          "\uC0C8\uB85C\uC6B4 \uB9CC\uB0A8\uC774 \uC788\uC744 \uC218 \uC788\uB294 \uB0A0\uC785\uB2C8\uB2E4.",
+          "\uC18C\uC911\uD55C \uC0AC\uB78C\uACFC \uC758\uBBF8 \uC788\uB294 \uC2DC\uAC04\uC744 \uBCF4\uB0BC \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+          "\uB9C8\uC74C\uC744 \uC5F4\uACE0 \uC194\uC9C1\uD55C \uB300\uD654\uB97C \uB098\uB204\uC5B4\uBCF4\uC138\uC694.",
+          "\uC0AC\uB791\uD558\uB294 \uC0AC\uB78C\uC5D0\uAC8C \uAC10\uC0AC\uC758 \uB9C8\uC74C\uC744 \uD45C\uD604\uD574\uBCF4\uC138\uC694.",
+          "\uAD00\uACC4\uC5D0\uC11C \uC57D\uAC04\uC758 \uC624\uD574\uAC00 \uC0DD\uAE38 \uC218 \uC788\uC73C\uB2C8 \uC8FC\uC758\uD558\uC138\uC694.",
+          "\uB530\uB73B\uD55C \uB9C8\uC74C\uC73C\uB85C \uC0C1\uB300\uBC29\uC744 \uC774\uD574\uD574\uBCF4\uC138\uC694.",
+          "\uB85C\uB9E8\uD2F1\uD55C \uBD84\uC704\uAE30\uB97C \uB9CC\uB4E4\uC5B4\uBCF4\uB294 \uAC83\uC774 \uC88B\uACA0\uC2B5\uB2C8\uB2E4.",
+          "\uC9C4\uC2EC\uC5B4\uB9B0 \uB9D0 \uD55C\uB9C8\uB514\uAC00 \uD070 \uD798\uC774 \uB420 \uAC83\uC785\uB2C8\uB2E4.",
+          "\uC0AC\uB791\uC5D0 \uB300\uD574 \uC9C4\uC9C0\uD558\uAC8C \uC0DD\uAC01\uD574\uBCF4\uB294 \uC2DC\uAC04\uC744 \uAC00\uC838\uBCF4\uC138\uC694."
+        ],
+        work: [
+          "\uC5C5\uBB34\uC5D0\uC11C \uC88B\uC740 \uC131\uACFC\uB97C \uAC70\uB458 \uC218 \uC788\uC744 \uAC83 \uAC19\uC2B5\uB2C8\uB2E4.",
+          "\uB3D9\uB8CC\uB4E4\uACFC\uC758 \uD611\uB825\uC774 \uC911\uC694\uD55C \uD558\uB8E8\uC785\uB2C8\uB2E4.",
+          "\uC0C8\uB85C\uC6B4 \uD504\uB85C\uC81D\uD2B8 \uAE30\uD68C\uAC00 \uC0DD\uAE38 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+          "\uC138\uC2EC\uD55C \uC8FC\uC758\uAC00 \uD544\uC694\uD55C \uC77C\uC774 \uC788\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+          "\uCC3D\uC758\uC801\uC778 \uD574\uACB0\uCC45\uC744 \uCC3E\uC744 \uC218 \uC788\uB294 \uB0A0\uC785\uB2C8\uB2E4.",
+          "\uB9AC\uB354\uC2ED\uC744 \uBC1C\uD718\uD560 \uAE30\uD68C\uAC00 \uC62C \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+          "\uC911\uC694\uD55C \uACB0\uC815\uC744 \uB0B4\uB824\uC57C \uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+          "\uC2E4\uB825\uC744 \uC778\uC815\uBC1B\uC744 \uAE30\uD68C\uAC00 \uC788\uC744 \uAC83 \uAC19\uC2B5\uB2C8\uB2E4.",
+          "\uD300\uC6CC\uD06C\uAC00 \uBE5B\uC744 \uBC1C\uD558\uB294 \uD558\uB8E8\uAC00 \uB420 \uAC83\uC785\uB2C8\uB2E4.",
+          "\uAFB8\uC900\uD55C \uB178\uB825\uC774 \uACB0\uC2E4\uC744 \uB9FA\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+        ],
+        health: [
+          "\uCEE8\uB514\uC158\uC774 \uC88B\uC740 \uD558\uB8E8\uAC00 \uB420 \uAC83 \uAC19\uC2B5\uB2C8\uB2E4.",
+          "\uCDA9\uBD84\uD55C \uD734\uC2DD\uC744 \uCDE8\uD558\uB294 \uAC83\uC774 \uC911\uC694\uD569\uB2C8\uB2E4.",
+          "\uAC00\uBCBC\uC6B4 \uC6B4\uB3D9\uC774 \uB3C4\uC6C0\uC774 \uB420 \uAC83 \uAC19\uC2B5\uB2C8\uB2E4.",
+          "\uC2A4\uD2B8\uB808\uC2A4 \uAD00\uB9AC\uC5D0 \uC2E0\uACBD \uC4F0\uC138\uC694.",
+          "\uADE0\uD615 \uC7A1\uD78C \uC2DD\uC0AC\uB97C \uD558\uC2DC\uAE30 \uBC14\uB78D\uB2C8\uB2E4.",
+          "\uC218\uBD84 \uC12D\uCDE8\uB97C \uCDA9\uBD84\uD788 \uD558\uC138\uC694.",
+          "\uBAB8\uC758 \uC2E0\uD638\uC5D0 \uADC0 \uAE30\uC6B8\uC5EC\uBCF4\uC138\uC694.",
+          "\uC77C\uCC0D \uC7A0\uC790\uB9AC\uC5D0 \uB4DC\uB294 \uAC83\uC774 \uC88B\uACA0\uC2B5\uB2C8\uB2E4.",
+          "\uBA85\uC0C1\uC774\uB098 \uC694\uAC00\uAC00 \uB3C4\uC6C0\uC774 \uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+          "\uAC74\uAC15\uAC80\uC9C4\uC744 \uACE0\uB824\uD574\uBCF4\uC2DC\uAE30 \uBC14\uB78D\uB2C8\uB2E4."
+        ],
+        warning: [
+          "\uC11C\uB450\uB974\uC9C0 \uB9D0\uACE0 \uCC28\uADFC\uCC28\uADFC \uC9C4\uD589\uD558\uC138\uC694.",
+          "\uAE08\uC804 \uAD00\uB9AC\uC5D0 \uC8FC\uC758\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.",
+          "\uAC10\uC815\uC801\uC778 \uD310\uB2E8\uC740 \uD53C\uD558\uC2DC\uAE30 \uBC14\uB78D\uB2C8\uB2E4.",
+          "\uC911\uC694\uD55C \uC57D\uC18D\uC744 \uC78A\uC9C0 \uC54A\uB3C4\uB85D \uC8FC\uC758\uD558\uC138\uC694.",
+          "\uAD50\uD1B5\uC548\uC804\uC5D0 \uD2B9\uD788 \uC720\uC758\uD558\uC2DC\uAE30 \uBC14\uB78D\uB2C8\uB2E4.",
+          "\uB9D0 \uD55C\uB9C8\uB514\uC5D0 \uC2E0\uC911\uC744 \uAE30\uD558\uC138\uC694.",
+          "\uAC74\uAC15 \uAD00\uB9AC\uC5D0 \uC18C\uD640\uD558\uC9C0 \uB9C8\uC138\uC694.",
+          "\uC0C8\uB85C\uC6B4 \uD22C\uC790\uB294 \uC2E0\uC911\uD788 \uAC80\uD1A0\uD558\uC138\uC694.",
+          "\uC778\uAC04\uAD00\uACC4\uC5D0\uC11C \uC624\uD574\uAC00 \uC0DD\uAE30\uC9C0 \uC54A\uB3C4\uB85D \uC8FC\uC758\uD558\uC138\uC694.",
+          "\uBB34\uB9AC\uD55C \uC77C\uC815\uC740 \uD53C\uD558\uC2DC\uAE30 \uBC14\uB78D\uB2C8\uB2E4."
+        ]
+      },
+      en: {
+        general: [
+          "Today brings new opportunities your way.",
+          "A day that requires more careful judgment than usual.",
+          "Good news is likely to come your way.",
+          "Positive changes in relationships are possible.",
+          "Creative ideas may emerge today.",
+          "A stable and peaceful day awaits you.",
+          "Unexpected good fortune may follow.",
+          "High concentration will boost work efficiency.",
+          "Smooth communication with others today.",
+          "New learning opportunities may arise."
+        ],
+        love: [
+          "Your relationship may deepen today.",
+          "New encounters are possible today.",
+          "Quality time with someone special awaits.",
+          "Open your heart for honest conversations.",
+          "Express gratitude to your loved ones.",
+          "Be careful of minor misunderstandings.",
+          "Approach others with a warm heart.",
+          "Creating a romantic atmosphere would be nice.",
+          "Sincere words will have great power.",
+          "Take time to think seriously about love."
+        ],
+        work: [
+          "Good results in work are likely today.",
+          "Cooperation with colleagues is important.",
+          "New project opportunities may arise.",
+          "Careful attention is needed for some tasks.",
+          "Creative solutions can be found today.",
+          "Leadership opportunities may come.",
+          "Important decisions may need to be made.",
+          "Your skills may be recognized today.",
+          "Teamwork will shine bright today.",
+          "Steady efforts may bear fruit."
+        ],
+        health: [
+          "Your condition will be good today.",
+          "Getting enough rest is important.",
+          "Light exercise would be helpful.",
+          "Pay attention to stress management.",
+          "Maintain a balanced diet.",
+          "Stay well hydrated.",
+          "Listen to your body's signals.",
+          "Going to bed early would be good.",
+          "Meditation or yoga could help.",
+          "Consider a health checkup."
+        ],
+        warning: [
+          "Don't rush, proceed step by step.",
+          "Be careful with financial management.",
+          "Avoid emotional judgments.",
+          "Don't forget important appointments.",
+          "Pay special attention to traffic safety.",
+          "Be careful with your words.",
+          "Don't neglect health management.",
+          "Consider new investments carefully.",
+          "Avoid misunderstandings in relationships.",
+          "Avoid overcommitting your schedule."
+        ]
+      }
+    };
+    this.luckyNumbers = [1, 3, 7, 9, 13, 21, 27, 33, 42, 88];
+    this.colors = {
+      kr: ["\uBE68\uAC15", "\uD30C\uB791", "\uB178\uB791", "\uCD08\uB85D", "\uBCF4\uB77C", "\uC8FC\uD669", "\uBD84\uD64D", "\uD770\uC0C9", "\uAC80\uC815", "\uAE08\uC0C9"],
+      en: ["red", "blue", "yellow", "green", "purple", "orange", "pink", "white", "black", "gold"]
+    };
+    this.items = {
+      kr: ["\uB3D9\uC804", "\uC5F4\uC1E0", "\uD39C", "\uCC45", "\uAF43", "\uCEE4\uD53C", "\uC74C\uC545", "\uD5A5\uC218", "\uBC18\uC9C0", "\uC2DC\uACC4"],
+      en: ["coin", "key", "pen", "book", "flower", "coffee", "music", "perfume", "ring", "watch"]
+    };
+  }
+  getFortune(settings) {
+    if (!settings.enabled) {
+      return this.getEmptyFortune(settings.language);
+    }
+    const lang = settings.language;
+    const today = /* @__PURE__ */ new Date();
+    const seed = this.getDaySeed(today);
+    return {
+      general: this.getRandomItem(this.fortunes[lang].general, seed),
+      love: this.getRandomItem(this.fortunes[lang].love, seed + 1),
+      work: this.getRandomItem(this.fortunes[lang].work, seed + 2),
+      health: this.getRandomItem(this.fortunes[lang].health, seed + 3),
+      lucky: {
+        number: this.getRandomItem(this.luckyNumbers, seed + 4),
+        color: this.getRandomItem(this.colors[lang], seed + 5),
+        item: this.getRandomItem(this.items[lang], seed + 6)
+      },
+      warning: this.getRandomItem(this.fortunes[lang].warning, seed + 7)
+    };
+  }
+  formatFortune(fortune, settings) {
+    if (!settings.enabled) {
+      return settings.language === "kr" ? "\uC6B4\uC138 \uC815\uBCF4 \uC5C6\uC74C" : "Fortune unavailable";
+    }
+    const lang = settings.language;
+    if (lang === "kr") {
+      return `\u{1F52E} ${fortune.general}`;
+    } else {
+      return `\u{1F52E} ${fortune.general}`;
+    }
+  }
+  formatDetailedFortune(fortune, settings) {
+    if (!settings.enabled) {
+      return settings.language === "kr" ? "\uC6B4\uC138 \uC815\uBCF4 \uC5C6\uC74C" : "Fortune unavailable";
+    }
+    const lang = settings.language;
+    if (lang === "kr") {
+      return `\u{1F52E} **\uC624\uB298\uC758 \uC6B4\uC138**
+
+**\u{1F4AB} \uC885\uD569\uC6B4:** ${fortune.general}
+
+**\u{1F495} \uC5F0\uC560\uC6B4:** ${fortune.love}
+
+**\u{1F4BC} \uC9C1\uC7A5\uC6B4:** ${fortune.work}
+
+**\u{1F3E5} \uAC74\uAC15\uC6B4:** ${fortune.health}
+
+**\u{1F340} \uD589\uC6B4\uC758 \uD0A4\uC6CC\uB4DC**
+- \uC22B\uC790: ${fortune.lucky.number}
+- \uC0C9\uAE54: ${fortune.lucky.color}
+- \uC544\uC774\uD15C: ${fortune.lucky.item}
+
+**\u26A0\uFE0F \uC8FC\uC758\uC0AC\uD56D:** ${fortune.warning}`;
+    } else {
+      return `\u{1F52E} **Today's Fortune**
+
+**\u{1F4AB} General:** ${fortune.general}
+
+**\u{1F495} Love:** ${fortune.love}
+
+**\u{1F4BC} Career:** ${fortune.work}
+
+**\u{1F3E5} Health:** ${fortune.health}
+
+**\u{1F340} Lucky Keywords**
+- Number: ${fortune.lucky.number}
+- Color: ${fortune.lucky.color}
+- Item: ${fortune.lucky.item}
+
+**\u26A0\uFE0F Warning:** ${fortune.warning}`;
+    }
+  }
+  getDaySeed(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return year * 1e4 + month * 100 + day;
+  }
+  getRandomItem(array, seed) {
+    const index = Math.abs(seed * 9301 + 49297) % array.length;
+    return array[index];
+  }
+  getEmptyFortune(language) {
+    const empty = language === "kr" ? "\uC6B4\uC138 \uC815\uBCF4 \uC5C6\uC74C" : "Fortune unavailable";
+    return {
+      general: empty,
+      love: empty,
+      work: empty,
+      health: empty,
+      lucky: {
+        number: 0,
+        color: empty,
+        item: empty
+      },
+      warning: empty
+    };
+  }
+};
+
 // src/template-engine.ts
 var TemplateEngine = class {
-  constructor(weatherSettings) {
+  constructor(weatherSettings, fortuneSettings) {
     this.handlebars = Handlebars.create();
     this.weatherService = new WeatherService();
+    this.fortuneService = new FortuneService();
     this.weatherSettings = weatherSettings;
+    this.fortuneSettings = fortuneSettings;
     this.registerHelpers();
   }
   registerHelpers() {
@@ -6313,6 +6553,18 @@ var TemplateEngine = class {
       const weather = await this.weatherService.getWeather(this.weatherSettings);
       return weather ? this.weatherService.formatDetailedWeather(weather, this.weatherSettings) : "\uB0A0\uC528 \uC815\uBCF4\uB97C \uAC00\uC838\uC62C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4";
     });
+    this.handlebars.registerHelper("fortuneSimple", () => {
+      if (!this.fortuneSettings)
+        return "\uC6B4\uC138 \uC815\uBCF4 \uC5C6\uC74C";
+      const fortune = this.fortuneService.getFortune(this.fortuneSettings);
+      return this.fortuneService.formatFortune(fortune, this.fortuneSettings);
+    });
+    this.handlebars.registerHelper("fortuneDetailed", () => {
+      if (!this.fortuneSettings)
+        return "\uC6B4\uC138 \uC815\uBCF4 \uC5C6\uC74C";
+      const fortune = this.fortuneService.getFortune(this.fortuneSettings);
+      return this.fortuneService.formatDetailedFortune(fortune, this.fortuneSettings);
+    });
   }
   async getDefaultContext() {
     const now = /* @__PURE__ */ new Date();
@@ -6335,6 +6587,16 @@ var TemplateEngine = class {
         weatherInfo = "\uB0A0\uC528 \uC11C\uBE44\uC2A4 \uC624\uB958";
       }
     }
+    let fortuneInfo = "\uC6B4\uC138 \uC815\uBCF4 \uC5C6\uC74C";
+    if (this.fortuneSettings && this.fortuneSettings.enabled) {
+      try {
+        const fortune = this.fortuneService.getFortune(this.fortuneSettings);
+        fortuneInfo = this.fortuneService.formatFortune(fortune, this.fortuneSettings);
+      } catch (error) {
+        console.warn("Failed to get fortune:", error);
+        fortuneInfo = "\uC6B4\uC138 \uC11C\uBE44\uC2A4 \uC624\uB958";
+      }
+    }
     return {
       // English date variables
       date: now.toISOString().split("T")[0],
@@ -6351,7 +6613,10 @@ var TemplateEngine = class {
       \uC694\uC77C: this.formatKoreanDay(now),
       // Weather variables
       \uB0A0\uC528: weatherInfo,
-      weather: weatherInfo
+      weather: weatherInfo,
+      // Fortune variables
+      \uC6B4\uC138: fortuneInfo,
+      fortune: fortuneInfo
     };
   }
   formatKoreanDate(date) {
@@ -6447,6 +6712,9 @@ var TemplateEngine = class {
   updateWeatherSettings(weatherSettings) {
     this.weatherSettings = weatherSettings;
   }
+  updateFortuneSettings(fortuneSettings) {
+    this.fortuneSettings = fortuneSettings;
+  }
   getAvailableVariables() {
     return [
       // English variables
@@ -6459,13 +6727,15 @@ var TemplateEngine = class {
       "title",
       "author",
       "weather",
+      "fortune",
       // Korean variables
       "\uB0A0\uC9DC",
       "\uC624\uB298",
       "\uB0B4\uC77C",
       "\uC5B4\uC81C",
       "\uC694\uC77C",
-      "\uB0A0\uC528"
+      "\uB0A0\uC528",
+      "\uC6B4\uC138"
     ];
   }
   getAvailableHelpers() {
@@ -6485,7 +6755,10 @@ var TemplateEngine = class {
       "koreanDateTime",
       // Weather helpers
       "weatherSimple",
-      "weatherDetailed"
+      "weatherDetailed",
+      // Fortune helpers
+      "fortuneSimple",
+      "fortuneDetailed"
     ];
   }
 };
@@ -6501,7 +6774,10 @@ var DEFAULT_SETTINGS = {
   weatherLocation: "Seoul,KR",
   weatherUnit: "metric",
   weatherLanguage: "kr",
-  weatherEnabled: false
+  weatherEnabled: false,
+  // Fortune defaults
+  fortuneEnabled: true,
+  fortuneLanguage: "kr"
 };
 var AwesomePlugin = class extends import_obsidian2.Plugin {
   constructor() {
@@ -6518,7 +6794,11 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
       language: this.settings.weatherLanguage,
       weatherEnabled: this.settings.weatherEnabled
     };
-    this.templateEngine = new TemplateEngine(weatherSettings);
+    const fortuneSettings = {
+      enabled: this.settings.fortuneEnabled,
+      language: this.settings.fortuneLanguage
+    };
+    this.templateEngine = new TemplateEngine(weatherSettings, fortuneSettings);
     this.addCommand({
       id: "insert-template",
       name: "Insert Template",
@@ -6691,6 +6971,11 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
         weatherEnabled: this.settings.weatherEnabled
       };
       this.templateEngine.updateWeatherSettings(weatherSettings);
+      const fortuneSettings = {
+        enabled: this.settings.fortuneEnabled,
+        language: this.settings.fortuneLanguage
+      };
+      this.templateEngine.updateFortuneSettings(fortuneSettings);
     }
   }
   async insertTemplate(editor) {
@@ -7060,6 +7345,19 @@ var AwesomePluginSettingTab = class extends import_obsidian2.PluginSettingTab {
     new import_obsidian2.Setting(containerEl).setName("Language").setDesc("Weather description language").addDropdown(
       (dropdown) => dropdown.addOption("kr", "\uD55C\uAD6D\uC5B4").addOption("en", "English").addOption("ja", "\u65E5\u672C\u8A9E").addOption("zh", "\u4E2D\u6587").setValue(this.plugin.settings.weatherLanguage).onChange(async (value) => {
         this.plugin.settings.weatherLanguage = value;
+        await this.plugin.saveSettings();
+      })
+    );
+    containerEl.createEl("h3", { text: "Fortune Settings" });
+    new import_obsidian2.Setting(containerEl).setName("Enable Fortune").setDesc("Enable fortune information in templates").addToggle(
+      (toggle) => toggle.setValue(this.plugin.settings.fortuneEnabled).onChange(async (value) => {
+        this.plugin.settings.fortuneEnabled = value;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("Fortune Language").setDesc("Language for fortune descriptions").addDropdown(
+      (dropdown) => dropdown.addOption("kr", "\uD55C\uAD6D\uC5B4").addOption("en", "English").setValue(this.plugin.settings.fortuneLanguage).onChange(async (value) => {
+        this.plugin.settings.fortuneLanguage = value;
         await this.plugin.saveSettings();
       })
     );
