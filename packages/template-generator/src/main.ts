@@ -17,6 +17,13 @@ interface AwesomePluginSettings {
   autoMetadata: boolean;
   gitSync: boolean;
   publishEnabled: boolean;
+  
+  // Weather API settings
+  weatherApiKey: string;
+  weatherLocation: string;
+  weatherUnit: 'metric' | 'imperial';
+  weatherLanguage: string;
+  weatherEnabled: boolean;
 }
 
 const DEFAULT_SETTINGS: AwesomePluginSettings = {
@@ -24,6 +31,13 @@ const DEFAULT_SETTINGS: AwesomePluginSettings = {
   autoMetadata: true,
   gitSync: false,
   publishEnabled: false,
+  
+  // Weather API defaults
+  weatherApiKey: '',
+  weatherLocation: 'Seoul,KR',
+  weatherUnit: 'metric',
+  weatherLanguage: 'kr',
+  weatherEnabled: false,
 };
 
 export default class AwesomePlugin extends Plugin {
@@ -698,6 +712,83 @@ class AwesomePluginSettingTab extends PluginSettingTab {
           this.plugin.settings.publishEnabled = value;
           await this.plugin.saveSettings();
         })
+      );
+
+    // Weather settings section
+    containerEl.createEl('h3', { text: 'Weather Settings' });
+
+    new Setting(containerEl)
+      .setName('Enable Weather')
+      .setDesc('Enable weather information in templates')
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.weatherEnabled).onChange(async (value) => {
+          this.plugin.settings.weatherEnabled = value;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName('OpenWeather API Key')
+      .setDesc('Get your free API key from openweathermap.org')
+      .addText((text) =>
+        text
+          .setPlaceholder('Enter your API key')
+          .setValue(this.plugin.settings.weatherApiKey)
+          .onChange(async (value) => {
+            this.plugin.settings.weatherApiKey = value;
+            await this.plugin.saveSettings();
+          })
+      )
+      .addButton((button) =>
+        button
+          .setButtonText('Get API Key')
+          .setTooltip('Open OpenWeatherMap website to get free API key')
+          .onClick(() => {
+            window.open('https://openweathermap.org/api', '_blank');
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Location')
+      .setDesc('City name or coordinates (e.g., "Seoul,KR" or "37.5665,126.9780")')
+      .addText((text) =>
+        text
+          .setPlaceholder('Seoul,KR')
+          .setValue(this.plugin.settings.weatherLocation)
+          .onChange(async (value) => {
+            this.plugin.settings.weatherLocation = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Temperature Unit')
+      .setDesc('Choose temperature unit')
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption('metric', 'Celsius (°C)')
+          .addOption('imperial', 'Fahrenheit (°F)')
+          .setValue(this.plugin.settings.weatherUnit)
+          .onChange(async (value: 'metric' | 'imperial') => {
+            this.plugin.settings.weatherUnit = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Language')
+      .setDesc('Weather description language')
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption('kr', '한국어')
+          .addOption('en', 'English')
+          .addOption('ja', '日本語')
+          .addOption('zh', '中文')
+          .setValue(this.plugin.settings.weatherLanguage)
+          .onChange(async (value) => {
+            this.plugin.settings.weatherLanguage = value;
+            await this.plugin.saveSettings();
+          })
       );
   }
 }

@@ -6310,7 +6310,13 @@ var DEFAULT_SETTINGS = {
   templateFolder: "templates",
   autoMetadata: true,
   gitSync: false,
-  publishEnabled: false
+  publishEnabled: false,
+  // Weather API defaults
+  weatherApiKey: "",
+  weatherLocation: "Seoul,KR",
+  weatherUnit: "metric",
+  weatherLanguage: "kr",
+  weatherEnabled: false
 };
 var AwesomePlugin = class extends import_obsidian2.Plugin {
   constructor() {
@@ -6817,6 +6823,41 @@ var AwesomePluginSettingTab = class extends import_obsidian2.PluginSettingTab {
     new import_obsidian2.Setting(containerEl).setName("Publishing").setDesc("Enable publishing to static sites").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.publishEnabled).onChange(async (value) => {
         this.plugin.settings.publishEnabled = value;
+        await this.plugin.saveSettings();
+      })
+    );
+    containerEl.createEl("h3", { text: "Weather Settings" });
+    new import_obsidian2.Setting(containerEl).setName("Enable Weather").setDesc("Enable weather information in templates").addToggle(
+      (toggle) => toggle.setValue(this.plugin.settings.weatherEnabled).onChange(async (value) => {
+        this.plugin.settings.weatherEnabled = value;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("OpenWeather API Key").setDesc("Get your free API key from openweathermap.org").addText(
+      (text) => text.setPlaceholder("Enter your API key").setValue(this.plugin.settings.weatherApiKey).onChange(async (value) => {
+        this.plugin.settings.weatherApiKey = value;
+        await this.plugin.saveSettings();
+      })
+    ).addButton(
+      (button) => button.setButtonText("Get API Key").setTooltip("Open OpenWeatherMap website to get free API key").onClick(() => {
+        window.open("https://openweathermap.org/api", "_blank");
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("Location").setDesc('City name or coordinates (e.g., "Seoul,KR" or "37.5665,126.9780")').addText(
+      (text) => text.setPlaceholder("Seoul,KR").setValue(this.plugin.settings.weatherLocation).onChange(async (value) => {
+        this.plugin.settings.weatherLocation = value;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("Temperature Unit").setDesc("Choose temperature unit").addDropdown(
+      (dropdown) => dropdown.addOption("metric", "Celsius (\xB0C)").addOption("imperial", "Fahrenheit (\xB0F)").setValue(this.plugin.settings.weatherUnit).onChange(async (value) => {
+        this.plugin.settings.weatherUnit = value;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("Language").setDesc("Weather description language").addDropdown(
+      (dropdown) => dropdown.addOption("kr", "\uD55C\uAD6D\uC5B4").addOption("en", "English").addOption("ja", "\u65E5\u672C\u8A9E").addOption("zh", "\u4E2D\u6587").setValue(this.plugin.settings.weatherLanguage).onChange(async (value) => {
+        this.plugin.settings.weatherLanguage = value;
         await this.plugin.saveSettings();
       })
     );
