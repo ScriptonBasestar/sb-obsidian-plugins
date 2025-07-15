@@ -43,7 +43,9 @@ describe('AutoCommitService', () => {
       enableAICommitMessages: false,
       llmProvider: 'none',
       apiKey: '',
-      commitPrompt: 'Generate commit message:'
+      commitPrompt: 'Generate commit message:',
+      useTemplateEngine: false,
+      selectedTemplate: 'conventional'
     };
 
     autoCommitService = new AutoCommitService(mockGitService, mockSettings, mockVault);
@@ -117,7 +119,9 @@ describe('AutoCommitService', () => {
         commitIntervalMinutes: 10,
         enableAICommitMessages: true,
         llmProvider: 'openai',
-        apiKey: 'test-key'
+        apiKey: 'test-key',
+        useTemplateEngine: true,
+        selectedTemplate: 'korean'
       };
 
       autoCommitService.updateSettings(newSettings);
@@ -127,7 +131,9 @@ describe('AutoCommitService', () => {
         provider: 'openai',
         apiKey: 'test-key',
         commitPrompt: 'Generate commit message:',
-        enabled: true
+        enabled: true,
+        useTemplateEngine: true,
+        selectedTemplate: 'korean'
       });
     });
 
@@ -213,7 +219,9 @@ describe('AutoCommitService', () => {
         ...mockSettings,
         enableAICommitMessages: true,
         llmProvider: 'openai' as const,
-        apiKey: 'test-key'
+        apiKey: 'test-key',
+        useTemplateEngine: true,
+        selectedTemplate: 'conventional'
       };
       autoCommitService.updateSettings(settingsWithLLM);
       
@@ -235,7 +243,9 @@ describe('AutoCommitService', () => {
         ...mockSettings,
         enableAICommitMessages: true,
         llmProvider: 'openai' as const,
-        apiKey: 'test-key'
+        apiKey: 'test-key',
+        useTemplateEngine: true,
+        selectedTemplate: 'conventional'
       };
       autoCommitService.updateSettings(settingsWithLLM);
       
@@ -268,7 +278,9 @@ describe('AutoCommitService', () => {
       const settingsWithAutoPush = {
         ...mockSettings,
         enableAutoPush: true,
-        pushAfterCommits: 1
+        pushAfterCommits: 1,
+        useTemplateEngine: false,
+        selectedTemplate: 'conventional'
       };
       autoCommitService.updateSettings(settingsWithAutoPush);
       
@@ -285,7 +297,9 @@ describe('AutoCommitService', () => {
       const settingsWithAutoPush = {
         ...mockSettings,
         enableAutoPush: true,
-        pushAfterCommits: 1
+        pushAfterCommits: 1,
+        useTemplateEngine: false,
+        selectedTemplate: 'conventional'
       };
       autoCommitService.updateSettings(settingsWithAutoPush);
       
@@ -480,6 +494,75 @@ describe('AutoCommitService', () => {
       const tokens = await autoCommitService.estimateTokensForCurrentChanges();
       
       expect(tokens).toBe(0);
+    });
+  });
+
+  describe('template features', () => {
+    it('should get available prompt templates', () => {
+      const mockLLMService = LLMService.prototype;
+      vi.mocked(mockLLMService.getAvailableTemplates).mockReturnValue([
+        { id: 'test', name: 'Test Template', description: 'Test', template: 'test' }
+      ]);
+      
+      const templates = autoCommitService.getAvailablePromptTemplates();
+      
+      expect(templates).toBeDefined();
+      expect(templates.length).toBeGreaterThan(0);
+      expect(templates[0]).toHaveProperty('id');
+      expect(templates[0]).toHaveProperty('name');
+    });
+
+    it('should preview prompt with current changes', async () => {
+      vi.mocked(mockGitService.getStatus).mockResolvedValue(createMockGitStatus({
+        staged: ['test.ts'],
+        currentBranch: 'main'
+      }));
+      vi.mocked(mockGitService.getRecentCommits).mockResolvedValue([
+        { hash: 'abc123', message: 'previous commit' }
+      ]);
+      
+      const mockLLMService = LLMService.prototype;
+      vi.mocked(mockLLMService.previewPrompt).mockReturnValue('Test preview prompt');
+      
+      const preview = await autoCommitService.previewPromptWithCurrentChanges();
+      
+      expect(preview).toBeDefined();
+      expect(typeof preview).toBe('string');
+      expect(preview.length).toBeGreaterThan(0);
+    });
+
+    it('should handle preview errors gracefully', async () => {
+      vi.mocked(mockGitService.getStatus).mockRejectedValue(new Error('Git error'));
+      
+      const preview = await autoCommitService.previewPromptWithCurrentChanges();
+      
+      expect(preview).toContain('Error generating preview');
+    });
+
+    it('should validate prompt templates', () => {
+      const validTemplate = '{{files.total}} files on {{branch}}';
+      const invalidTemplate = '{{unknown.variable}}';
+      
+      const mockLLMService = LLMService.prototype;
+      vi.mocked(mockLLMService.validatePromptTemplate)
+        .mockReturnValueOnce({ valid: true, errors: [] })
+        .mockReturnValueOnce({ valid: false, errors: ['Unknown variable'] });
+      
+      const validResult = autoCommitService.validatePromptTemplate(validTemplate);
+      const invalidResult = autoCommitService.validatePromptTemplate(invalidTemplate);
+      
+      expect(validResult.valid).toBe(true);
+      expect(invalidResult.valid).toBe(false);
+    });
+
+    it('should provide template help', () => {
+      const mockLLMService = LLMService.prototype;
+      vi.mocked(mockLLMService.getTemplateHelp).mockReturnValue('Available template variables: {{files.staged}}');
+      
+      const help = autoCommitService.getTemplateHelp();
+      
+      expect(help).toBeDefined();
+      expect(help).toContain('Available template variables');
     });
   });
 });

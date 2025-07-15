@@ -1,5 +1,6 @@
 import {
   App,
+  Modal,
   Notice,
   Plugin,
   PluginSettingTab,
@@ -23,11 +24,13 @@ interface GitSyncSettings {
   enableAutoPush: boolean;
   pushAfterCommits: number;
   
-  // LLM settings (for future commit message generation)
+  // LLM settings
   enableAICommitMessages: boolean;
   llmProvider: 'none' | 'openai' | 'anthropic';
   apiKey: string;
   commitPrompt: string;
+  useTemplateEngine: boolean;
+  selectedTemplate: string;
   
   // Auto pull settings
   enableAutoPull: boolean;
@@ -61,6 +64,8 @@ const DEFAULT_SETTINGS: GitSyncSettings = {
   llmProvider: 'none',
   apiKey: '',
   commitPrompt: 'Generate a concise commit message for these changes:',
+  useTemplateEngine: false,
+  selectedTemplate: 'conventional',
   
   // Auto pull settings
   enableAutoPull: false,
@@ -143,6 +148,12 @@ export default class GitSyncPlugin extends Plugin {
       id: 'generate-ai-commit-message',
       name: 'Generate AI Commit Message',
       callback: () => this.generateAICommitMessage(),
+    });
+
+    this.addCommand({
+      id: 'preview-prompt',
+      name: 'Preview Commit Prompt',
+      callback: () => this.previewPrompt(),
     });
 
     // Add settings tab
@@ -387,6 +398,124 @@ export default class GitSyncPlugin extends Plugin {
       this.updateStatusBar('AI commit error');
     }
   }
+
+  private async previewPrompt() {
+    try {
+      this.updateStatusBar('Generating prompt preview...');
+      
+      // Check if there are changes
+      const status = await this.gitService.getStatus();
+      if (!status.hasChanges) {
+        new Notice('No changes to preview');
+        this.updateStatusBar('No changes');
+        return;
+      }
+
+      // Generate prompt preview
+      const preview = await this.autoCommitService.previewPromptWithCurrentChanges();
+      
+      // Create modal to show preview
+      const modal = new PromptPreviewModal(this.app, preview);
+      modal.open();
+      
+      this.updateStatusBar('Prompt preview generated');
+    } catch (error) {
+      console.error('Prompt preview error:', error);
+      new Notice(`Preview error: ${error.message}`);
+      this.updateStatusBar('Preview error');
+    }
+  }
+}
+
+class PromptPreviewModal extends Modal {
+  private content: string;
+
+  constructor(app: App, content: string) {
+    super(app);
+    this.content = content;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+
+    contentEl.createEl('h2', { text: 'Commit Prompt Preview' });
+    
+    const previewContainer = contentEl.createEl('div', { 
+      cls: 'prompt-preview-container',
+      attr: { style: 'margin: 20px 0;' }
+    });
+    
+    const previewEl = previewContainer.createEl('pre', { 
+      text: this.content,
+      attr: { 
+        style: 'background: var(--background-secondary); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-family: var(--font-monospace); max-height: 400px; overflow-y: auto;'
+      }
+    });
+
+    const buttonContainer = contentEl.createEl('div', {
+      attr: { style: 'display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;' }
+    });
+
+    const copyButton = buttonContainer.createEl('button', { text: 'Copy to Clipboard' });
+    copyButton.onclick = () => {
+      navigator.clipboard.writeText(this.content);
+      new Notice('Prompt copied to clipboard');
+    };
+
+    const closeButton = buttonContainer.createEl('button', { text: 'Close' });
+    closeButton.onclick = () => this.close();
+  }
+
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+}
+
+class TemplateHelpModal extends Modal {
+  private helpContent: string;
+
+  constructor(app: App, helpContent: string) {
+    super(app);
+    this.helpContent = helpContent;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+
+    contentEl.createEl('h2', { text: 'Template Variables & Syntax Help' });
+    
+    const helpContainer = contentEl.createEl('div', { 
+      attr: { style: 'margin: 20px 0;' }
+    });
+    
+    const helpEl = helpContainer.createEl('pre', { 
+      text: this.helpContent,
+      attr: { 
+        style: 'background: var(--background-secondary); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-family: var(--font-monospace); max-height: 500px; overflow-y: auto; line-height: 1.5;'
+      }
+    });
+
+    const buttonContainer = contentEl.createEl('div', {
+      attr: { style: 'display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;' }
+    });
+
+    const copyButton = buttonContainer.createEl('button', { text: 'Copy Help Text' });
+    copyButton.onclick = () => {
+      navigator.clipboard.writeText(this.helpContent);
+      new Notice('Help text copied to clipboard');
+    };
+
+    const closeButton = buttonContainer.createEl('button', { text: 'Close' });
+    closeButton.onclick = () => this.close();
+  }
+
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
 }
 
 class GitSyncSettingTab extends PluginSettingTab {
@@ -590,14 +719,86 @@ class GitSyncSettingTab extends PluginSettingTab {
         }));
 
     new Setting(containerEl)
-      .setName('Commit Prompt')
-      .setDesc('Custom prompt for commit message generation')
-      .addTextArea(text => text
-        .setPlaceholder('Generate a concise commit message for these changes:')
-        .setValue(this.plugin.settings.commitPrompt)
+      .setName('Use Template Engine')
+      .setDesc('Enable advanced prompt templating with variables and conditional blocks')
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.useTemplateEngine)
         .onChange(async (value) => {
-          this.plugin.settings.commitPrompt = value;
+          this.plugin.settings.useTemplateEngine = value;
           await this.plugin.saveSettings();
         }));
+
+    if (this.plugin.settings.useTemplateEngine) {
+      new Setting(containerEl)
+        .setName('Template Preset')
+        .setDesc('Choose a predefined prompt template')
+        .addDropdown(dropdown => {
+          const templates = this.plugin.autoCommitService.getAvailablePromptTemplates();
+          dropdown.addOption('custom', 'Custom Template');
+          templates.forEach(template => {
+            dropdown.addOption(template.id, template.name);
+          });
+          dropdown.setValue(this.plugin.settings.selectedTemplate || 'conventional');
+          dropdown.onChange(async (value) => {
+            this.plugin.settings.selectedTemplate = value;
+            await this.plugin.saveSettings();
+          });
+        });
+
+      // Template help
+      const helpContainer = containerEl.createEl('div', {
+        attr: { style: 'margin: 10px 0; padding: 10px; background: var(--background-secondary); border-radius: 6px;' }
+      });
+      
+      const helpToggle = new Setting(helpContainer)
+        .setName('Template Variables Help')
+        .setDesc('Click to show available template variables and syntax')
+        .addButton(button => button
+          .setButtonText('Show Help')
+          .onClick(() => {
+            const helpModal = new TemplateHelpModal(this.app, this.plugin.autoCommitService.getTemplateHelp());
+            helpModal.open();
+          }));
+
+      new Setting(containerEl)
+        .setName('Preview Template')
+        .setDesc('Preview how your template will look with current changes')
+        .addButton(button => button
+          .setButtonText('Preview')
+          .onClick(async () => {
+            try {
+              const preview = await this.plugin.autoCommitService.previewPromptWithCurrentChanges();
+              const modal = new PromptPreviewModal(this.app, preview);
+              modal.open();
+            } catch (error) {
+              new Notice(`Preview error: ${error.message}`);
+            }
+          }));
+    }
+
+    new Setting(containerEl)
+      .setName('Custom Prompt Template')
+      .setDesc(this.plugin.settings.useTemplateEngine 
+        ? 'Enter your custom template with variables like {{files.total}}, {{branch}}, etc.'
+        : 'Custom prompt for commit message generation (basic mode)')
+      .addTextArea(text => {
+        text.setPlaceholder(this.plugin.settings.useTemplateEngine 
+          ? 'Generate a commit message for {{files.total}} files on branch {{branch}}:\n{{#if files.staged}}\nStaged: {{files.staged}}\n{{/if}}'
+          : 'Generate a concise commit message for these changes:');
+        text.setValue(this.plugin.settings.commitPrompt);
+        text.onChange(async (value) => {
+          this.plugin.settings.commitPrompt = value;
+          
+          // Validate template if template engine is enabled
+          if (this.plugin.settings.useTemplateEngine) {
+            const validation = this.plugin.autoCommitService.validatePromptTemplate(value);
+            if (!validation.valid) {
+              new Notice(`Template validation errors: ${validation.errors.join(', ')}`);
+            }
+          }
+          
+          await this.plugin.saveSettings();
+        });
+      });
   }
 }

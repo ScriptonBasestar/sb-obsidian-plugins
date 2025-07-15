@@ -290,6 +290,320 @@ var GitService = class {
   }
 };
 
+// src/prompt-template-service.ts
+var PromptTemplateService = class {
+  /**
+   * Get all available prompt templates
+   */
+  static getDefaultTemplates() {
+    return [...this.DEFAULT_TEMPLATES];
+  }
+  /**
+   * Get a specific template by ID
+   */
+  static getTemplate(id) {
+    return this.DEFAULT_TEMPLATES.find((template) => template.id === id);
+  }
+  /**
+   * Process template with variables
+   */
+  static processTemplate(template, variables) {
+    let processed = template;
+    processed = processed.replace(/\{\{files\.total\}\}/g, variables.files.total.toString());
+    processed = processed.replace(/\{\{branch\}\}/g, variables.branch);
+    processed = processed.replace(/\{\{timestamp\}\}/g, variables.timestamp);
+    if (variables.author) {
+      processed = processed.replace(/\{\{author\}\}/g, variables.author);
+    }
+    processed = processed.replace(
+      /\{\{files\.staged\}\}/g,
+      variables.files.staged.length > 0 ? variables.files.staged.slice(0, 5).join(", ") + (variables.files.staged.length > 5 ? ` and ${variables.files.staged.length - 5} more` : "") : "(none)"
+    );
+    processed = processed.replace(
+      /\{\{files\.unstaged\}\}/g,
+      variables.files.unstaged.length > 0 ? variables.files.unstaged.slice(0, 5).join(", ") + (variables.files.unstaged.length > 5 ? ` and ${variables.files.unstaged.length - 5} more` : "") : "(none)"
+    );
+    processed = processed.replace(
+      /\{\{files\.untracked\}\}/g,
+      variables.files.untracked.length > 0 ? variables.files.untracked.slice(0, 5).join(", ") + (variables.files.untracked.length > 5 ? ` and ${variables.files.untracked.length - 5} more` : "") : "(none)"
+    );
+    processed = this.processConditionalBlocks(processed, variables);
+    if (variables.diff) {
+      const truncatedDiff = variables.diff.length > 800 ? variables.diff.substring(0, 800) + "..." : variables.diff;
+      processed = processed.replace(/\{\{diff\}\}/g, truncatedDiff);
+    } else {
+      processed = processed.replace(/\{\{diff\}\}/g, "(no diff available)");
+    }
+    if (variables.recentCommits && variables.recentCommits.length > 0) {
+      processed = processed.replace(
+        /\{\{recentCommits\}\}/g,
+        variables.recentCommits.slice(0, 3).join("\n")
+      );
+    } else {
+      processed = processed.replace(/\{\{recentCommits\}\}/g, "(no recent commits)");
+    }
+    if (variables.author) {
+      processed = processed.replace(/\{\{author\}\}/g, variables.author);
+    } else {
+      processed = processed.replace(/\{\{author\}\}/g, "");
+    }
+    return processed.trim();
+  }
+  /**
+   * Process conditional blocks like {{#if condition}}...{{/if}}
+   */
+  static processConditionalBlocks(template, variables) {
+    let processed = template;
+    processed = processed.replace(
+      /\{\{#if files\.staged\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.files.staged.length > 0 ? "$1" : ""
+    );
+    processed = processed.replace(
+      /\{\{#if files\.unstaged\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.files.unstaged.length > 0 ? "$1" : ""
+    );
+    processed = processed.replace(
+      /\{\{#if files\.untracked\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.files.untracked.length > 0 ? "$1" : ""
+    );
+    processed = processed.replace(
+      /\{\{#if files\.total\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.files.total > 0 ? "$1" : ""
+    );
+    processed = processed.replace(
+      /\{\{#if recentCommits\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.recentCommits && variables.recentCommits.length > 0 ? "$1" : ""
+    );
+    processed = processed.replace(
+      /\{\{#if diff\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      variables.diff && variables.diff.length > 0 ? "$1" : ""
+    );
+    return processed;
+  }
+  /**
+   * Create variables object from commit context
+   */
+  static createVariables(context) {
+    var _a, _b, _c;
+    const files = context.files || { staged: [], unstaged: [], untracked: [] };
+    return {
+      files: {
+        staged: files.staged || [],
+        unstaged: files.unstaged || [],
+        untracked: files.untracked || [],
+        total: (((_a = files.staged) == null ? void 0 : _a.length) || 0) + (((_b = files.unstaged) == null ? void 0 : _b.length) || 0) + (((_c = files.untracked) == null ? void 0 : _c.length) || 0)
+      },
+      branch: context.branch || "unknown",
+      diff: context.diff,
+      recentCommits: context.recentCommits,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString().slice(0, 19).replace("T", " "),
+      author: context.author
+    };
+  }
+  /**
+   * Validate template syntax
+   */
+  static validateTemplate(template) {
+    const errors = [];
+    const ifBlocks = template.match(/\{\{#if\s+[\w.]+\}\}/g) || [];
+    const endifBlocks = template.match(/\{\{\/if\}\}/g) || [];
+    if (ifBlocks.length !== endifBlocks.length) {
+      errors.push("Unmatched conditional blocks: {{#if}} and {{/if}} count mismatch");
+    }
+    const variables = template.match(/\{\{[\w.]+\}\}/g) || [];
+    const validVariables = [
+      "files.staged",
+      "files.unstaged",
+      "files.untracked",
+      "files.total",
+      "branch",
+      "diff",
+      "recentCommits",
+      "timestamp",
+      "author"
+    ];
+    const conditionalPrefixes = ["#if ", "/if"];
+    for (const variable of variables) {
+      const cleanVar = variable.replace(/\{\{|\}\}/g, "");
+      if (conditionalPrefixes.some((prefix) => cleanVar.startsWith(prefix))) {
+        continue;
+      }
+      if (!validVariables.includes(cleanVar)) {
+        errors.push(`Unknown variable: ${variable}`);
+      }
+    }
+    return {
+      valid: errors.length === 0,
+      errors
+    };
+  }
+  /**
+   * Get template help text
+   */
+  static getTemplateHelp() {
+    return `Available template variables:
+\u2022 {{files.staged}} - List of staged files
+\u2022 {{files.unstaged}} - List of modified files  
+\u2022 {{files.untracked}} - List of new files
+\u2022 {{files.total}} - Total number of changed files
+\u2022 {{branch}} - Current git branch
+\u2022 {{diff}} - Code diff (truncated)
+\u2022 {{recentCommits}} - Recent commit messages
+\u2022 {{timestamp}} - Current timestamp
+\u2022 {{author}} - Commit author (if available)
+
+Conditional blocks:
+\u2022 {{#if files.staged}}...{{/if}} - Show only if staged files exist
+\u2022 {{#if files.unstaged}}...{{/if}} - Show only if modified files exist
+\u2022 {{#if files.untracked}}...{{/if}} - Show only if new files exist
+\u2022 {{#if recentCommits}}...{{/if}} - Show only if recent commits exist
+\u2022 {{#if diff}}...{{/if}} - Show only if diff is available
+
+Example:
+{{#if files.staged}}
+Staged: {{files.staged}}
+{{/if}}
+Branch: {{branch}}
+Total files: {{files.total}}`;
+  }
+};
+PromptTemplateService.DEFAULT_TEMPLATES = [
+  {
+    id: "conventional",
+    name: "Conventional Commits",
+    description: "Standard conventional commits format with type(scope): description",
+    template: `Generate a conventional commit message for these changes:
+
+{{#if files.staged}}
+Staged files ({{files.staged.length}}): {{files.staged}}
+{{/if}}
+{{#if files.unstaged}}
+Modified files ({{files.unstaged.length}}): {{files.unstaged}}
+{{/if}}
+{{#if files.untracked}}
+New files ({{files.untracked.length}}): {{files.untracked}}
+{{/if}}
+
+Branch: {{branch}}
+{{#if recentCommits}}
+Recent commits:
+{{recentCommits}}
+{{/if}}
+
+Requirements:
+- Use conventional commits format: type(scope): description
+- Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build
+- Keep subject line under 50 characters
+- Use lowercase after colon
+- Be concise and descriptive`,
+    variables: ["files", "branch", "recentCommits"]
+  },
+  {
+    id: "detailed",
+    name: "Detailed Description",
+    description: "More detailed commit messages with body text",
+    template: `Generate a detailed commit message for these changes:
+
+Files changed ({{files.total}} total):
+{{#if files.staged}}
+Staged: {{files.staged}}
+{{/if}}
+{{#if files.unstaged}}
+Modified: {{files.unstaged}}
+{{/if}}
+{{#if files.untracked}}
+New: {{files.untracked}}
+{{/if}}
+
+Branch: {{branch}}
+{{#if diff}}
+Code changes preview:
+{{diff}}
+{{/if}}
+
+Please provide:
+1. A concise subject line (under 50 chars)
+2. A detailed body explaining what and why
+3. Use conventional commits format
+4. Include any breaking changes if applicable`,
+    variables: ["files", "branch", "diff"]
+  },
+  {
+    id: "korean",
+    name: "\uD55C\uAD6D\uC5B4 \uCEE4\uBC0B \uBA54\uC2DC\uC9C0",
+    description: "\uD55C\uAD6D\uC5B4\uB85C \uC791\uC131\uB41C \uCEE4\uBC0B \uBA54\uC2DC\uC9C0 \uD15C\uD50C\uB9BF",
+    template: `\uB2E4\uC74C \uBCC0\uACBD\uC0AC\uD56D\uC5D0 \uB300\uD55C \uCEE4\uBC0B \uBA54\uC2DC\uC9C0\uB97C \uD55C\uAD6D\uC5B4\uB85C \uC0DD\uC131\uD574\uC8FC\uC138\uC694:
+
+\uBCC0\uACBD\uB41C \uD30C\uC77C (\uCD1D {{files.total}}\uAC1C):
+{{#if files.staged}}
+\uC2A4\uD14C\uC774\uC9D5\uB428: {{files.staged}}
+{{/if}}
+{{#if files.unstaged}}
+\uC218\uC815\uB428: {{files.unstaged}}
+{{/if}}
+{{#if files.untracked}}
+\uC0C8 \uD30C\uC77C: {{files.untracked}}
+{{/if}}
+
+\uBE0C\uB79C\uCE58: {{branch}}
+\uC2DC\uAC04: {{timestamp}}
+
+\uC694\uAD6C\uC0AC\uD56D:
+- conventional commits \uD615\uC2DD \uC0AC\uC6A9 (\uC601\uC5B4 type, \uD55C\uAD6D\uC5B4 \uC124\uBA85)
+- \uC608: feat: \uC0C8\uB85C\uC6B4 \uAE30\uB2A5 \uCD94\uAC00, fix: \uBC84\uADF8 \uC218\uC815, docs: \uBB38\uC11C \uC5C5\uB370\uC774\uD2B8
+- \uC81C\uBAA9\uC740 50\uC790 \uC774\uB0B4\uB85C \uAC04\uACB0\uD558\uAC8C
+- \uBA85\uD655\uD558\uACE0 \uC774\uD574\uD558\uAE30 \uC27D\uAC8C \uC791\uC131`,
+    variables: ["files", "branch", "timestamp"]
+  },
+  {
+    id: "simple",
+    name: "Simple & Clean",
+    description: "Minimalist commit messages focusing on the core change",
+    template: `Create a simple, clean commit message for:
+
+{{#if files.total}}
+{{files.total}} files changed
+{{/if}}
+Branch: {{branch}}
+
+Focus on the main purpose of these changes.
+Use conventional commits format but keep it minimal and clear.
+One line preferred, maximum 50 characters.`,
+    variables: ["files", "branch"]
+  },
+  {
+    id: "team",
+    name: "Team Collaboration",
+    description: "Commit messages optimized for team collaboration",
+    template: `Generate a team-friendly commit message:
+
+Changes summary:
+{{#if files.staged}}
+- Staged: {{files.staged}}
+{{/if}}
+{{#if files.unstaged}}
+- Modified: {{files.unstaged}}
+{{/if}}
+{{#if files.untracked}}
+- Added: {{files.untracked}}
+{{/if}}
+
+Branch: {{branch}}
+{{#if recentCommits}}
+Context from recent commits:
+{{recentCommits}}
+{{/if}}
+
+Requirements:
+- Clear subject line for quick scanning
+- Mention any breaking changes
+- Include relevant scope/module
+- Use conventional commits format
+- Consider impact on team members`,
+    variables: ["files", "branch", "recentCommits"]
+  }
+];
+
 // src/llm-service.ts
 var LLMService = class {
   constructor(settings) {
@@ -420,6 +734,23 @@ ${prompt}`
    * Build prompt for LLM based on git context
    */
   buildPrompt(context) {
+    if (this.settings.useTemplateEngine && this.settings.selectedTemplate) {
+      const template = PromptTemplateService.getTemplate(this.settings.selectedTemplate);
+      if (template) {
+        const variables = PromptTemplateService.createVariables(context);
+        return PromptTemplateService.processTemplate(template.template, variables);
+      }
+    }
+    if (this.settings.commitPrompt && this.settings.commitPrompt.includes("{{")) {
+      const variables = PromptTemplateService.createVariables(context);
+      return PromptTemplateService.processTemplate(this.settings.commitPrompt, variables);
+    }
+    return this.buildLegacyPrompt(context);
+  }
+  /**
+   * Legacy prompt building (for backward compatibility)
+   */
+  buildLegacyPrompt(context) {
     const { files, diff, recentCommits, branch } = context;
     let prompt = this.settings.commitPrompt || "Generate a concise commit message for these changes:";
     prompt += "\n\n";
@@ -550,6 +881,30 @@ ${body}`;
     const prompt = this.buildPrompt(context);
     return Math.ceil(prompt.length / 4);
   }
+  /**
+   * Get available prompt templates
+   */
+  getAvailableTemplates() {
+    return PromptTemplateService.getDefaultTemplates();
+  }
+  /**
+   * Preview prompt with current settings and context
+   */
+  previewPrompt(context) {
+    return this.buildPrompt(context);
+  }
+  /**
+   * Validate custom prompt template
+   */
+  validatePromptTemplate(template) {
+    return PromptTemplateService.validateTemplate(template);
+  }
+  /**
+   * Get template help documentation
+   */
+  getTemplateHelp() {
+    return PromptTemplateService.getTemplateHelp();
+  }
 };
 
 // src/auto-commit-service.ts
@@ -565,7 +920,9 @@ var AutoCommitService = class {
       provider: settings.llmProvider,
       apiKey: settings.apiKey,
       commitPrompt: settings.commitPrompt,
-      enabled: settings.enableAICommitMessages
+      enabled: settings.enableAICommitMessages,
+      useTemplateEngine: settings.useTemplateEngine || false,
+      selectedTemplate: settings.selectedTemplate || "conventional"
     });
   }
   /**
@@ -603,7 +960,9 @@ var AutoCommitService = class {
       provider: settings.llmProvider,
       apiKey: settings.apiKey,
       commitPrompt: settings.commitPrompt,
-      enabled: settings.enableAICommitMessages
+      enabled: settings.enableAICommitMessages,
+      useTemplateEngine: settings.useTemplateEngine || false,
+      selectedTemplate: settings.selectedTemplate || "conventional"
     });
     if (this.settings.enableAutoCommit) {
       this.start();
@@ -868,6 +1227,55 @@ Auto-committed at ${timestamp}`;
       return 0;
     }
   }
+  /**
+   * Get available prompt templates from LLM service
+   */
+  getAvailablePromptTemplates() {
+    return this.llmService.getAvailableTemplates();
+  }
+  /**
+   * Preview prompt with current changes
+   */
+  async previewPromptWithCurrentChanges() {
+    try {
+      const status = await this.gitService.getStatus();
+      const context = {
+        files: {
+          staged: status.staged || [],
+          unstaged: status.unstaged || [],
+          untracked: status.untracked || []
+        },
+        branch: status.currentBranch || "unknown"
+      };
+      try {
+        const recentCommits = await this.gitService.getRecentCommits(3);
+        context.recentCommits = recentCommits.map(
+          (commit) => {
+            var _a;
+            return `${((_a = commit.hash) == null ? void 0 : _a.substring(0, 7)) || "unknown"}: ${commit.message || "no message"}`;
+          }
+        );
+      } catch (error) {
+        console.warn("Failed to get recent commits for preview:", error);
+      }
+      return this.llmService.previewPrompt(context);
+    } catch (error) {
+      console.error("Failed to preview prompt:", error);
+      return "Error generating preview: " + error.message;
+    }
+  }
+  /**
+   * Validate custom prompt template
+   */
+  validatePromptTemplate(template) {
+    return this.llmService.validatePromptTemplate(template);
+  }
+  /**
+   * Get template help documentation
+   */
+  getTemplateHelp() {
+    return this.llmService.getTemplateHelp();
+  }
 };
 
 // src/main.ts
@@ -887,6 +1295,8 @@ var DEFAULT_SETTINGS = {
   llmProvider: "none",
   apiKey: "",
   commitPrompt: "Generate a concise commit message for these changes:",
+  useTemplateEngine: false,
+  selectedTemplate: "conventional",
   // Auto pull settings
   enableAutoPull: false,
   pullOnStartup: true,
@@ -947,6 +1357,11 @@ var GitSyncPlugin = class extends import_obsidian.Plugin {
       id: "generate-ai-commit-message",
       name: "Generate AI Commit Message",
       callback: () => this.generateAICommitMessage()
+    });
+    this.addCommand({
+      id: "preview-prompt",
+      name: "Preview Commit Prompt",
+      callback: () => this.previewPrompt()
     });
     this.addSettingTab(new GitSyncSettingTab(this.app, this));
     if (this.settings.enableAutoPull && this.settings.pullOnStartup) {
@@ -1150,6 +1565,94 @@ var GitSyncPlugin = class extends import_obsidian.Plugin {
       this.updateStatusBar("AI commit error");
     }
   }
+  async previewPrompt() {
+    try {
+      this.updateStatusBar("Generating prompt preview...");
+      const status = await this.gitService.getStatus();
+      if (!status.hasChanges) {
+        new import_obsidian.Notice("No changes to preview");
+        this.updateStatusBar("No changes");
+        return;
+      }
+      const preview = await this.autoCommitService.previewPromptWithCurrentChanges();
+      const modal = new PromptPreviewModal(this.app, preview);
+      modal.open();
+      this.updateStatusBar("Prompt preview generated");
+    } catch (error) {
+      console.error("Prompt preview error:", error);
+      new import_obsidian.Notice(`Preview error: ${error.message}`);
+      this.updateStatusBar("Preview error");
+    }
+  }
+};
+var PromptPreviewModal = class extends import_obsidian.Modal {
+  constructor(app, content) {
+    super(app);
+    this.content = content;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: "Commit Prompt Preview" });
+    const previewContainer = contentEl.createEl("div", {
+      cls: "prompt-preview-container",
+      attr: { style: "margin: 20px 0;" }
+    });
+    const previewEl = previewContainer.createEl("pre", {
+      text: this.content,
+      attr: {
+        style: "background: var(--background-secondary); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-family: var(--font-monospace); max-height: 400px; overflow-y: auto;"
+      }
+    });
+    const buttonContainer = contentEl.createEl("div", {
+      attr: { style: "display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;" }
+    });
+    const copyButton = buttonContainer.createEl("button", { text: "Copy to Clipboard" });
+    copyButton.onclick = () => {
+      navigator.clipboard.writeText(this.content);
+      new import_obsidian.Notice("Prompt copied to clipboard");
+    };
+    const closeButton = buttonContainer.createEl("button", { text: "Close" });
+    closeButton.onclick = () => this.close();
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+var TemplateHelpModal = class extends import_obsidian.Modal {
+  constructor(app, helpContent) {
+    super(app);
+    this.helpContent = helpContent;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: "Template Variables & Syntax Help" });
+    const helpContainer = contentEl.createEl("div", {
+      attr: { style: "margin: 20px 0;" }
+    });
+    const helpEl = helpContainer.createEl("pre", {
+      text: this.helpContent,
+      attr: {
+        style: "background: var(--background-secondary); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-family: var(--font-monospace); max-height: 500px; overflow-y: auto; line-height: 1.5;"
+      }
+    });
+    const buttonContainer = contentEl.createEl("div", {
+      attr: { style: "display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;" }
+    });
+    const copyButton = buttonContainer.createEl("button", { text: "Copy Help Text" });
+    copyButton.onclick = () => {
+      navigator.clipboard.writeText(this.helpContent);
+      new import_obsidian.Notice("Help text copied to clipboard");
+    };
+    const closeButton = buttonContainer.createEl("button", { text: "Close" });
+    closeButton.onclick = () => this.close();
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
 };
 var GitSyncSettingTab = class extends import_obsidian.PluginSettingTab {
   constructor(app, plugin) {
@@ -1230,9 +1733,53 @@ var GitSyncSettingTab = class extends import_obsidian.PluginSettingTab {
         new import_obsidian.Notice(`API test failed: ${result.error}`);
       }
     }));
-    new import_obsidian.Setting(containerEl).setName("Commit Prompt").setDesc("Custom prompt for commit message generation").addTextArea((text) => text.setPlaceholder("Generate a concise commit message for these changes:").setValue(this.plugin.settings.commitPrompt).onChange(async (value) => {
-      this.plugin.settings.commitPrompt = value;
+    new import_obsidian.Setting(containerEl).setName("Use Template Engine").setDesc("Enable advanced prompt templating with variables and conditional blocks").addToggle((toggle) => toggle.setValue(this.plugin.settings.useTemplateEngine).onChange(async (value) => {
+      this.plugin.settings.useTemplateEngine = value;
       await this.plugin.saveSettings();
     }));
+    if (this.plugin.settings.useTemplateEngine) {
+      new import_obsidian.Setting(containerEl).setName("Template Preset").setDesc("Choose a predefined prompt template").addDropdown((dropdown) => {
+        const templates = this.plugin.autoCommitService.getAvailablePromptTemplates();
+        dropdown.addOption("custom", "Custom Template");
+        templates.forEach((template) => {
+          dropdown.addOption(template.id, template.name);
+        });
+        dropdown.setValue(this.plugin.settings.selectedTemplate || "conventional");
+        dropdown.onChange(async (value) => {
+          this.plugin.settings.selectedTemplate = value;
+          await this.plugin.saveSettings();
+        });
+      });
+      const helpContainer = containerEl.createEl("div", {
+        attr: { style: "margin: 10px 0; padding: 10px; background: var(--background-secondary); border-radius: 6px;" }
+      });
+      const helpToggle = new import_obsidian.Setting(helpContainer).setName("Template Variables Help").setDesc("Click to show available template variables and syntax").addButton((button) => button.setButtonText("Show Help").onClick(() => {
+        const helpModal = new TemplateHelpModal(this.app, this.plugin.autoCommitService.getTemplateHelp());
+        helpModal.open();
+      }));
+      new import_obsidian.Setting(containerEl).setName("Preview Template").setDesc("Preview how your template will look with current changes").addButton((button) => button.setButtonText("Preview").onClick(async () => {
+        try {
+          const preview = await this.plugin.autoCommitService.previewPromptWithCurrentChanges();
+          const modal = new PromptPreviewModal(this.app, preview);
+          modal.open();
+        } catch (error) {
+          new import_obsidian.Notice(`Preview error: ${error.message}`);
+        }
+      }));
+    }
+    new import_obsidian.Setting(containerEl).setName("Custom Prompt Template").setDesc(this.plugin.settings.useTemplateEngine ? "Enter your custom template with variables like {{files.total}}, {{branch}}, etc." : "Custom prompt for commit message generation (basic mode)").addTextArea((text) => {
+      text.setPlaceholder(this.plugin.settings.useTemplateEngine ? "Generate a commit message for {{files.total}} files on branch {{branch}}:\n{{#if files.staged}}\nStaged: {{files.staged}}\n{{/if}}" : "Generate a concise commit message for these changes:");
+      text.setValue(this.plugin.settings.commitPrompt);
+      text.onChange(async (value) => {
+        this.plugin.settings.commitPrompt = value;
+        if (this.plugin.settings.useTemplateEngine) {
+          const validation = this.plugin.autoCommitService.validatePromptTemplate(value);
+          if (!validation.valid) {
+            new import_obsidian.Notice(`Template validation errors: ${validation.errors.join(", ")}`);
+          }
+        }
+        await this.plugin.saveSettings();
+      });
+    });
   }
 };

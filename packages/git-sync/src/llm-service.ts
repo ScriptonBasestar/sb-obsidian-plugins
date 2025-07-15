@@ -3,6 +3,8 @@ export interface LLMSettings {
   apiKey: string;
   commitPrompt: string;
   enabled: boolean;
+  useTemplateEngine: boolean;
+  selectedTemplate: string;
 }
 
 export interface CommitContext {
@@ -21,6 +23,8 @@ export interface LLMResponse {
   message?: string;
   error?: string;
 }
+
+import { PromptTemplateService, PromptTemplate } from './prompt-template-service';
 
 export class LLMService {
   private settings: LLMSettings;
@@ -166,6 +170,29 @@ export class LLMService {
    * Build prompt for LLM based on git context
    */
   private buildPrompt(context: CommitContext): string {
+    // Use template engine if enabled
+    if (this.settings.useTemplateEngine && this.settings.selectedTemplate) {
+      const template = PromptTemplateService.getTemplate(this.settings.selectedTemplate);
+      if (template) {
+        const variables = PromptTemplateService.createVariables(context);
+        return PromptTemplateService.processTemplate(template.template, variables);
+      }
+    }
+
+    // Check if custom prompt uses template variables
+    if (this.settings.commitPrompt && this.settings.commitPrompt.includes('{{')) {
+      const variables = PromptTemplateService.createVariables(context);
+      return PromptTemplateService.processTemplate(this.settings.commitPrompt, variables);
+    }
+
+    // Fallback to legacy prompt building
+    return this.buildLegacyPrompt(context);
+  }
+
+  /**
+   * Legacy prompt building (for backward compatibility)
+   */
+  private buildLegacyPrompt(context: CommitContext): string {
     const { files, diff, recentCommits, branch } = context;
     
     let prompt = this.settings.commitPrompt || 'Generate a concise commit message for these changes:';
@@ -318,5 +345,33 @@ export class LLMService {
     const prompt = this.buildPrompt(context);
     // Rough estimation: ~4 characters per token
     return Math.ceil(prompt.length / 4);
+  }
+
+  /**
+   * Get available prompt templates
+   */
+  getAvailableTemplates(): PromptTemplate[] {
+    return PromptTemplateService.getDefaultTemplates();
+  }
+
+  /**
+   * Preview prompt with current settings and context
+   */
+  previewPrompt(context: CommitContext): string {
+    return this.buildPrompt(context);
+  }
+
+  /**
+   * Validate custom prompt template
+   */
+  validatePromptTemplate(template: string): { valid: boolean; errors: string[] } {
+    return PromptTemplateService.validateTemplate(template);
+  }
+
+  /**
+   * Get template help documentation
+   */
+  getTemplateHelp(): string {
+    return PromptTemplateService.getTemplateHelp();
   }
 }
