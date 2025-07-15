@@ -5,6 +5,15 @@
   "description": "Shared types and utilities for Obsidian plugins",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./build": {
+      "import": "./src/build/esbuild-config.mjs"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
