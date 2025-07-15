@@ -1,0 +1,10 @@
+{
+  "id": "metadata-manager",
+  "name": "Metadata Manager",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Automatically manage and lint frontmatter metadata in Obsidian documents",
+  "author": "sb-obsidian-plugins",
+  "authorUrl": "https://github.com/sb-obsidian-plugins",
+  "isDesktopOnly": false
+}
