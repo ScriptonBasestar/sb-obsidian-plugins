@@ -1,0 +1,527 @@
+╭──────────────────────────────────────────────────────────────╮
+│ ✻ Welcome to Claude Code!                                    │
+│                                                              │
+│   /help for help, /status for your current setup             │
+│                                                              │
+│   cwd: /home/archmagece/myopen/scripton/sb-obsidian-plugins  │
+╰──────────────────────────────────────────────────────────────╯
+
+ Tips for getting started:
+
+ 1. Run /init to create a CLAUDE.md file with instructions for Claude
+ 2. Use Claude to help with file analysis, editing, bash commands and git
+ 3. Be as specific as you would with another engineer for the best results
+● Compact summary (ctrl+r to expand)
+  ⎿  Read tasks/done/plan/PLAN__COMPLETED_20250715.md (184 lines)
+  ⎿  Read tasks/plan/PLAN.md (125 lines)
+  ⎿  Read packages/template-generator/README.md (260 lines)
+  ⎿  Read PLUGIN_MARKET_SUBMISSION.md (155 lines)
+  ⎿  Todo list read (1 item)
+
+● Update Todos
+  ⎿  ☒ 계획 파일 스캔 및 분석 - PLAN.md 처리
+
+● The plan analysis is complete. I've verified that the plan file at /tasks/plan/PLAN.md represents a
+  fully implemented project. All planned features have been successfully implemented:
+
+  - Template Generator: Complete with weather/fortune integration and Korean date support
+  - Git Sync: Auto-commit, LLM integration, and conflict resolution implemented
+  - Metadata Manager: Frontmatter automation with validation and linting
+  - Publisher Scripton: Full scripton.cloud publishing capabilities
+
+  Since the plan represents a completed project, no TODO generation is needed. The plan has already
+  been properly archived at /tasks/done/plan/PLAN__COMPLETED_20250715.md with status documentation.
+
+> packages/**의 모듈에서 각각 프로젝트를 설명하는 README.md를 생성해줘
+
+● Update Todos
+  ⎿  ☐ packages/** 모듈별 README.md 생성
+
+● List(packages)
+  ⎿  Listed 74 paths (ctrl+r to expand)
+
+● Read(packages/git-sync/manifest.json)
+  ⎿  Read 10 lines (ctrl+r to expand)
+
+● Read(packages/git-sync/package.json)
+  ⎿  Read 36 lines (ctrl+r to expand)
+
+● Read(packages/git-sync/src/main.ts)
+  ⎿  Read 50 lines (ctrl+r to expand)
+
+● Read(packages/metadata-manager/manifest.json)
+  ⎿  Read 10 lines (ctrl+r to expand)
+
+● Read(packages/metadata-manager/package.json)
+  ⎿  Read 36 lines (ctrl+r to expand)
+
+● Read(packages/metadata-manager/src/main.ts)
+  ⎿  Read 50 lines (ctrl+r to expand)
+
+● Read(packages/publisher-scripton/manifest.json)
+  ⎿  Read 10 lines (ctrl+r to expand)
+
+● Read(packages/publisher-scripton/package.json)
+  ⎿  Read 35 lines (ctrl+r to expand)
+
+● Read(packages/publisher-scripton/src/main.ts)
+  ⎿  Read 50 lines (ctrl+r to expand)
+
+● Write(packages/git-sync/README.md)
+  ⎿  Wrote 235 lines to packages/git-sync/README.md                                              
+     # Git Sync for Obsidian
+     > 🔄 Automatic git synchronization with AI-powered commit messages for Obsidian
+     ![Git Sync Demo](https://img.shields.io/badge/Obsidian-Plugin-purple)
+     ![Version](https://img.shields.io/badge/version-1.0.0-blue)
+     ![License](https://img.shields.io/badge/license-MIT-green)
+     ## ✨ Features
+     - **🤖 AI-Powered Commit Messages**: Generate meaningful commit messages using Claude or GPT
+     - **⚡ Auto-Commit & Push**: Periodic automatic commits to temporary branch
+     … +225 lines (ctrl+r to expand)
+
+● Write(packages/metadata-manager/README.md)
+  ⎿  Wrote 359 lines to packages/metadata-manager/README.md                        
+     # Metadata Manager for Obsidian
+     > 🧠 Automatically manage and lint frontmatter metadata in Obsidian documents
+     ![Metadata Manager Demo](https://img.shields.io/badge/Obsidian-Plugin-purple)
+     ![Version](https://img.shields.io/badge/version-1.0.0-blue)
+     ![License](https://img.shields.io/badge/license-MIT-green)
+     ## ✨ Features
+     - **🔮 Auto-Insert Frontmatter**: Automatically add metadata to new documents
+     - **🔍 Smart Validation**: Rule-based linting for metadata consistency
+     … +349 lines (ctrl+r to expand)
+
+● Write(packages/publisher-scripton/README.md)
+  ⎿  Wrote 342 lines to packages/publisher-scripton/README.md                        
+     # Publisher Scripton for Obsidian
+     > 🚀 Publish your Obsidian notes to scripton.cloud with ease
+     ![Publisher Scripton Demo](https://img.shields.io/badge/Obsidian-Plugin-purple)
+     ![Version](https://img.shields.io/badge/version-1.0.0-blue)
+     ![License](https://img.shields.io/badge/license-MIT-green)
+     ## ✨ Features
+     - **☁️ Cloud Publishing**: Seamless publishing to scripton.cloud
+     - **📎 Attachment Support**: Upload images and files automatically
+     … +332 lines (ctrl+r to expand)
+
+● Update Todos
+  ⎿  ☒ packages/** 모듈별 README.md 생성
+
+● packages 디렉토리의 모든 모듈에 대해 README.md를 생성했습니다:
+
+  ✅ 생성된 README 파일들:
+  - packages/git-sync/README.md - Git 동기화 및 AI 커밋 메시지 플러그인
+  - packages/metadata-manager/README.md - Frontmatter 메타데이터 관리 플러그인
+  - packages/publisher-scripton/README.md - scripton.cloud 발행 플러그인
+  - packages/template-generator/README.md - 이미 존재함
+
+  각 README는 다음 내용을 포함합니다:
+  - 플러그인 설명 및 주요 기능
+  - 설치 및 설정 가이드
+  - 사용법 및 예제
+  - 고급 기능 및 커스터마이징
+  - 문제 해결 가이드
+  - 개발자 정보 및 지원 연락처
+
+> PLUGIN_MARKET_SUBMISSION.md를 docs/의 적절할 위치로 옮겨기면서 아래처럼 분류해줘.
+  1. 개발자용 로컬 환경설치 및 obsidian설치, 2. 일반사용자용 소스에서 설치, 3. 일반사용자용 
+  바이너리에서 설치, 4. 공식마켓플레이스 등록 devops방식퐘
+
+● Update Todos
+  ⎿  ☐ PLUGIN_MARKET_SUBMISSION.md를 docs/로 이동하고 4가지 카테고리로 분류
+
+● List(.)
+  ⎿  Listed 36 paths (ctrl+r to expand)
+
+● List(docs)
+  ⎿  Listed 2 paths (ctrl+r to expand)
+
+● Bash(mkdir -p /home/archmagece/myopen/scripton/sb-obsidian-plugins/docs/installation)
+  ⎿  (No content)
+
+● Read(PLUGIN_MARKET_SUBMISSION.md)
+  ⎿  Read 155 lines (ctrl+r to expand)
+
+● Write(docs/installation/01-developer-setup.md)
+  ⎿  Wrote 315 lines to docs/installation/01-developer-setup.md              
+     # 개발자용 로컬 환경 설치 가이드
+     > 🛠️ sb-obsidian-plugins 개발 환경 구축 및 Obsidian 플러그인 개발 가이드
+     ## 🚀 개발 환경 요구사항
+     ### 필수 소프트웨어
+     - **Node.js**: v16 이상 (권장: v18+)
+     - **pnpm**: v7 이상 (모노레포 워크스페이스 지원)
+     - **Git**: 최신 버전
+     … +305 lines (ctrl+r to expand)
+
+● Write(docs/installation/02-source-installation.md)
+  ⎿  Wrote 326 lines to docs/installation/02-source-installation.md
+     # 일반 사용자용 소스에서 설치 가이드
+     > 📦 GitHub 소스 코드에서 직접 sb-obsidian-plugins 설치하기
+     ## 🎯 설치 대상
+     이 가이드는 다음과 같은 사용자를 대상으로 합니다:
+     - 최신 개발 버전을 사용하고 싶은 사용자
+     - 공식 플러그인 마켓에서 아직 제공되지 않는 플러그인 사용자
+     - 소스 코드 수정 및 커스터마이징을 원하는 사용자
+     … +316 lines (ctrl+r to expand)
+
+● Write(docs/installation/03-binary-installation.md)
+  ⎿  Wrote 308 lines to docs/installation/03-binary-installation.md          
+     # 일반 사용자용 바이너리에서 설치 가이드
+     > 📦 미리 컴파일된 바이너리 파일로 간편하게 sb-obsidian-plugins 설치하기
+     ## 🎯 설치 대상
+     이 가이드는 다음과 같은 사용자를 대상으로 합니다:
+     - 개발 환경 구축 없이 빠른 설치를 원하는 사용자
+     - Node.js나 빌드 도구 사용에 익숙하지 않은 사용자
+     - 안정적인 릴리스 버전을 사용하고 싶은 사용자
+     … +298 lines (ctrl+r to expand)
+
+● Write(docs/installation/04-marketplace-devops.md)
+  ⎿  Wrote 663 lines to docs/installation/04-marketplace-devops.md                             
+     # 공식 마켓플레이스 등록 DevOps 가이드
+     > 🚀 sb-obsidian-plugins를 Obsidian 공식 커뮤니티 플러그인 마켓에 등록하는 DevOps 프로세스
+     ## 🎯 등록 프로세스 개요
+     Obsidian 공식 커뮤니티 플러그인 마켓 등록은 다음과 같은 단계로 진행됩니다:
+     1. **개별 저장소 생성**: 모노레포에서 각 플러그인을 독립 저장소로 분리
+     2. **릴리스 자동화**: GitHub Actions을 통한 자동 빌드 및 릴리스
+     … +653 lines (ctrl+r to expand)
+
+● Bash(rm /home/archmagece/myopen/scripton/sb-obsidian-plugins/PLUGIN_MARKET_SUBMISSION.md)
+  ⎿  (No content)
+
+● Write(docs/installation/README.md)
+  ⎿  Wrote 76 lines to docs/installation/README.md            
+     # 설치 가이드 목록
+     > 📚 sb-obsidian-plugins 설치 방법별 가이드 모음
+     ## 📖 가이드 목록
+     ### 1. [개발자용 로컬 환경 설치](./01-developer-setup.md)
+     - 🛠️ 개발 환경 구축 및 설정
+     - 📦 모노레포 구조 이해
+     - 🔧 디버깅 및 테스트 환경
+     … +66 lines (ctrl+r to expand)
+
+● Update Todos
+  ⎿  ☒ PLUGIN_MARKET_SUBMISSION.md를 docs/로 이동하고 4가지 카테고리로 분류
+
+● ✅ PLUGIN_MARKET_SUBMISSION.md를 docs/installation/ 디렉토리로 이동하고 4가지 카테고리로 분류 완료
+
+  생성된 문서들:
+  1. docs/installation/01-developer-setup.md - 개발자용 로컬 환경 설치 가이드
+  2. docs/installation/02-source-installation.md - 일반 사용자용 소스에서 설치 가이드
+  3. docs/installation/03-binary-installation.md - 일반 사용자용 바이너리에서 설치 가이드
+  4. docs/installation/04-marketplace-devops.md - 공식 마켓플레이스 등록 DevOps 가이드
+  5. docs/installation/README.md - 설치 가이드 목록 및 비교표
+
+  주요 특징:
+  - 각 대상 사용자별 맞춤형 설치 가이드
+  - 플랫폼별 (Windows, macOS, Linux) 설치 방법
+  - 자동화 스크립트 및 CI/CD 파이프라인 포함
+  - 문제 해결 방법 및 지원 채널 안내
+  - 원본 PLUGIN_MARKET_SUBMISSION.md 파일 삭제
+
+> 이 프로젝트에 부족한점이 있는지 개선할 항목이 있는지 소스코드 관점에서 전반적으로 리뷰해줘.
+
+● Task(Project code review analysis)
+  ⎿  Done (29 tool uses · 74.7k tokens · 8m 14.9s)                                                     
+
+● Update Todos
+  ⎿  ☐ 코드 구조 및 아키텍처 개선 - 공유 라이브러리 확장
+     ☐ 플러그인 베이스 클래스 아키텍처 구축
+     ☐ ESLint 설정 추가 - TypeScript 지원
+     ☐ 타입 안전성 강화 - any 타입 제거
+     ☐ CI/CD 파이프라인 구축 - GitHub Actions
+     ☐ 테스트 인프라 표준화 - 공통 모킹 유틸리티
+     ☐ Git Sync 플러그인 리팩토링 - 큰 main.ts 파일 분리
+     ☐ TypeScript 설정 표준화 - tsconfig.json 계층 구조
+     ☐ 에러 핸들링 표준화 - 공통 유틸리티
+     ☐ pre-commit 훅 설정 - Husky + lint-staged
+     ☐ 빌드 설정 통합 - 공유 esbuild 설정
+
+● 🔍 sb-obsidian-plugins 프로젝트 종합 코드 리뷰
+
+  상세한 코드 분석을 통해 프로젝트의 현재 상태를 평가하고 개선 방안을 제시합니다.
+
+  📊 현재 상태 평가
+
+  ✅ 잘 구현된 부분들
+
+  - 모노레포 구조: pnpm workspace를 활용한 효율적인 모노레포 설정
+  - 플러그인 기능: 각 플러그인의 핵심 기능은 잘 구현됨
+  - 테스트 커버리지: Vitest 기반 테스트 환경 구축
+  - 문서화: 상세한 README와 설치 가이드 제공
+
+  ⚠️ 개선이 필요한 부분들
+
+  🏗️ 1. 코드 구조 & 아키텍처 개선사항
+
+  1.1 공유 라이브러리 확장 (우선순위: 높음)
+
+  현재 문제점:
+  - shared/ 디렉토리가 기본적인 유틸리티만 제공
+  - 각 플러그인에서 중복된 코드 패턴 발견
+
+  개선 방안:
+  - 공통 베이스 클래스 및 인터페이스 추가
+  - 설정 관리, 상태 관리 유틸리티 구축
+  - 공통 UI 컴포넌트 라이브러리 구성
+
+  1.2 TypeScript 설정 표준화 (우선순위: 중간)
+
+  현재 문제점:
+  - 각 패키지별로 중복된 tsconfig.json
+  - 일관성 없는 TypeScript 컴파일 옵션
+
+  개선 방안:
+  - 루트 tsconfig.json에서 공통 설정 관리
+  - 패키지별 extends 구조 활용
+
+  1.3 플러그인 베이스 클래스 아키텍처 (우선순위: 높음)
+
+  현재 문제점:
+  - 플러그인간 보일러플레이트 코드 중복
+  - 공통 라이프사이클 패턴 미표준화
+
+  🔧 2. 코드 품질 개선사항
+
+  2.1 ESLint 설정 부재 (우선순위: 높음)
+
+  현재 문제점:
+  - 코드 스타일 가이드 없음
+  - 잠재적 버그 탐지 도구 부재
+
+  개선 방안:
+  - TypeScript ESLint 규칙 세트 구성
+  - Prettier와 통합된 포맷팅 설정
+
+  2.2 타입 안전성 강화 (우선순위: 높음)
+
+  현재 문제점:
+  - 일부 any 타입 사용 발견
+  - 타입 정의 불완전성
+
+  개선 방안:
+  - 엄격한 TypeScript 설정 적용
+  - 모든 any 타입 제거 및 적절한 타입 정의
+
+  2.3 에러 핸들링 표준화 (우선순위: 중간)
+
+  현재 문제점:
+  - 플러그인별 에러 처리 방식 상이
+  - 일관된 에러 메시지 패턴 부재
+
+  🛠️ 3. 개발 프랙티스 개선사항
+
+  3.1 Pre-commit 훅 부재 (우선순위: 중간)
+
+  현재 문제점:
+  - 코드 품질 검사 자동화 없음
+  - 커밋 전 검증 프로세스 부재
+
+  개선 방안:
+  - Husky + lint-staged 설정
+  - 자동 포맷팅 및 테스트 실행
+
+  3.2 CI/CD 파이프라인 구축 (우선순위: 높음)
+
+  현재 문제점:
+  - 자동화된 빌드/테스트 파이프라인 부재
+  - 릴리스 프로세스 수동화
+
+  개선 방안:
+  - GitHub Actions 워크플로우 구성
+  - 자동화된 테스트 및 빌드 검증
+
+  3.3 테스트 인프라 표준화 (우선순위: 높음)
+
+  현재 문제점:
+  - 플러그인별 테스트 설정 불일치
+  - 공통 모킹 유틸리티 부재
+
+  📦 4. 플러그인별 개선사항
+
+  4.1 Git Sync 플러그인 (우선순위: 높음)
+
+  현재 문제점:
+  - main.ts 파일이 967라인으로 과도하게 큼
+  - 단일 파일에 모든 로직 집중
+
+  개선 방안:
+  - UI 컴포넌트 분리
+  - 서비스 레이어 추출
+  - 설정 관리 모듈화
+
+  4.2 Metadata Manager 플러그인 (우선순위: 중간)
+
+  현재 문제점:
+  - 직접적인 YAML 파싱 로직
+  - 에러 처리 미흡
+
+  개선 방안:
+  - 전용 YAML 라이브러리 활용
+  - 견고한 파싱 에러 처리
+
+  4.3 빌드 설정 중복 (우선순위: 중간)
+
+  현재 문제점:
+  - 각 플러그인별 동일한 esbuild 설정
+  - 설정 변경 시 다중 수정 필요
+
+  🚀 5. 누락된 기능 및 개선사항
+
+  5.1 자동화된 문서 생성 (우선순위: 낮음)
+
+  개선 방안:
+  - TypeDoc 기반 API 문서 자동 생성
+  - 코드 변경 시 문서 자동 업데이트
+
+  5.2 번들 크기 모니터링 (우선순위: 낮음)
+
+  개선 방안:
+  - 번들 크기 추적 도구 도입
+  - 성능 회귀 방지 체크
+
+  5.3 릴리스 관리 자동화 (우선순위: 중간)
+
+  개선 방안:
+  - changesets 기반 버전 관리
+  - 자동화된 릴리스 노트 생성
+
+  📋 구현 우선순위 및 로드맵
+
+  🔴 높은 우선순위 (즉시 개선 필요)
+
+  1. 공유 라이브러리 확장
+  2. ESLint 설정 구성
+  3. CI/CD 파이프라인 구축
+  4. Git Sync 플러그인 리팩토링
+  5. 타입 안전성 강화
+  6. 테스트 인프라 표준화
+
+  🟡 중간 우선순위 (단계적 개선)
+
+  1. TypeScript 설정 표준화
+  2. 에러 핸들링 표준화
+  3. Pre-commit 훅 설정
+  4. 빌드 설정 통합
+  5. 릴리스 관리 자동화
+
+  🟢 낮은 우선순위 (장기적 개선)
+
+  1. 자동화된 문서 생성
+  2. 번들 크기 모니터링
+  3. 고급 성능 최적화
+
+  🎯 예상 개선 효과
+
+  이러한 개선사항들을 적용하면:
+  - 코드 품질: 일관된 코딩 스타일과 높은 타입 안전성
+  - 개발 생산성: 자동화된 도구와 표준화된 프로세스
+  - 유지보수성: 모듈화된 구조와 명확한 책임 분리
+  - 안정성: 포괄적인 테스트와 CI/CD 파이프라인
+  - 협업 효율성: 표준화된 개발 환경과 문서화
+
+  전체적으로 프로젝트의 기본 구조는 견고하나, 위의 개선사항들을 통해 엔터프라이즈급 코드 품질과 개발
+  경험을 달성할 수 있습니다.
+                                                                                        
+●User approved Claude's plan:
+  ⎿  🔧 sb-obsidian-plugins 프로젝트 개선 계획
+
+     종합 코드 리뷰 결과를 바탕으로 다음과 같은 개선 계획을 제안합니다:
+
+     1단계: 핵심 인프라 구축 (우선순위: 높음)
+
+     - 공유 라이브러리 확장: BasePlugin 클래스, 공통 유틸리티, 설정 관리
+     - ESLint 설정: TypeScript 규칙, Prettier 통합, 일관된 코딩 스타일
+     - CI/CD 파이프라인: GitHub Actions 워크플로우, 자동 테스트/빌드
+     - 타입 안전성 강화: any 타입 제거, 엄격한 TypeScript 설정
+
+     2단계: 코드 품질 개선 (우선순위: 높음)
+
+     - Git Sync 플러그인 리팩토링: 967라인 main.ts 파일 분리
+     - 테스트 인프라 표준화: 공통 모킹 유틸리티, 일관된 테스트 설정
+     - 에러 핸들링 표준화: 공통 에러 클래스, 일관된 에러 메시지
+
+     3단계: 개발 경험 개선 (우선순위: 중간)
+
+     - TypeScript 설정 표준화: 공유 tsconfig.json, extends 구조
+     - Pre-commit 훅: Husky + lint-staged 설정
+     - 빌드 설정 통합: 공유 esbuild 설정
+     - 릴리스 관리 자동화: changesets 기반 버전 관리
+
+     4단계: 고급 기능 추가 (우선순위: 낮음)
+
+     - 자동화된 문서 생성: TypeDoc 기반 API 문서
+     - 번들 크기 모니터링: 성능 회귀 방지 체크
+     - 고급 성능 최적화: 번들 최적화, 메모리 사용량 개선
+
+     이 계획은 점진적으로 적용하여 프로젝트의 품질과 개발 경험을 크게 향상시킬 것입니다.
+
+● 사용자가 계획을 승인했습니다! 이제 첫 번째 우선순위 작업부터 시작하겠습니다.
+
+● Update Todos
+  ⎿  ☐ 코드 구조 및 아키텍처 개선 - 공유 라이브러리 확장
+     ☐ 플러그인 베이스 클래스 아키텍처 구축
+     ☐ ESLint 설정 추가 - TypeScript 지원
+     ☐ 타입 안전성 강화 - any 타입 제거
+     ☐ CI/CD 파이프라인 구축 - GitHub Actions
+     ☐ 테스트 인프라 표준화 - 공통 모킹 유틸리티
+     ☐ Git Sync 플러그인 리팩토링 - 큰 main.ts 파일 분리
+     ☐ TypeScript 설정 표준화 - tsconfig.json 계층 구조
+     ☐ 에러 핸들링 표준화 - 공통 유틸리티
+     ☐ pre-commit 훅 설정 - Husky + lint-staged
+     ☐ 빌드 설정 통합 - 공유 esbuild 설정
+
+● 먼저 공유 라이브러리 확장부터 시작하겠습니다. 현재 shared 디렉토리 구조를 확인해보겠습니다.
+
+● Read(shared/src)
+  ⎿  Error: EISDIR: illegal operation on a directory, read
+
+● List(shared/src)
+  ⎿  Listed 11 paths (ctrl+r to expand)
+
+● Read(shared/src/types.ts)
+  ⎿  Read 12 lines (ctrl+r to expand)
+
+● Read(shared/src/utils.ts)
+  ⎿  Read 18 lines (ctrl+r to expand)
+
+● Read(shared/src/index.ts)
+  ⎿  Read 4 lines (ctrl+r to expand)
+
+● 이제 플러그인들의 구조를 확인하여 공통 패턴을 파악해보겠습니다.
+
+● Read(packages/template-generator/src/main.ts)
+  ⎿  Read 50 lines (ctrl+r to expand)
+
+● Read(packages/metadata-manager/src/main.ts)
+  ⎿  Read 50 lines (ctrl+r to expand)
+
+● 공통 패턴을 파악했으니, 이제 확장된 공유 라이브러리를 구축하겠습니다. 먼저 BasePlugin 클래스와 공통
+  유틸리티들을 추가하겠습니다.
+
+● Write(shared/src/base-plugin.ts)
+  ⎿  Wrote 156 lines to shared/src/base-plugin.ts                              
+     import { Plugin, PluginSettingTab, Setting, App, Notice } from 'obsidian';
+     export interface BasePluginSettings {
+       debug: boolean;
+       version: string;
+     }
+     export const DEFAULT_BASE_SETTINGS: BasePluginSettings = {
+       debug: false,
+       version: '1.0.0',
+     … +146 lines (ctrl+r to expand)
+
+● Write(shared/src/error-handler.ts)
+  ⎿  Wrote 167 lines to shared/src/error-handler.ts
+     import { Notice } from 'obsidian';
+     export enum ErrorType {
+       VALIDATION = 'VALIDATION',
+       API = 'API',
+       FILE_SYSTEM = 'FILE_SYSTEM',
+       NETWORK = 'NETWORK',
+       CONFIGURATION = 'CONFIGURATION',
+       UNKNOWN = 'UNKNOWN'
+     }
+     … +157 lines (ctrl+r to expand)
+  ⎿  Claude usage limit reached. Your limit will reset at 7pm (Asia/Seoul).
+
+      • /upgrade to increase your usage limit.
+
