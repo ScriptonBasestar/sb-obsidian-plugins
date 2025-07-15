@@ -6766,6 +6766,7 @@ var TemplateEngine = class {
 // src/main.ts
 var DEFAULT_SETTINGS = {
   templateFolder: "templates",
+  defaultTemplate: "",
   autoMetadata: true,
   gitSync: false,
   publishEnabled: false,
@@ -6827,6 +6828,13 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
         this.publishNote(view);
       }
     });
+    this.addCommand({
+      id: "insert-default-template",
+      name: "Insert Default Template",
+      editorCallback: async (editor, view) => {
+        await this.insertDefaultTemplate(editor);
+      }
+    });
     this.addSettingTab(new AwesomePluginSettingTab(this.app, this));
     this.addRibbonIcon("file-plus", "Insert Template", (evt) => {
       this.openTemplateModal();
@@ -6843,7 +6851,11 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
       return;
     }
     const editor = activeView.editor;
-    this.insertTemplate(editor);
+    if (this.settings.defaultTemplate) {
+      await this.insertDefaultTemplate(editor);
+    } else {
+      this.insertTemplate(editor);
+    }
   }
   async createNewFileWithTemplate() {
     const templates = await this.getTemplates();
@@ -6961,6 +6973,8 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
     await this.saveData(this.settings);
     if (this.templateCache) {
       this.templateCache.updateTemplateFolder(this.settings.templateFolder);
+      this.templateCommandsRegistered = false;
+      await this.registerTemplateCommands();
     }
     if (this.templateEngine) {
       const weatherSettings = {
@@ -7139,6 +7153,24 @@ ${Object.entries(metadata).map(([key, value]) => `${key}: ${Array.isArray(value)
     }
     new import_obsidian2.Notice("Publish feature coming soon...");
   }
+  async insertDefaultTemplate(editor) {
+    if (!this.settings.defaultTemplate) {
+      new import_obsidian2.Notice("No default template set. Please configure one in settings.");
+      return;
+    }
+    try {
+      const templates = await this.getTemplates();
+      const defaultTemplate = templates.find((t) => t.name === this.settings.defaultTemplate);
+      if (!defaultTemplate) {
+        new import_obsidian2.Notice(`Default template "${this.settings.defaultTemplate}" not found. Please check your settings.`);
+        return;
+      }
+      await this.insertTemplateWithEngine(editor, defaultTemplate);
+    } catch (error) {
+      console.error("Failed to insert default template:", error);
+      new import_obsidian2.Notice("Failed to insert default template");
+    }
+  }
 };
 var TemplateModal = class extends import_obsidian2.Modal {
   constructor(app, templates, onChoose, templateEngine) {
@@ -7295,6 +7327,21 @@ var AwesomePluginSettingTab = class extends import_obsidian2.PluginSettingTab {
         }
       })
     );
+    new import_obsidian2.Setting(containerEl).setName("Default Template").setDesc("Default template to use for quick insertion").addDropdown(async (dropdown) => {
+      dropdown.addOption("", "None");
+      try {
+        const templates = await this.plugin.getTemplates();
+        templates.forEach((template) => {
+          dropdown.addOption(template.name, template.name);
+        });
+      } catch (error) {
+        console.error("Failed to load templates for dropdown:", error);
+      }
+      dropdown.setValue(this.plugin.settings.defaultTemplate).onChange(async (value) => {
+        this.plugin.settings.defaultTemplate = value;
+        await this.plugin.saveSettings();
+      });
+    });
     new import_obsidian2.Setting(containerEl).setName("Auto Metadata").setDesc("Automatically generate frontmatter metadata").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.autoMetadata).onChange(async (value) => {
         this.plugin.settings.autoMetadata = value;
