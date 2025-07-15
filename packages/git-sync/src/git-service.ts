@@ -369,4 +369,56 @@ export class GitService {
       return false;
     }
   }
+
+  /**
+   * Check if current branch has commits ahead of another branch
+   */
+  async hasCommitsAhead(targetBranch: string): Promise<boolean> {
+    try {
+      const status = await this.getStatus();
+      return status.ahead > 0;
+    } catch (error) {
+      console.error('Failed to check commits ahead:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if it's safe to perform an auto-merge
+   */
+  async isSafeToAutoMerge(tempBranch: string, mainBranch: string): Promise<{
+    safe: boolean;
+    reason?: string;
+  }> {
+    try {
+      // Check if we're in a git repository
+      const isRepo = await this.isGitRepository();
+      if (!isRepo) {
+        return { safe: false, reason: 'Not in a git repository' };
+      }
+
+      // Check if remote is configured
+      const hasRemote = await this.hasRemote();
+      if (!hasRemote) {
+        return { safe: false, reason: 'No remote repository configured' };
+      }
+
+      // Check current branch
+      const currentBranch = await this.getCurrentBranch();
+      if (currentBranch !== tempBranch) {
+        return { safe: false, reason: `Not on temp branch (currently on ${currentBranch})` };
+      }
+
+      // Check if temp branch has commits ahead
+      const status = await this.getStatus();
+      if (status.ahead === 0) {
+        return { safe: false, reason: 'No commits ahead on temp branch' };
+      }
+
+      return { safe: true };
+    } catch (error) {
+      console.error('Error checking auto-merge safety:', error);
+      return { safe: false, reason: `Error: ${error.message}` };
+    }
+  }
 }

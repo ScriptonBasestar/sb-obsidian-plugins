@@ -192,6 +192,121 @@ describe('GitService - Startup Pull Methods', () => {
     });
   });
 
+  describe('hasCommitsAhead', () => {
+    beforeEach(() => {
+      mockGit.revparse.mockResolvedValue('main\n');
+      mockGit.raw = vi.fn().mockResolvedValue('0\t2\n'); // 0 behind, 2 ahead
+    });
+
+    it('should return true when branch has commits ahead', async () => {
+      mockGit.status.mockResolvedValue({
+        files: [],
+        staged: [],
+        modified: [],
+        deleted: [],
+        not_added: []
+      });
+
+      const result = await gitService.hasCommitsAhead('main');
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false when branch has no commits ahead', async () => {
+      mockGit.raw = vi.fn().mockResolvedValue('0\t0\n'); // 0 behind, 0 ahead
+      mockGit.status.mockResolvedValue({
+        files: [],
+        staged: [],
+        modified: [],
+        deleted: [],
+        not_added: []
+      });
+
+      const result = await gitService.hasCommitsAhead('main');
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isSafeToAutoMerge', () => {
+    beforeEach(() => {
+      mockGit.revparse.mockResolvedValue('tmp\n');
+      mockGit.raw = vi.fn().mockResolvedValue('0\t2\n'); // 0 behind, 2 ahead
+    });
+
+    it('should return safe when all conditions are met', async () => {
+      mockGit.checkIsRepo.mockResolvedValue(true);
+      mockGit.getRemotes.mockResolvedValue([
+        { name: 'origin', refs: { fetch: 'https://github.com/user/repo.git' } }
+      ]);
+      mockGit.status.mockResolvedValue({
+        files: [],
+        staged: [],
+        modified: [],
+        deleted: [],
+        not_added: []
+      });
+
+      const result = await gitService.isSafeToAutoMerge('tmp', 'main');
+
+      expect(result.safe).toBe(true);
+      expect(result.reason).toBeUndefined();
+    });
+
+    it('should return unsafe when not in git repository', async () => {
+      mockGit.checkIsRepo.mockResolvedValue(false);
+
+      const result = await gitService.isSafeToAutoMerge('tmp', 'main');
+
+      expect(result.safe).toBe(false);
+      expect(result.reason).toBe('Not in a git repository');
+    });
+
+    it('should return unsafe when no remote configured', async () => {
+      mockGit.checkIsRepo.mockResolvedValue(true);
+      mockGit.getRemotes.mockResolvedValue([]);
+
+      const result = await gitService.isSafeToAutoMerge('tmp', 'main');
+
+      expect(result.safe).toBe(false);
+      expect(result.reason).toBe('No remote repository configured');
+    });
+
+    it('should return unsafe when not on temp branch', async () => {
+      mockGit.checkIsRepo.mockResolvedValue(true);
+      mockGit.getRemotes.mockResolvedValue([
+        { name: 'origin', refs: { fetch: 'https://github.com/user/repo.git' } }
+      ]);
+      mockGit.revparse.mockResolvedValue('main\n'); // Currently on main, not tmp
+
+      const result = await gitService.isSafeToAutoMerge('tmp', 'main');
+
+      expect(result.safe).toBe(false);
+      expect(result.reason).toBe('Not on temp branch (currently on main)');
+    });
+
+    it('should return unsafe when no commits ahead', async () => {
+      mockGit.checkIsRepo.mockResolvedValue(true);
+      mockGit.getRemotes.mockResolvedValue([
+        { name: 'origin', refs: { fetch: 'https://github.com/user/repo.git' } }
+      ]);
+      mockGit.revparse.mockResolvedValue('tmp\n');
+      mockGit.raw = vi.fn().mockResolvedValue('0\t0\n'); // 0 behind, 0 ahead
+      mockGit.status.mockResolvedValue({
+        files: [],
+        staged: [],
+        modified: [],
+        deleted: [],
+        not_added: []
+      });
+
+      const result = await gitService.isSafeToAutoMerge('tmp', 'main');
+
+      expect(result.safe).toBe(false);
+      expect(result.reason).toBe('No commits ahead on temp branch');
+    });
+  });
+
   describe('integration scenarios', () => {
     it('should properly validate repository state for startup pull', async () => {
       // Setup successful repository state
@@ -231,6 +346,28 @@ describe('GitService - Startup Pull Methods', () => {
       expect(isRepo).toBe(true);
       expect(hasRemote).toBe(false);
       // Startup pull should be skipped due to missing remote
+    });
+
+    it('should validate auto-merge safety conditions', async () => {
+      // Setup for safe auto-merge
+      mockGit.checkIsRepo.mockResolvedValue(true);
+      mockGit.getRemotes.mockResolvedValue([
+        { name: 'origin', refs: { fetch: 'https://github.com/user/repo.git' } }
+      ]);
+      mockGit.revparse.mockResolvedValue('tmp\n');
+      mockGit.raw = vi.fn().mockResolvedValue('0\t2\n'); // 2 commits ahead
+      mockGit.status.mockResolvedValue({
+        files: [],
+        staged: [],
+        modified: [],
+        deleted: [],
+        not_added: []
+      });
+
+      const result = await gitService.isSafeToAutoMerge('tmp', 'main');
+
+      expect(result.safe).toBe(true);
+      expect(result.reason).toBeUndefined();
     });
   });
 });
