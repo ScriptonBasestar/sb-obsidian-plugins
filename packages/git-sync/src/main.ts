@@ -35,6 +35,8 @@ interface GitSyncSettings {
   // Auto pull settings
   enableAutoPull: boolean;
   pullOnStartup: boolean;
+  pullOnStartupDelay: number;
+  pullOnStartupSilent: boolean;
   
   // Merge settings
   enableAutoMerge: boolean;
@@ -68,8 +70,10 @@ const DEFAULT_SETTINGS: GitSyncSettings = {
   selectedTemplate: 'conventional',
   
   // Auto pull settings
-  enableAutoPull: false,
+  enableAutoPull: true,
   pullOnStartup: true,
+  pullOnStartupDelay: 2000,
+  pullOnStartupSilent: false,
   
   // Merge settings
   enableAutoMerge: false,
@@ -156,12 +160,18 @@ export default class GitSyncPlugin extends Plugin {
       callback: () => this.previewPrompt(),
     });
 
+    this.addCommand({
+      id: 'test-startup-pull',
+      name: 'Test Startup Pull',
+      callback: () => this.testStartupPull(),
+    });
+
     // Add settings tab
     this.addSettingTab(new GitSyncSettingTab(this.app, this));
 
     // Auto pull on startup if enabled
     if (this.settings.enableAutoPull && this.settings.pullOnStartup) {
-      this.performAutoPull();
+      this.scheduleStartupPull();
     }
 
     // Start auto commit service if enabled
@@ -247,6 +257,71 @@ export default class GitSyncPlugin extends Plugin {
       console.error('Manual pull error:', error);
       new Notice(`Pull error: ${error.message}`);
       this.updateStatusBar('Pull error');
+    }
+  }
+
+  private scheduleStartupPull() {
+    setTimeout(async () => {
+      await this.performStartupPull();
+    }, this.settings.pullOnStartupDelay);
+  }
+
+  private async performStartupPull() {
+    try {
+      this.updateStatusBar('Auto-pulling on startup...');
+      console.log('Git Sync: Starting automatic pull on startup');
+      
+      // Check if we're in a git repository
+      const isGitRepo = await this.gitService.isGitRepository();
+      if (!isGitRepo) {
+        console.log('Git Sync: Not in a git repository, skipping startup pull');
+        this.updateStatusBar('Not a git repository');
+        return;
+      }
+
+      // Check if remote exists
+      const hasRemote = await this.gitService.hasRemote();
+      if (!hasRemote) {
+        console.log('Git Sync: No remote configured, skipping startup pull');
+        this.updateStatusBar('No remote configured');
+        return;
+      }
+
+      const result = await this.gitService.pullRebase();
+      
+      if (result.success) {
+        const message = 'Startup pull successful';
+        console.log(`Git Sync: ${message}`);
+        
+        if (!this.settings.pullOnStartupSilent) {
+          new Notice(message);
+        }
+        this.updateStatusBar('Startup pull successful');
+      } else if (result.conflicts) {
+        const message = 'Startup pull completed with conflicts - please resolve manually';
+        console.warn(`Git Sync: ${message}`);
+        new Notice(message);
+        this.updateStatusBar('Startup conflicts detected');
+        
+        if (this.settings.openEditorOnConflict) {
+          this.openExternalEditor();
+        }
+      } else {
+        const message = `Startup pull failed: ${result.error}`;
+        console.error(`Git Sync: ${message}`);
+        
+        if (!this.settings.pullOnStartupSilent) {
+          new Notice(message);
+        }
+        this.updateStatusBar('Startup pull failed');
+      }
+    } catch (error) {
+      console.error('Git Sync: Startup pull error:', error);
+      
+      if (!this.settings.pullOnStartupSilent) {
+        new Notice(`Startup pull error: ${error.message}`);
+      }
+      this.updateStatusBar('Startup pull error');
     }
   }
 
@@ -423,6 +498,16 @@ export default class GitSyncPlugin extends Plugin {
       console.error('Prompt preview error:', error);
       new Notice(`Preview error: ${error.message}`);
       this.updateStatusBar('Preview error');
+    }
+  }
+
+  private async testStartupPull() {
+    try {
+      new Notice('Testing startup pull functionality...');
+      await this.performStartupPull();
+    } catch (error) {
+      console.error('Test startup pull error:', error);
+      new Notice(`Test failed: ${error.message}`);
     }
   }
 }
@@ -621,12 +706,44 @@ class GitSyncSettingTab extends PluginSettingTab {
     containerEl.createEl('h3', { text: 'Auto Pull Settings' });
 
     new Setting(containerEl)
+      .setName('Enable Auto Pull')
+      .setDesc('Enable automatic pulling of remote changes')
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.enableAutoPull)
+        .onChange(async (value) => {
+          this.plugin.settings.enableAutoPull = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
       .setName('Pull on Startup')
       .setDesc('Automatically pull latest changes when Obsidian starts')
       .addToggle(toggle => toggle
         .setValue(this.plugin.settings.pullOnStartup)
         .onChange(async (value) => {
           this.plugin.settings.pullOnStartup = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Startup Pull Delay')
+      .setDesc('Delay in milliseconds before pulling on startup (allows plugin to fully load)')
+      .addSlider(slider => slider
+        .setLimits(500, 10000, 500)
+        .setValue(this.plugin.settings.pullOnStartupDelay)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          this.plugin.settings.pullOnStartupDelay = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Silent Startup Pull')
+      .setDesc('Suppress notifications for successful startup pulls')
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.pullOnStartupSilent)
+        .onChange(async (value) => {
+          this.plugin.settings.pullOnStartupSilent = value;
           await this.plugin.saveSettings();
         }));
 

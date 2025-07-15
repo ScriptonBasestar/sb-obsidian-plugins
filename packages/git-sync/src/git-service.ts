@@ -329,4 +329,44 @@ export class GitService {
       return { success: false, error: error.message };
     }
   }
+
+  /**
+   * Check if the current directory is a git repository
+   */
+  async isGitRepository(): Promise<boolean> {
+    try {
+      const isRepo = await this.git.checkIsRepo();
+      return isRepo;
+    } catch (error) {
+      console.warn('Failed to check if git repository:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if a remote repository is configured
+   */
+  async hasRemote(remoteName: string = 'origin'): Promise<boolean> {
+    try {
+      const remotes = await this.git.getRemotes(true);
+      return remotes.some(remote => remote.name === remoteName);
+    } catch (error) {
+      console.warn('Failed to check remote configuration:', error);
+      return false;
+    }
+  }
+
+
+  /**
+   * Check if there are any uncommitted changes
+   */
+  async hasUncommittedChanges(): Promise<boolean> {
+    try {
+      const status = await this.getStatus();
+      return status.hasChanges;
+    } catch (error) {
+      console.error('Failed to check uncommitted changes:', error);
+      return false;
+    }
+  }
 }
