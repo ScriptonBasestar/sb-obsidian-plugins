@@ -58,7 +58,7 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
           .setWarning()
           .onClick(async () => {
             if (confirm('Are you sure you want to reset all settings to defaults?')) {
-              await this.plugin.resetSettings();
+              await this.plugin.loadSettings();
               this.display(); // Refresh the settings display
             }
           })

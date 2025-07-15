@@ -10,6 +10,24 @@ export interface WeatherData {
   visibility: number;
 }
 
+interface OpenWeatherResponse {
+  main: {
+    temp: number;
+    feels_like: number;
+    humidity: number;
+    pressure: number;
+  };
+  weather: Array<{
+    description: string;
+    icon: string;
+  }>;
+  wind?: {
+    speed: number;
+  };
+  visibility?: number;
+  name: string;
+}
+
 export interface WeatherSettings {
   apiKey: string;
   location: string;
@@ -94,7 +112,7 @@ export class WeatherService {
     return coords.length === 2 && coords.every((coord) => !isNaN(parseFloat(coord.trim())));
   }
 
-  private parseWeatherData(data: any, settings: WeatherSettings): WeatherData {
+  private parseWeatherData(data: OpenWeatherResponse, settings: WeatherSettings): WeatherData {
     const tempUnit = settings.unit === 'metric' ? '°C' : '°F';
     const speedUnit = settings.unit === 'metric' ? 'm/s' : 'mph';
 

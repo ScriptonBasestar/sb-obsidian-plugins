@@ -1,27 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { createMockApp, createMockPlugin, MockPlugin } from '@sb-obsidian-plugins/shared';
+import { App } from 'obsidian';
 
 describe('Template Commands', () => {
-  let mockApp: any;
-  let mockPlugin: any;
+  let mockApp: App;
+  let mockPlugin: MockPlugin & {
+    getTemplates: ReturnType<typeof vi.fn>;
+    sanitizeId: (name: string) => string;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockApp = {
-      workspace: {
-        getActiveViewOfType: vi.fn(),
-        getLeaf: vi.fn(() => ({
-          openFile: vi.fn(),
-        })),
-      },
-      vault: {
-        create: vi.fn(),
-      },
-    };
-
+    mockApp = createMockApp();
+    
+    const basePlugin = createMockPlugin({ app: mockApp });
     mockPlugin = {
-      app: mockApp,
-      addCommand: vi.fn(),
+      ...basePlugin,
       getTemplates: vi.fn(),
       sanitizeId: (name: string) =>
         name

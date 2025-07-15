@@ -11,7 +11,7 @@ export const DEFAULT_BASE_SETTINGS: BasePluginSettings = {
 };
 
 export abstract class BasePlugin<T extends BasePluginSettings> extends Plugin {
-  settings: T;
+  settings!: T;
 
   abstract getDefaultSettings(): T;
   abstract getPluginName(): string;
