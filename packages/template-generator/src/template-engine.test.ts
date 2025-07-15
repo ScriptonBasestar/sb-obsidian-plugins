@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TemplateEngine } from './template-engine';
 import { TemplateParser } from './template-parser';
+import { WeatherSettings } from './weather-service';
 
 describe('TemplateEngine', () => {
   let engine: TemplateEngine;
@@ -10,8 +11,8 @@ describe('TemplateEngine', () => {
   });
 
   describe('Basic rendering', () => {
-    it('should render built-in date variables', () => {
-      const result = engine.renderTemplateString('Today is {{date}}');
+    it('should render built-in date variables', async () => {
+      const result = await engine.renderTemplateString('Today is {{date}}');
       
       expect(result).toMatch(/Today is \d{4}-\d{2}-\d{2}/);
     });
@@ -157,7 +158,7 @@ describe('TemplateEngine', () => {
   });
 
   describe('Template rendering with ParsedTemplate', () => {
-    it('should render parsed template correctly', () => {
+    it('should render parsed template correctly', async () => {
       const content = `---
 title: Test Template
 ---
@@ -166,7 +167,7 @@ title: Test Template
 Created on {{date}} by {{author}}`;
 
       const parsedTemplate = TemplateParser.parseTemplate('test', content, 'test.md');
-      const result = engine.renderTemplate(parsedTemplate, { 
+      const result = await engine.renderTemplate(parsedTemplate, { 
         title: 'My Note',
         author: 'John Doe' 
       });
@@ -178,31 +179,31 @@ Created on {{date}} by {{author}}`;
   });
 
   describe('Preview rendering', () => {
-    it('should generate template preview with sample data', () => {
+    it('should generate template preview with sample data', async () => {
       const content = `# {{title}}
 
 Meeting with {{attendee}} on {{date}}`;
 
       const parsedTemplate = TemplateParser.parseTemplate('meeting', content, 'meeting.md');
-      const preview = engine.previewTemplate(parsedTemplate);
+      const preview = await engine.previewTemplate(parsedTemplate);
 
       expect(preview).toContain('# [Title]');
       expect(preview).toMatch(/Meeting with .* on \d{4}-\d{2}-\d{2}/);
     });
 
-    it('should truncate long previews', () => {
+    it('should truncate long previews', async () => {
       const longContent = 'A'.repeat(200) + ' {{title}}';
       const parsedTemplate = TemplateParser.parseTemplate('long', longContent, 'long.md');
-      const preview = engine.previewTemplate(parsedTemplate);
+      const preview = await engine.previewTemplate(parsedTemplate);
 
       expect(preview.length).toBeLessThanOrEqual(153); // 150 + '...'
       expect(preview).toMatch(/\.\.\.$/);
     });
 
-    it('should handle preview errors gracefully', () => {
+    it('should handle preview errors gracefully', async () => {
       const invalidContent = 'Hello {{#invalid syntax}}';
       const parsedTemplate = TemplateParser.parseTemplate('invalid', invalidContent, 'invalid.md');
-      const preview = engine.previewTemplate(parsedTemplate);
+      const preview = await engine.previewTemplate(parsedTemplate);
 
       // Should fallback to truncated original content
       expect(preview).toBe('Hello {{#invalid syntax}}');
@@ -269,6 +270,95 @@ Meeting with {{attendee}} on {{date}}`;
 
       const result = engine.renderTemplateString(template, { items: [{ name: 'test' }] });
       expect(result).toBe('Hello test');
+    });
+  });
+
+  describe('Weather integration', () => {
+    it('should include weather variables in available variables list', () => {
+      const variables = engine.getAvailableVariables();
+      
+      expect(variables).toContain('날씨');
+      expect(variables).toContain('weather');
+    });
+
+    it('should include weather helpers in available helpers list', () => {
+      const helpers = engine.getAvailableHelpers();
+      
+      expect(helpers).toContain('weatherSimple');
+      expect(helpers).toContain('weatherDetailed');
+    });
+
+    it('should show fallback message when weather settings are not configured', async () => {
+      const engineWithoutWeather = new TemplateEngine();
+      const result = await engineWithoutWeather.renderTemplateString('오늘 날씨: {{날씨}}');
+      
+      expect(result).toBe('오늘 날씨: 날씨 정보 없음');
+    });
+
+    it('should show fallback message when weather is disabled', async () => {
+      const weatherSettings: WeatherSettings = {
+        apiKey: 'test-key',
+        location: 'Seoul,KR',
+        unit: 'metric',
+        language: 'kr',
+        weatherEnabled: false,
+      };
+      
+      const engineWithDisabledWeather = new TemplateEngine(weatherSettings);
+      const result = await engineWithDisabledWeather.renderTemplateString('오늘 날씨: {{날씨}}');
+      
+      expect(result).toBe('오늘 날씨: 날씨 정보 없음');
+    });
+
+    it('should update weather settings dynamically', () => {
+      const initialSettings: WeatherSettings = {
+        apiKey: 'test-key-1',
+        location: 'Seoul,KR',
+        unit: 'metric',
+        language: 'kr',
+        weatherEnabled: true,
+      };
+      
+      const engineWithWeather = new TemplateEngine(initialSettings);
+      
+      const updatedSettings: WeatherSettings = {
+        apiKey: 'test-key-2',
+        location: 'Tokyo,JP',
+        unit: 'imperial',
+        language: 'ja',
+        weatherEnabled: false,
+      };
+      
+      // Should not throw when updating settings
+      expect(() => {
+        engineWithWeather.updateWeatherSettings(updatedSettings);
+      }).not.toThrow();
+    });
+
+    it('should handle weather service errors gracefully', async () => {
+      // Mock weather settings that will cause API failure
+      const weatherSettings: WeatherSettings = {
+        apiKey: 'invalid-key',
+        location: 'Invalid,Location',
+        unit: 'metric',
+        language: 'kr',
+        weatherEnabled: true,
+      };
+      
+      const engineWithBadWeather = new TemplateEngine(weatherSettings);
+      
+      // Mock console.warn to avoid test output noise
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      
+      try {
+        const result = await engineWithBadWeather.renderTemplateString('날씨: {{날씨}}');
+        
+        // Should show error message instead of crashing
+        expect(result).toMatch(/날씨: (날씨 정보를 가져올 수 없습니다|날씨 서비스 오류)/);
+        expect(consoleWarnSpy).toHaveBeenCalled();
+      } finally {
+        consoleWarnSpy.mockRestore();
+      }
     });
   });
 });

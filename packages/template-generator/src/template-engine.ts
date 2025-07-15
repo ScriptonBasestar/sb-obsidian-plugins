@@ -1,5 +1,6 @@
 import * as Handlebars from 'handlebars';
 import { ParsedTemplate } from './template-parser';
+import { WeatherService, WeatherSettings } from './weather-service';
 
 export interface TemplateVariables {
   [key: string]: any;
@@ -21,6 +22,10 @@ export interface TemplateContext {
   어제: string;
   요일: string;
   
+  // Weather variables
+  날씨: string;
+  weather: string;
+  
   // User-provided variables
   title?: string;
   author?: string;
@@ -31,9 +36,13 @@ export interface TemplateContext {
 
 export class TemplateEngine {
   private handlebars: typeof Handlebars;
+  private weatherService: WeatherService;
+  private weatherSettings?: WeatherSettings;
 
-  constructor() {
+  constructor(weatherSettings?: WeatherSettings) {
     this.handlebars = Handlebars.create();
+    this.weatherService = new WeatherService();
+    this.weatherSettings = weatherSettings;
     this.registerHelpers();
   }
 
@@ -139,15 +148,44 @@ export class TemplateEngine {
       const dateObj = date ? (typeof date === 'string' ? new Date(date) : date) : new Date();
       return this.formatKoreanDateTime(dateObj);
     });
+
+    // Weather helpers
+    this.handlebars.registerHelper('weatherSimple', async () => {
+      if (!this.weatherSettings) return '날씨 정보 없음';
+      const weather = await this.weatherService.getWeather(this.weatherSettings);
+      return weather ? this.weatherService.formatWeatherString(weather, this.weatherSettings) : '날씨 정보를 가져올 수 없습니다';
+    });
+
+    this.handlebars.registerHelper('weatherDetailed', async () => {
+      if (!this.weatherSettings) return '날씨 정보 없음';
+      const weather = await this.weatherService.getWeather(this.weatherSettings);
+      return weather ? this.weatherService.formatDetailedWeather(weather, this.weatherSettings) : '날씨 정보를 가져올 수 없습니다';
+    });
   }
 
-  private getDefaultContext(): TemplateContext {
+  private async getDefaultContext(): Promise<TemplateContext> {
     const now = new Date();
     const today = new Date(now);
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
+
+    // Get weather information
+    let weatherInfo = '날씨 정보 없음';
+    if (this.weatherSettings && this.weatherSettings.weatherEnabled) {
+      try {
+        const weather = await this.weatherService.getWeather(this.weatherSettings);
+        if (weather) {
+          weatherInfo = this.weatherService.formatWeatherString(weather, this.weatherSettings);
+        } else {
+          weatherInfo = '날씨 정보를 가져올 수 없습니다';
+        }
+      } catch (error) {
+        console.warn('Failed to fetch weather:', error);
+        weatherInfo = '날씨 서비스 오류';
+      }
+    }
 
     return {
       // English date variables
@@ -164,6 +202,10 @@ export class TemplateEngine {
       내일: this.formatKoreanDate(tomorrow),
       어제: this.formatKoreanDate(yesterday),
       요일: this.formatKoreanDay(now),
+      
+      // Weather variables
+      날씨: weatherInfo,
+      weather: weatherInfo,
     };
   }
 
@@ -192,11 +234,12 @@ export class TemplateEngine {
     return `${koreanDate} ${koreanDay} ${time}`;
   }
 
-  renderTemplate(template: ParsedTemplate, userVariables?: TemplateVariables): string {
+  async renderTemplate(template: ParsedTemplate, userVariables?: TemplateVariables): Promise<string> {
     try {
       // Combine default context with user variables
+      const defaultContext = await this.getDefaultContext();
       const context: TemplateContext = {
-        ...this.getDefaultContext(),
+        ...defaultContext,
         ...userVariables,
       };
 
@@ -209,10 +252,11 @@ export class TemplateEngine {
     }
   }
 
-  renderTemplateString(templateString: string, userVariables?: TemplateVariables): string {
+  async renderTemplateString(templateString: string, userVariables?: TemplateVariables): Promise<string> {
     try {
+      const defaultContext = await this.getDefaultContext();
       const context: TemplateContext = {
-        ...this.getDefaultContext(),
+        ...defaultContext,
         ...userVariables,
       };
 
@@ -224,11 +268,12 @@ export class TemplateEngine {
     }
   }
 
-  previewTemplate(template: ParsedTemplate, userVariables?: TemplateVariables): string {
+  async previewTemplate(template: ParsedTemplate, userVariables?: TemplateVariables): Promise<string> {
     try {
       // Use sample data for preview
+      const defaultContext = await this.getDefaultContext();
       const previewContext: TemplateContext = {
-        ...this.getDefaultContext(),
+        ...defaultContext,
         title: '[Title]',
         author: '[Author]',
         ...userVariables,
@@ -282,6 +327,10 @@ export class TemplateEngine {
     };
   }
 
+  updateWeatherSettings(weatherSettings: WeatherSettings): void {
+    this.weatherSettings = weatherSettings;
+  }
+
   getAvailableVariables(): string[] {
     return [
       // English variables
@@ -293,6 +342,7 @@ export class TemplateEngine {
       'yesterday',
       'title',
       'author',
+      'weather',
       
       // Korean variables
       '날짜',
@@ -300,6 +350,7 @@ export class TemplateEngine {
       '내일',
       '어제',
       '요일',
+      '날씨',
     ];
   }
 
@@ -319,6 +370,10 @@ export class TemplateEngine {
       'koreanDate',
       'koreanDay',
       'koreanDateTime',
+      
+      // Weather helpers
+      'weatherSimple',
+      'weatherDetailed',
     ];
   }
 }
