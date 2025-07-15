@@ -15,6 +15,7 @@ export interface WeatherSettings {
   location: string;
   unit: 'metric' | 'imperial';
   language: string;
+  weatherEnabled?: boolean;
 }
 
 export class WeatherService {

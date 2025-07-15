@@ -6067,9 +6067,154 @@ var TemplateCache = class {
 
 // src/template-engine.ts
 var Handlebars = __toESM(require_handlebars());
-var TemplateEngine = class {
+
+// src/weather-service.ts
+var WeatherService = class {
   constructor() {
+    this.baseUrl = "https://api.openweathermap.org/data/2.5/weather";
+    this.cache = /* @__PURE__ */ new Map();
+    this.cacheTimeout = 10 * 60 * 1e3;
+  }
+  // 10 minutes
+  async getWeather(settings) {
+    if (!settings.apiKey) {
+      console.warn("Weather API key not configured");
+      return null;
+    }
+    if (!settings.location) {
+      console.warn("Weather location not configured");
+      return null;
+    }
+    const cacheKey = `${settings.location}-${settings.unit}-${settings.language}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.data;
+    }
+    try {
+      const url = this.buildApiUrl(settings);
+      const response = await fetch(url);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Weather API error: ${response.status} ${response.statusText} - ${errorData.message || "Unknown error"}`);
+      }
+      const data = await response.json();
+      const weatherData = this.parseWeatherData(data, settings);
+      this.cache.set(cacheKey, {
+        data: weatherData,
+        timestamp: Date.now()
+      });
+      return weatherData;
+    } catch (error) {
+      console.error("Failed to fetch weather data:", error);
+      return null;
+    }
+  }
+  buildApiUrl(settings) {
+    const params = new URLSearchParams({
+      appid: settings.apiKey,
+      units: settings.unit,
+      lang: settings.language
+    });
+    if (this.isCoordinates(settings.location)) {
+      const [lat, lon] = settings.location.split(",");
+      params.append("lat", lat.trim());
+      params.append("lon", lon.trim());
+    } else {
+      params.append("q", settings.location);
+    }
+    return `${this.baseUrl}?${params.toString()}`;
+  }
+  isCoordinates(location) {
+    const coords = location.split(",");
+    return coords.length === 2 && coords.every((coord) => !isNaN(parseFloat(coord.trim())));
+  }
+  parseWeatherData(data, settings) {
+    var _a;
+    const tempUnit = settings.unit === "metric" ? "\xB0C" : "\xB0F";
+    const speedUnit = settings.unit === "metric" ? "m/s" : "mph";
+    return {
+      temperature: Math.round(data.main.temp),
+      description: data.weather[0].description,
+      location: data.name,
+      humidity: data.main.humidity,
+      pressure: data.main.pressure,
+      windSpeed: ((_a = data.wind) == null ? void 0 : _a.speed) || 0,
+      icon: data.weather[0].icon,
+      feelsLike: Math.round(data.main.feels_like),
+      visibility: data.visibility ? Math.round(data.visibility / 1e3) : 0
+      // Convert to km
+    };
+  }
+  formatWeatherString(weather, settings) {
+    const tempUnit = settings.unit === "metric" ? "\xB0C" : "\xB0F";
+    switch (settings.language) {
+      case "kr":
+        return `${weather.location}: ${weather.description}, ${weather.temperature}${tempUnit} (\uCCB4\uAC10 ${weather.feelsLike}${tempUnit})`;
+      case "ja":
+        return `${weather.location}: ${weather.description}, ${weather.temperature}${tempUnit} (\u4F53\u611F ${weather.feelsLike}${tempUnit})`;
+      case "zh":
+        return `${weather.location}: ${weather.description}, ${weather.temperature}${tempUnit} (\u4F53\u611F ${weather.feelsLike}${tempUnit})`;
+      default:
+        return `${weather.location}: ${weather.description}, ${weather.temperature}${tempUnit} (feels like ${weather.feelsLike}${tempUnit})`;
+    }
+  }
+  formatDetailedWeather(weather, settings) {
+    const tempUnit = settings.unit === "metric" ? "\xB0C" : "\xB0F";
+    const speedUnit = settings.unit === "metric" ? "m/s" : "mph";
+    switch (settings.language) {
+      case "kr":
+        return `\u{1F30D} ${weather.location}
+\u{1F321}\uFE0F \uAE30\uC628: ${weather.temperature}${tempUnit} (\uCCB4\uAC10 ${weather.feelsLike}${tempUnit})
+\u2601\uFE0F \uB0A0\uC528: ${weather.description}
+\u{1F4A7} \uC2B5\uB3C4: ${weather.humidity}%
+\u{1F32C}\uFE0F \uBC14\uB78C: ${weather.windSpeed} ${speedUnit}
+\u{1F441}\uFE0F \uAC00\uC2DC\uAC70\uB9AC: ${weather.visibility}km`;
+      case "ja":
+        return `\u{1F30D} ${weather.location}
+\u{1F321}\uFE0F \u6C17\u6E29: ${weather.temperature}${tempUnit} (\u4F53\u611F ${weather.feelsLike}${tempUnit})
+\u2601\uFE0F \u5929\u6C17: ${weather.description}
+\u{1F4A7} \u6E7F\u5EA6: ${weather.humidity}%
+\u{1F32C}\uFE0F \u98A8\u901F: ${weather.windSpeed} ${speedUnit}
+\u{1F441}\uFE0F \u8996\u7A0B: ${weather.visibility}km`;
+      case "zh":
+        return `\u{1F30D} ${weather.location}
+\u{1F321}\uFE0F \u6E29\u5EA6: ${weather.temperature}${tempUnit} (\u4F53\u611F ${weather.feelsLike}${tempUnit})
+\u2601\uFE0F \u5929\u6C14: ${weather.description}
+\u{1F4A7} \u6E7F\u5EA6: ${weather.humidity}%
+\u{1F32C}\uFE0F \u98CE\u901F: ${weather.windSpeed} ${speedUnit}
+\u{1F441}\uFE0F \u80FD\u89C1\u5EA6: ${weather.visibility}km`;
+      default:
+        return `\u{1F30D} ${weather.location}
+\u{1F321}\uFE0F Temperature: ${weather.temperature}${tempUnit} (feels like ${weather.feelsLike}${tempUnit})
+\u2601\uFE0F Weather: ${weather.description}
+\u{1F4A7} Humidity: ${weather.humidity}%
+\u{1F32C}\uFE0F Wind: ${weather.windSpeed} ${speedUnit}
+\u{1F441}\uFE0F Visibility: ${weather.visibility}km`;
+    }
+  }
+  clearCache() {
+    this.cache.clear();
+  }
+  getCacheStats() {
+    const now = Date.now();
+    const entries = Array.from(this.cache.entries()).map(([key, value]) => ({
+      key,
+      age: Math.round((now - value.timestamp) / 1e3)
+      // age in seconds
+    }));
+    return {
+      size: this.cache.size,
+      entries
+    };
+  }
+};
+
+// src/template-engine.ts
+var TemplateEngine = class {
+  constructor(weatherSettings) {
     this.handlebars = Handlebars.create();
+    this.weatherService = new WeatherService();
+    this.weatherSettings = weatherSettings;
     this.registerHelpers();
   }
   registerHelpers() {
@@ -6156,14 +6301,40 @@ var TemplateEngine = class {
       const dateObj = date ? typeof date === "string" ? new Date(date) : date : /* @__PURE__ */ new Date();
       return this.formatKoreanDateTime(dateObj);
     });
+    this.handlebars.registerHelper("weatherSimple", async () => {
+      if (!this.weatherSettings)
+        return "\uB0A0\uC528 \uC815\uBCF4 \uC5C6\uC74C";
+      const weather = await this.weatherService.getWeather(this.weatherSettings);
+      return weather ? this.weatherService.formatWeatherString(weather, this.weatherSettings) : "\uB0A0\uC528 \uC815\uBCF4\uB97C \uAC00\uC838\uC62C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4";
+    });
+    this.handlebars.registerHelper("weatherDetailed", async () => {
+      if (!this.weatherSettings)
+        return "\uB0A0\uC528 \uC815\uBCF4 \uC5C6\uC74C";
+      const weather = await this.weatherService.getWeather(this.weatherSettings);
+      return weather ? this.weatherService.formatDetailedWeather(weather, this.weatherSettings) : "\uB0A0\uC528 \uC815\uBCF4\uB97C \uAC00\uC838\uC62C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4";
+    });
   }
-  getDefaultContext() {
+  async getDefaultContext() {
     const now = /* @__PURE__ */ new Date();
     const today = new Date(now);
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
+    let weatherInfo = "\uB0A0\uC528 \uC815\uBCF4 \uC5C6\uC74C";
+    if (this.weatherSettings && this.weatherSettings.weatherEnabled) {
+      try {
+        const weather = await this.weatherService.getWeather(this.weatherSettings);
+        if (weather) {
+          weatherInfo = this.weatherService.formatWeatherString(weather, this.weatherSettings);
+        } else {
+          weatherInfo = "\uB0A0\uC528 \uC815\uBCF4\uB97C \uAC00\uC838\uC62C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4";
+        }
+      } catch (error) {
+        console.warn("Failed to fetch weather:", error);
+        weatherInfo = "\uB0A0\uC528 \uC11C\uBE44\uC2A4 \uC624\uB958";
+      }
+    }
     return {
       // English date variables
       date: now.toISOString().split("T")[0],
@@ -6177,7 +6348,10 @@ var TemplateEngine = class {
       \uC624\uB298: this.formatKoreanDate(today),
       \uB0B4\uC77C: this.formatKoreanDate(tomorrow),
       \uC5B4\uC81C: this.formatKoreanDate(yesterday),
-      \uC694\uC77C: this.formatKoreanDay(now)
+      \uC694\uC77C: this.formatKoreanDay(now),
+      // Weather variables
+      \uB0A0\uC528: weatherInfo,
+      weather: weatherInfo
     };
   }
   formatKoreanDate(date) {
@@ -6200,10 +6374,11 @@ var TemplateEngine = class {
     });
     return `${koreanDate} ${koreanDay} ${time}`;
   }
-  renderTemplate(template, userVariables) {
+  async renderTemplate(template, userVariables) {
     try {
+      const defaultContext = await this.getDefaultContext();
       const context = {
-        ...this.getDefaultContext(),
+        ...defaultContext,
         ...userVariables
       };
       const compiledTemplate = this.handlebars.compile(template.content);
@@ -6213,10 +6388,11 @@ var TemplateEngine = class {
       throw new Error(`Failed to render template: ${error.message}`);
     }
   }
-  renderTemplateString(templateString, userVariables) {
+  async renderTemplateString(templateString, userVariables) {
     try {
+      const defaultContext = await this.getDefaultContext();
       const context = {
-        ...this.getDefaultContext(),
+        ...defaultContext,
         ...userVariables
       };
       const compiledTemplate = this.handlebars.compile(templateString);
@@ -6226,10 +6402,11 @@ var TemplateEngine = class {
       throw new Error(`Failed to render template string: ${error.message}`);
     }
   }
-  previewTemplate(template, userVariables) {
+  async previewTemplate(template, userVariables) {
     try {
+      const defaultContext = await this.getDefaultContext();
       const previewContext = {
-        ...this.getDefaultContext(),
+        ...defaultContext,
         title: "[Title]",
         author: "[Author]",
         ...userVariables
@@ -6267,6 +6444,9 @@ var TemplateEngine = class {
       errors
     };
   }
+  updateWeatherSettings(weatherSettings) {
+    this.weatherSettings = weatherSettings;
+  }
   getAvailableVariables() {
     return [
       // English variables
@@ -6278,12 +6458,14 @@ var TemplateEngine = class {
       "yesterday",
       "title",
       "author",
+      "weather",
       // Korean variables
       "\uB0A0\uC9DC",
       "\uC624\uB298",
       "\uB0B4\uC77C",
       "\uC5B4\uC81C",
-      "\uC694\uC77C"
+      "\uC694\uC77C",
+      "\uB0A0\uC528"
     ];
   }
   getAvailableHelpers() {
@@ -6300,7 +6482,10 @@ var TemplateEngine = class {
       // Korean helpers
       "koreanDate",
       "koreanDay",
-      "koreanDateTime"
+      "koreanDateTime",
+      // Weather helpers
+      "weatherSimple",
+      "weatherDetailed"
     ];
   }
 };
@@ -6326,7 +6511,14 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
   async onload() {
     await this.loadSettings();
     this.templateCache = new TemplateCache(this.app.vault, this.settings.templateFolder);
-    this.templateEngine = new TemplateEngine();
+    const weatherSettings = {
+      apiKey: this.settings.weatherApiKey,
+      location: this.settings.weatherLocation,
+      unit: this.settings.weatherUnit,
+      language: this.settings.weatherLanguage,
+      weatherEnabled: this.settings.weatherEnabled
+    };
+    this.templateEngine = new TemplateEngine(weatherSettings);
     this.addCommand({
       id: "insert-template",
       name: "Insert Template",
@@ -6417,7 +6609,7 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
   async insertTemplateWithEngine(editor, template) {
     try {
       const userVariables = await this.promptForTemplateVariables(template);
-      const renderedContent = this.templateEngine.renderTemplate(template, userVariables);
+      const renderedContent = await this.templateEngine.renderTemplate(template, userVariables);
       const cursor = editor.getCursor();
       editor.replaceRange(renderedContent, cursor);
       new import_obsidian2.Notice(`Inserted template: ${template.name}`);
@@ -6431,7 +6623,7 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
   async createNewFileWithTemplateEngine(template) {
     try {
       const userVariables = await this.promptForTemplateVariables(template);
-      const renderedContent = this.templateEngine.renderTemplate(template, userVariables);
+      const renderedContent = await this.templateEngine.renderTemplate(template, userVariables);
       const fileName = (userVariables == null ? void 0 : userVariables.title) ? `${userVariables.title}.md` : `${template.name}-${Date.now()}.md`;
       const newFile = await this.app.vault.create(fileName, renderedContent);
       await this.app.workspace.getLeaf().openFile(newFile);
@@ -6489,6 +6681,16 @@ var AwesomePlugin = class extends import_obsidian2.Plugin {
     await this.saveData(this.settings);
     if (this.templateCache) {
       this.templateCache.updateTemplateFolder(this.settings.templateFolder);
+    }
+    if (this.templateEngine) {
+      const weatherSettings = {
+        apiKey: this.settings.weatherApiKey,
+        location: this.settings.weatherLocation,
+        unit: this.settings.weatherUnit,
+        language: this.settings.weatherLanguage,
+        weatherEnabled: this.settings.weatherEnabled
+      };
+      this.templateEngine.updateWeatherSettings(weatherSettings);
     }
   }
   async insertTemplate(editor) {

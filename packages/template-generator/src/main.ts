@@ -51,7 +51,17 @@ export default class AwesomePlugin extends Plugin {
 
     // Initialize template cache and engine
     this.templateCache = new TemplateCache(this.app.vault, this.settings.templateFolder);
-    this.templateEngine = new TemplateEngine();
+    
+    // Create weather settings from plugin settings
+    const weatherSettings = {
+      apiKey: this.settings.weatherApiKey,
+      location: this.settings.weatherLocation,
+      unit: this.settings.weatherUnit,
+      language: this.settings.weatherLanguage,
+      weatherEnabled: this.settings.weatherEnabled,
+    };
+    
+    this.templateEngine = new TemplateEngine(weatherSettings);
 
     this.addCommand({
       id: 'insert-template',
@@ -172,7 +182,7 @@ export default class AwesomePlugin extends Plugin {
       const userVariables = await this.promptForTemplateVariables(template);
       
       // Render template with engine
-      const renderedContent = this.templateEngine.renderTemplate(template, userVariables);
+      const renderedContent = await this.templateEngine.renderTemplate(template, userVariables);
       
       // Insert at cursor position
       const cursor = editor.getCursor();
@@ -195,7 +205,7 @@ export default class AwesomePlugin extends Plugin {
       const userVariables = await this.promptForTemplateVariables(template);
       
       // Render template with engine
-      const renderedContent = this.templateEngine.renderTemplate(template, userVariables);
+      const renderedContent = await this.templateEngine.renderTemplate(template, userVariables);
       
       // Create new file
       const fileName = userVariables?.title 
@@ -267,6 +277,18 @@ export default class AwesomePlugin extends Plugin {
     if (this.templateCache) {
       this.templateCache.updateTemplateFolder(this.settings.templateFolder);
       // Note: Template commands will be updated on next plugin reload
+    }
+
+    // Update weather settings in template engine
+    if (this.templateEngine) {
+      const weatherSettings = {
+        apiKey: this.settings.weatherApiKey,
+        location: this.settings.weatherLocation,
+        unit: this.settings.weatherUnit,
+        language: this.settings.weatherLanguage,
+        weatherEnabled: this.settings.weatherEnabled,
+      };
+      this.templateEngine.updateWeatherSettings(weatherSettings);
     }
   }
 
