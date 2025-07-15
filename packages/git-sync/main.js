@@ -290,6 +290,268 @@ var GitService = class {
   }
 };
 
+// src/llm-service.ts
+var LLMService = class {
+  constructor(settings) {
+    this.settings = settings;
+  }
+  updateSettings(settings) {
+    this.settings = settings;
+  }
+  /**
+   * Generate commit message using LLM
+   */
+  async generateCommitMessage(context) {
+    if (!this.settings.enabled || this.settings.provider === "none") {
+      return {
+        success: false,
+        error: "LLM service is disabled"
+      };
+    }
+    if (!this.settings.apiKey) {
+      return {
+        success: false,
+        error: "API key is not configured"
+      };
+    }
+    try {
+      switch (this.settings.provider) {
+        case "openai":
+          return await this.generateWithOpenAI(context);
+        case "anthropic":
+          return await this.generateWithAnthropic(context);
+        default:
+          return {
+            success: false,
+            error: `Unsupported provider: ${this.settings.provider}`
+          };
+      }
+    } catch (error) {
+      console.error("LLM commit message generation failed:", error);
+      return {
+        success: false,
+        error: error.message || "Unknown error occurred"
+      };
+    }
+  }
+  /**
+   * Generate commit message using OpenAI GPT
+   */
+  async generateWithOpenAI(context) {
+    var _a, _b, _c, _d, _e;
+    const prompt = this.buildPrompt(context);
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${this.settings.apiKey}`
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant that generates concise, conventional commit messages based on git changes. Follow conventional commits format (type(scope): description). Keep it under 50 characters for the subject line."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 100,
+        temperature: 0.3
+      })
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`OpenAI API error: ${response.status} ${((_a = errorData.error) == null ? void 0 : _a.message) || response.statusText}`);
+    }
+    const data = await response.json();
+    const message = (_e = (_d = (_c = (_b = data.choices) == null ? void 0 : _b[0]) == null ? void 0 : _c.message) == null ? void 0 : _d.content) == null ? void 0 : _e.trim();
+    if (!message) {
+      throw new Error("No message generated from OpenAI API");
+    }
+    return {
+      success: true,
+      message: this.cleanupMessage(message)
+    };
+  }
+  /**
+   * Generate commit message using Anthropic Claude
+   */
+  async generateWithAnthropic(context) {
+    var _a, _b, _c, _d;
+    const prompt = this.buildPrompt(context);
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": this.settings.apiKey,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-3-haiku-20240307",
+        max_tokens: 100,
+        messages: [
+          {
+            role: "user",
+            content: `You are a helpful assistant that generates concise, conventional commit messages based on git changes. Follow conventional commits format (type(scope): description). Keep it under 50 characters for the subject line.
+
+${prompt}`
+          }
+        ]
+      })
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Anthropic API error: ${response.status} ${((_a = errorData.error) == null ? void 0 : _a.message) || response.statusText}`);
+    }
+    const data = await response.json();
+    const message = (_d = (_c = (_b = data.content) == null ? void 0 : _b[0]) == null ? void 0 : _c.text) == null ? void 0 : _d.trim();
+    if (!message) {
+      throw new Error("No message generated from Anthropic API");
+    }
+    return {
+      success: true,
+      message: this.cleanupMessage(message)
+    };
+  }
+  /**
+   * Build prompt for LLM based on git context
+   */
+  buildPrompt(context) {
+    const { files, diff, recentCommits, branch } = context;
+    let prompt = this.settings.commitPrompt || "Generate a concise commit message for these changes:";
+    prompt += "\n\n";
+    const totalFiles = files.staged.length + files.unstaged.length + files.untracked.length;
+    prompt += `Files changed (${totalFiles} total):
+`;
+    if (files.staged.length > 0) {
+      prompt += `Staged: ${files.staged.slice(0, 5).join(", ")}${files.staged.length > 5 ? ` and ${files.staged.length - 5} more` : ""}
+`;
+    }
+    if (files.unstaged.length > 0) {
+      prompt += `Modified: ${files.unstaged.slice(0, 5).join(", ")}${files.unstaged.length > 5 ? ` and ${files.unstaged.length - 5} more` : ""}
+`;
+    }
+    if (files.untracked.length > 0) {
+      prompt += `New: ${files.untracked.slice(0, 5).join(", ")}${files.untracked.length > 5 ? ` and ${files.untracked.length - 5} more` : ""}
+`;
+    }
+    prompt += `
+Branch: ${branch}
+`;
+    if (diff && diff.length > 0) {
+      const truncatedDiff = diff.length > 1e3 ? diff.substring(0, 1e3) + "..." : diff;
+      prompt += `
+Changes:
+${truncatedDiff}
+`;
+    }
+    if (recentCommits && recentCommits.length > 0) {
+      prompt += `
+Recent commits for context:
+${recentCommits.slice(0, 3).join("\n")}
+`;
+    }
+    prompt += "\nGenerate a conventional commit message (type(scope): description) that is concise and descriptive.";
+    return prompt;
+  }
+  /**
+   * Clean up and validate generated commit message
+   */
+  cleanupMessage(message) {
+    let cleaned = message.replace(/^["']|["']$/g, "");
+    cleaned = cleaned.replace(/`/g, "");
+    cleaned = cleaned.replace(/^(commit:?\s*|message:?\s*)/i, "");
+    const lines = cleaned.split("\n");
+    let subject = lines[0].trim();
+    if (!subject.match(/^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\(.+\))?: .+/)) {
+      if (subject.includes("test") || subject.includes("spec")) {
+        subject = `test: ${subject}`;
+      } else if (subject.includes("doc") || subject.includes("readme")) {
+        subject = `docs: ${subject}`;
+      } else if (subject.includes("fix") || subject.includes("bug")) {
+        subject = `fix: ${subject}`;
+      } else if (subject.includes("add") || subject.includes("new")) {
+        subject = `feat: ${subject}`;
+      } else {
+        subject = `chore: ${subject}`;
+      }
+    }
+    subject = subject.replace(/^(\w+(?:\(.+\))?):\s*([A-Z])/, (match, prefix, firstChar) => {
+      return `${prefix}: ${firstChar.toLowerCase()}`;
+    });
+    if (subject.length > 50) {
+      subject = subject.substring(0, 47) + "...";
+    }
+    if (lines.length > 1) {
+      const body = lines.slice(1).join("\n").trim();
+      if (body) {
+        return `${subject}
+
+${body}`;
+      }
+    }
+    return subject;
+  }
+  /**
+   * Test API connection
+   */
+  async testConnection() {
+    if (!this.settings.apiKey) {
+      return {
+        success: false,
+        error: "API key is not configured"
+      };
+    }
+    const testContext = {
+      files: {
+        staged: ["test.md"],
+        unstaged: [],
+        untracked: []
+      },
+      branch: "test"
+    };
+    try {
+      const result = await this.generateCommitMessage(testContext);
+      if (result.success) {
+        return {
+          success: true,
+          message: "API connection successful"
+        };
+      } else {
+        return result;
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: `Connection test failed: ${error.message}`
+      };
+    }
+  }
+  /**
+   * Get available models for the current provider
+   */
+  getAvailableModels() {
+    switch (this.settings.provider) {
+      case "openai":
+        return ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo-preview"];
+      case "anthropic":
+        return ["claude-3-haiku-20240307", "claude-3-sonnet-20240229", "claude-3-opus-20240229"];
+      default:
+        return [];
+    }
+  }
+  /**
+   * Estimate token usage for a prompt
+   */
+  estimateTokens(context) {
+    const prompt = this.buildPrompt(context);
+    return Math.ceil(prompt.length / 4);
+  }
+};
+
 // src/auto-commit-service.ts
 var AutoCommitService = class {
   constructor(gitService, settings, vault) {
@@ -299,6 +561,12 @@ var AutoCommitService = class {
     this.gitService = gitService;
     this.settings = settings;
     this.vault = vault;
+    this.llmService = new LLMService({
+      provider: settings.llmProvider,
+      apiKey: settings.apiKey,
+      commitPrompt: settings.commitPrompt,
+      enabled: settings.enableAICommitMessages
+    });
   }
   /**
    * Start the auto commit service
@@ -331,6 +599,12 @@ var AutoCommitService = class {
    */
   updateSettings(settings) {
     this.settings = settings;
+    this.llmService.updateSettings({
+      provider: settings.llmProvider,
+      apiKey: settings.apiKey,
+      commitPrompt: settings.commitPrompt,
+      enabled: settings.enableAICommitMessages
+    });
     if (this.settings.enableAutoCommit) {
       this.start();
     } else {
@@ -410,6 +684,44 @@ var AutoCommitService = class {
    * Generate a commit message based on changes
    */
   async generateCommitMessage(status) {
+    if (this.settings.enableAICommitMessages) {
+      try {
+        const commitContext = {
+          files: {
+            staged: status.staged || [],
+            unstaged: status.unstaged || [],
+            untracked: status.untracked || []
+          },
+          branch: status.currentBranch || "unknown"
+        };
+        try {
+          const recentCommits = await this.gitService.getRecentCommits(3);
+          commitContext.recentCommits = recentCommits.map(
+            (commit) => {
+              var _a;
+              return `${((_a = commit.hash) == null ? void 0 : _a.substring(0, 7)) || "unknown"}: ${commit.message || "no message"}`;
+            }
+          );
+        } catch (error) {
+          console.warn("Failed to get recent commits for context:", error);
+        }
+        const llmResult = await this.llmService.generateCommitMessage(commitContext);
+        if (llmResult.success && llmResult.message) {
+          console.log("Generated commit message using LLM:", llmResult.message);
+          return llmResult.message;
+        } else {
+          console.warn("LLM commit message generation failed:", llmResult.error);
+        }
+      } catch (error) {
+        console.warn("LLM commit message generation error:", error);
+      }
+    }
+    return this.generateFallbackCommitMessage(status);
+  }
+  /**
+   * Generate fallback commit message (original logic)
+   */
+  generateFallbackCommitMessage(status) {
     const timestamp = (/* @__PURE__ */ new Date()).toISOString().slice(0, 19).replace("T", " ");
     const totalChanges = status.staged.length + status.unstaged.length + status.untracked.length;
     if (totalChanges === 0) {
@@ -517,6 +829,45 @@ Auto-committed at ${timestamp}`;
       };
     }
   }
+  /**
+   * Test LLM API connection
+   */
+  async testLLMConnection() {
+    try {
+      return await this.llmService.testConnection();
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  /**
+   * Get available LLM models
+   */
+  getAvailableLLMModels() {
+    return this.llmService.getAvailableModels();
+  }
+  /**
+   * Estimate tokens for current changes
+   */
+  async estimateTokensForCurrentChanges() {
+    try {
+      const status = await this.gitService.getStatus();
+      const context = {
+        files: {
+          staged: status.staged || [],
+          unstaged: status.unstaged || [],
+          untracked: status.untracked || []
+        },
+        branch: status.currentBranch || "unknown"
+      };
+      return this.llmService.estimateTokens(context);
+    } catch (error) {
+      console.error("Failed to estimate tokens:", error);
+      return 0;
+    }
+  }
 };
 
 // src/main.ts
@@ -586,6 +937,16 @@ var GitSyncPlugin = class extends import_obsidian.Plugin {
       id: "toggle-auto-commit",
       name: "Toggle Auto Commit",
       callback: () => this.toggleAutoCommit()
+    });
+    this.addCommand({
+      id: "test-llm-connection",
+      name: "Test LLM API Connection",
+      callback: () => this.testLLMConnection()
+    });
+    this.addCommand({
+      id: "generate-ai-commit-message",
+      name: "Generate AI Commit Message",
+      callback: () => this.generateAICommitMessage()
     });
     this.addSettingTab(new GitSyncSettingTab(this.app, this));
     if (this.settings.enableAutoPull && this.settings.pullOnStartup) {
@@ -744,6 +1105,51 @@ var GitSyncPlugin = class extends import_obsidian.Plugin {
       new import_obsidian.Notice("Failed to open external editor");
     }
   }
+  async testLLMConnection() {
+    try {
+      this.updateStatusBar("Testing LLM...");
+      const result = await this.autoCommitService.testLLMConnection();
+      if (result.success) {
+        new import_obsidian.Notice("LLM API connection successful");
+        this.updateStatusBar("LLM test successful");
+      } else {
+        new import_obsidian.Notice(`LLM API test failed: ${result.error}`);
+        this.updateStatusBar("LLM test failed");
+      }
+    } catch (error) {
+      console.error("LLM connection test error:", error);
+      new import_obsidian.Notice(`LLM test error: ${error.message}`);
+      this.updateStatusBar("LLM test error");
+    }
+  }
+  async generateAICommitMessage() {
+    try {
+      this.updateStatusBar("Generating AI commit...");
+      const status = await this.gitService.getStatus();
+      if (!status.hasChanges) {
+        new import_obsidian.Notice("No changes to commit");
+        this.updateStatusBar("No changes");
+        return;
+      }
+      if (!this.settings.enableAICommitMessages) {
+        new import_obsidian.Notice("AI commit messages are disabled. Enable in settings first.");
+        this.updateStatusBar("AI commits disabled");
+        return;
+      }
+      const result = await this.autoCommitService.performCommit();
+      if (result.success) {
+        new import_obsidian.Notice(`AI commit successful: ${result.message || "Committed"}`);
+        this.updateStatusBar("AI commit successful");
+      } else {
+        new import_obsidian.Notice(`AI commit failed: ${result.error}`);
+        this.updateStatusBar("AI commit failed");
+      }
+    } catch (error) {
+      console.error("AI commit generation error:", error);
+      new import_obsidian.Notice(`AI commit error: ${error.message}`);
+      this.updateStatusBar("AI commit error");
+    }
+  }
 };
 var GitSyncSettingTab = class extends import_obsidian.PluginSettingTab {
   constructor(app, plugin) {
@@ -804,9 +1210,28 @@ var GitSyncSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.editorCommand = value;
       await this.plugin.saveSettings();
     }));
-    containerEl.createEl("h3", { text: "AI Commit Messages (Coming Soon)" });
-    new import_obsidian.Setting(containerEl).setName("Enable AI Commit Messages").setDesc("Use AI to generate commit messages (future feature)").addToggle((toggle) => toggle.setValue(this.plugin.settings.enableAICommitMessages).setDisabled(true).onChange(async (value) => {
+    containerEl.createEl("h3", { text: "AI Commit Messages" });
+    new import_obsidian.Setting(containerEl).setName("Enable AI Commit Messages").setDesc("Use AI to generate commit messages based on changes").addToggle((toggle) => toggle.setValue(this.plugin.settings.enableAICommitMessages).onChange(async (value) => {
       this.plugin.settings.enableAICommitMessages = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("LLM Provider").setDesc("Choose your AI provider").addDropdown((dropdown) => dropdown.addOption("none", "None").addOption("openai", "OpenAI GPT").addOption("anthropic", "Anthropic Claude").setValue(this.plugin.settings.llmProvider).onChange(async (value) => {
+      this.plugin.settings.llmProvider = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("API Key").setDesc("Your LLM API key (stored locally)").addText((text) => text.setPlaceholder("Enter your API key").setValue(this.plugin.settings.apiKey).onChange(async (value) => {
+      this.plugin.settings.apiKey = value;
+      await this.plugin.saveSettings();
+    })).addButton((button) => button.setButtonText("Test Connection").setTooltip("Test API connection").onClick(async () => {
+      const result = await this.plugin.autoCommitService.testLLMConnection();
+      if (result.success) {
+        new import_obsidian.Notice("API connection successful!");
+      } else {
+        new import_obsidian.Notice(`API test failed: ${result.error}`);
+      }
+    }));
+    new import_obsidian.Setting(containerEl).setName("Commit Prompt").setDesc("Custom prompt for commit message generation").addTextArea((text) => text.setPlaceholder("Generate a concise commit message for these changes:").setValue(this.plugin.settings.commitPrompt).onChange(async (value) => {
+      this.plugin.settings.commitPrompt = value;
       await this.plugin.saveSettings();
     }));
   }

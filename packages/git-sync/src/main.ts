@@ -133,6 +133,18 @@ export default class GitSyncPlugin extends Plugin {
       callback: () => this.toggleAutoCommit(),
     });
 
+    this.addCommand({
+      id: 'test-llm-connection',
+      name: 'Test LLM API Connection',
+      callback: () => this.testLLMConnection(),
+    });
+
+    this.addCommand({
+      id: 'generate-ai-commit-message',
+      name: 'Generate AI Commit Message',
+      callback: () => this.generateAICommitMessage(),
+    });
+
     // Add settings tab
     this.addSettingTab(new GitSyncSettingTab(this.app, this));
 
@@ -320,6 +332,61 @@ export default class GitSyncPlugin extends Plugin {
       new Notice('Failed to open external editor');
     }
   }
+
+  private async testLLMConnection() {
+    try {
+      this.updateStatusBar('Testing LLM...');
+      const result = await this.autoCommitService.testLLMConnection();
+      
+      if (result.success) {
+        new Notice('LLM API connection successful');
+        this.updateStatusBar('LLM test successful');
+      } else {
+        new Notice(`LLM API test failed: ${result.error}`);
+        this.updateStatusBar('LLM test failed');
+      }
+    } catch (error) {
+      console.error('LLM connection test error:', error);
+      new Notice(`LLM test error: ${error.message}`);
+      this.updateStatusBar('LLM test error');
+    }
+  }
+
+  private async generateAICommitMessage() {
+    try {
+      this.updateStatusBar('Generating AI commit...');
+      
+      // Check if there are changes
+      const status = await this.gitService.getStatus();
+      if (!status.hasChanges) {
+        new Notice('No changes to commit');
+        this.updateStatusBar('No changes');
+        return;
+      }
+
+      // Check if LLM is enabled
+      if (!this.settings.enableAICommitMessages) {
+        new Notice('AI commit messages are disabled. Enable in settings first.');
+        this.updateStatusBar('AI commits disabled');
+        return;
+      }
+
+      // Generate and show commit message
+      const result = await this.autoCommitService.performCommit();
+      
+      if (result.success) {
+        new Notice(`AI commit successful: ${result.message || 'Committed'}`);
+        this.updateStatusBar('AI commit successful');
+      } else {
+        new Notice(`AI commit failed: ${result.error}`);
+        this.updateStatusBar('AI commit failed');
+      }
+    } catch (error) {
+      console.error('AI commit generation error:', error);
+      new Notice(`AI commit error: ${error.message}`);
+      this.updateStatusBar('AI commit error');
+    }
+  }
 }
 
 class GitSyncSettingTab extends PluginSettingTab {
@@ -474,17 +541,62 @@ class GitSyncSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    // AI Commit Messages (Future feature)
-    containerEl.createEl('h3', { text: 'AI Commit Messages (Coming Soon)' });
+    // AI Commit Messages
+    containerEl.createEl('h3', { text: 'AI Commit Messages' });
 
     new Setting(containerEl)
       .setName('Enable AI Commit Messages')
-      .setDesc('Use AI to generate commit messages (future feature)')
+      .setDesc('Use AI to generate commit messages based on changes')
       .addToggle(toggle => toggle
         .setValue(this.plugin.settings.enableAICommitMessages)
-        .setDisabled(true) // Disabled for now
         .onChange(async (value) => {
           this.plugin.settings.enableAICommitMessages = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('LLM Provider')
+      .setDesc('Choose your AI provider')
+      .addDropdown(dropdown => dropdown
+        .addOption('none', 'None')
+        .addOption('openai', 'OpenAI GPT')
+        .addOption('anthropic', 'Anthropic Claude')
+        .setValue(this.plugin.settings.llmProvider)
+        .onChange(async (value: 'openai' | 'anthropic' | 'none') => {
+          this.plugin.settings.llmProvider = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('API Key')
+      .setDesc('Your LLM API key (stored locally)')
+      .addText(text => text
+        .setPlaceholder('Enter your API key')
+        .setValue(this.plugin.settings.apiKey)
+        .onChange(async (value) => {
+          this.plugin.settings.apiKey = value;
+          await this.plugin.saveSettings();
+        }))
+      .addButton(button => button
+        .setButtonText('Test Connection')
+        .setTooltip('Test API connection')
+        .onClick(async () => {
+          const result = await this.plugin.autoCommitService.testLLMConnection();
+          if (result.success) {
+            new Notice('API connection successful!');
+          } else {
+            new Notice(`API test failed: ${result.error}`);
+          }
+        }));
+
+    new Setting(containerEl)
+      .setName('Commit Prompt')
+      .setDesc('Custom prompt for commit message generation')
+      .addTextArea(text => text
+        .setPlaceholder('Generate a concise commit message for these changes:')
+        .setValue(this.plugin.settings.commitPrompt)
+        .onChange(async (value) => {
+          this.plugin.settings.commitPrompt = value;
           await this.plugin.saveSettings();
         }));
   }

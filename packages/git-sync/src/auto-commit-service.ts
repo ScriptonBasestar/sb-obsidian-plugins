@@ -1,5 +1,6 @@
 import { Vault, TFile, TFolder } from 'obsidian';
 import { GitService, GitResult } from './git-service';
+import { LLMService, LLMSettings, CommitContext } from './llm-service';
 
 export interface CommitResult {
   success: boolean;
@@ -16,12 +17,18 @@ export interface AutoCommitSettings {
   enableAutoPush: boolean;
   pushAfterCommits: number;
   tempBranch: string;
+  // LLM settings
+  enableAICommitMessages: boolean;
+  llmProvider: 'openai' | 'anthropic' | 'none';
+  apiKey: string;
+  commitPrompt: string;
 }
 
 export class AutoCommitService {
   private gitService: GitService;
   private settings: AutoCommitSettings;
   private vault: Vault;
+  private llmService: LLMService;
   private intervalId: NodeJS.Timeout | null = null;
   private commitCount: number = 0;
   private lastCommitTime: number = 0;
@@ -30,6 +37,12 @@ export class AutoCommitService {
     this.gitService = gitService;
     this.settings = settings;
     this.vault = vault;
+    this.llmService = new LLMService({
+      provider: settings.llmProvider,
+      apiKey: settings.apiKey,
+      commitPrompt: settings.commitPrompt,
+      enabled: settings.enableAICommitMessages
+    });
   }
 
   /**
@@ -68,6 +81,14 @@ export class AutoCommitService {
    */
   updateSettings(settings: AutoCommitSettings): void {
     this.settings = settings;
+    
+    // Update LLM service settings
+    this.llmService.updateSettings({
+      provider: settings.llmProvider,
+      apiKey: settings.apiKey,
+      commitPrompt: settings.commitPrompt,
+      enabled: settings.enableAICommitMessages
+    });
     
     if (this.settings.enableAutoCommit) {
       this.start(); // This will stop and restart with new interval
@@ -166,6 +187,51 @@ export class AutoCommitService {
    * Generate a commit message based on changes
    */
   private async generateCommitMessage(status: any): Promise<string> {
+    // Try LLM first if enabled
+    if (this.settings.enableAICommitMessages) {
+      try {
+        const commitContext: CommitContext = {
+          files: {
+            staged: status.staged || [],
+            unstaged: status.unstaged || [],
+            untracked: status.untracked || []
+          },
+          branch: status.currentBranch || 'unknown'
+        };
+
+        // Get recent commits for context
+        try {
+          const recentCommits = await this.gitService.getRecentCommits(3);
+          commitContext.recentCommits = recentCommits.map((commit: any) => 
+            `${commit.hash?.substring(0, 7) || 'unknown'}: ${commit.message || 'no message'}`
+          );
+        } catch (error) {
+          console.warn('Failed to get recent commits for context:', error);
+        }
+
+        const llmResult = await this.llmService.generateCommitMessage(commitContext);
+        
+        if (llmResult.success && llmResult.message) {
+          console.log('Generated commit message using LLM:', llmResult.message);
+          return llmResult.message;
+        } else {
+          console.warn('LLM commit message generation failed:', llmResult.error);
+          // Fall back to default generation
+        }
+      } catch (error) {
+        console.warn('LLM commit message generation error:', error);
+        // Fall back to default generation
+      }
+    }
+
+    // Fallback to default commit message generation
+    return this.generateFallbackCommitMessage(status);
+  }
+
+  /**
+   * Generate fallback commit message (original logic)
+   */
+  private generateFallbackCommitMessage(status: any): string {
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
     
     const totalChanges = status.staged.length + status.unstaged.length + status.untracked.length;
@@ -302,6 +368,49 @@ Auto-committed at ${timestamp}`;
         deleted: 0,
         untracked: 0
       };
+    }
+  }
+
+  /**
+   * Test LLM API connection
+   */
+  async testLLMConnection(): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      return await this.llmService.testConnection();
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Get available LLM models
+   */
+  getAvailableLLMModels(): string[] {
+    return this.llmService.getAvailableModels();
+  }
+
+  /**
+   * Estimate tokens for current changes
+   */
+  async estimateTokensForCurrentChanges(): Promise<number> {
+    try {
+      const status = await this.gitService.getStatus();
+      const context: CommitContext = {
+        files: {
+          staged: status.staged || [],
+          unstaged: status.unstaged || [],
+          untracked: status.untracked || []
+        },
+        branch: status.currentBranch || 'unknown'
+      };
+      
+      return this.llmService.estimateTokens(context);
+    } catch (error) {
+      console.error('Failed to estimate tokens:', error);
+      return 0;
     }
   }
 }
