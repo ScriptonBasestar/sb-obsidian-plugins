@@ -1,0 +1,10 @@
+{
+  "id": "publisher-scripton",
+  "name": "Publisher Scripton",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Publish your Obsidian notes to scripton.cloud",
+  "author": "sb-obsidian-plugins",
+  "authorUrl": "https://github.com/sb-obsidian-plugins",
+  "isDesktopOnly": false
+}
