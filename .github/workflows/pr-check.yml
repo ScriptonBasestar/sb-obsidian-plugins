@@ -1,0 +1,245 @@
+name: PR Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - master
+      - main
+      - develop
+
+jobs:
+  size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check PR size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const { additions, deletions } = pr;
+            const totalChanges = additions + deletions;
+            
+            let message = '';
+            let level = 'info';
+            
+            if (totalChanges > 1000) {
+              level = 'warning';
+              message = '⚠️ This PR contains over 1000 lines of changes. Consider breaking it down into smaller PRs.';
+            } else if (totalChanges > 500) {
+              level = 'notice';
+              message = '📊 This PR contains ' + totalChanges + ' lines of changes.';
+            }
+            
+            if (message) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: pr.number,
+                body: message
+              });
+            }
+            
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Run ESLint
+        run: pnpm run lint
+        
+      - name: Run TypeScript check
+        run: pnpm run typecheck
+        
+      - name: Check for console.log statements
+        run: |
+          # Check for console.log in production code
+          if grep -r "console\.log" packages/*/src --include="*.ts" --exclude="*.test.ts" --exclude="*.spec.ts"; then
+            echo "::warning::Found console.log statements in production code. Consider removing them."
+          fi
+          
+  test-coverage:
+    name: Test Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Run tests with coverage
+        run: pnpm test -- --coverage
+        
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          name: pr-coverage
+          
+      - name: Comment coverage on PR
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+            let coverageReport = '## 📊 Test Coverage Report\n\n';
+            
+            // Read coverage summary if exists
+            try {
+              const coverageSummary = fs.readFileSync('coverage/coverage-summary.json', 'utf8');
+              const summary = JSON.parse(coverageSummary);
+              const total = summary.total;
+              
+              coverageReport += '| Metric | Coverage |\n';
+              coverageReport += '|--------|----------|\n';
+              coverageReport += `| Lines | ${total.lines.pct}% |\n`;
+              coverageReport += `| Statements | ${total.statements.pct}% |\n`;
+              coverageReport += `| Functions | ${total.functions.pct}% |\n`;
+              coverageReport += `| Branches | ${total.branches.pct}% |\n`;
+              
+              if (total.lines.pct < 80) {
+                coverageReport += '\n⚠️ **Warning**: Code coverage is below 80%\n';
+              }
+            } catch (e) {
+              coverageReport += 'Coverage report not available.\n';
+            }
+            
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: coverageReport
+            });
+            
+  bundle-size:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Build PR version
+        run: pnpm run build
+        
+      - name: Calculate bundle sizes
+        run: |
+          echo "## Bundle Sizes" > bundle-sizes.md
+          echo "" >> bundle-sizes.md
+          echo "| Plugin | Size | Gzipped |" >> bundle-sizes.md
+          echo "|--------|------|---------|" >> bundle-sizes.md
+          
+          for package in packages/*; do
+            if [ -f "$package/main.js" ]; then
+              plugin_name=$(basename "$package")
+              size=$(du -h "$package/main.js" | cut -f1)
+              gzip_size=$(gzip -c "$package/main.js" | wc -c | numfmt --to=iec)
+              echo "| $plugin_name | $size | $gzip_size |" >> bundle-sizes.md
+            fi
+          done
+          
+      - name: Comment bundle sizes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const bundleSizes = fs.readFileSync('bundle-sizes.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: bundleSizes
+            });
+            
+  dependency-check:
+    name: Dependency Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Check for dependency changes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            
+            // Get list of changed files
+            const files = execSync('git diff --name-only HEAD~1').toString().split('\n');
+            
+            const packageJsonFiles = files.filter(f => f.includes('package.json'));
+            const lockFileChanged = files.includes('pnpm-lock.yaml');
+            
+            if (packageJsonFiles.length > 0 && !lockFileChanged) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: '⚠️ **Warning**: package.json was modified but pnpm-lock.yaml was not updated. Please run `pnpm install` and commit the lock file.'
+              });
+              
+              core.setFailed('Lock file not updated');
+            }
+            
+            if (packageJsonFiles.length > 0) {
+              let message = '## 📦 Dependency Changes\n\n';
+              message += 'The following package.json files were modified:\n';
+              packageJsonFiles.forEach(file => {
+                message += `- ${file}\n`;
+              });
+              
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: message
+              });
+            }

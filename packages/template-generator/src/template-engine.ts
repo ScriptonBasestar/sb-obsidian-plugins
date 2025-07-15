@@ -4,7 +4,7 @@ import { WeatherService, WeatherSettings } from './weather-service';
 import { FortuneService, FortuneSettings } from './fortune-service';
 
 export interface TemplateVariables {
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export interface TemplateContext {
@@ -36,7 +36,7 @@ export interface TemplateContext {
   author?: string;
 
   // Custom variables
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export class TemplateEngine {
@@ -126,7 +126,12 @@ export class TemplateEngine {
     });
 
     // Conditional helpers
-    this.handlebars.registerHelper('if_eq', function (a: any, b: any, options: any) {
+    this.handlebars.registerHelper('if_eq', function (
+      this: unknown,
+      a: unknown,
+      b: unknown,
+      options: Handlebars.HelperOptions
+    ) {
       if (a === b) {
         return options.fn(this);
       }

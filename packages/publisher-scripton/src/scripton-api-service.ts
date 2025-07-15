@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { TFile } from 'obsidian';
+import { ScriptonPost, getErrorMessage } from './types';
 
 export interface PublishNoteOptions {
   title: string;
@@ -99,7 +100,7 @@ export class ScriptonApiService {
         success: true,
         user: response.data.user,
       };
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', 'API connection test failed', errorMessage);
 
@@ -136,7 +137,7 @@ export class ScriptonApiService {
         url: response.data.url,
         id: response.data.id,
       };
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', `Failed to publish note: ${options.title}`, errorMessage);
 
@@ -177,7 +178,7 @@ export class ScriptonApiService {
       } else {
         return this.retryPublishNote(options, attempt + 1);
       }
-    } catch (error: any) {
+    } catch (error) {
       return this.retryPublishNote(options, attempt + 1);
     }
   }
@@ -205,7 +206,7 @@ export class ScriptonApiService {
         success: true,
         url: response.data.url,
       };
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', `Failed to upload attachment: ${file.name}`, errorMessage);
 
@@ -228,7 +229,7 @@ export class ScriptonApiService {
         url: response.data.url,
         id: response.data.id,
       };
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', `Failed to update note: ${id}`, errorMessage);
 
@@ -247,7 +248,7 @@ export class ScriptonApiService {
 
       this.log('info', `Note deleted successfully: ${id}`);
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage = this.extractErrorMessage(error);
       this.log('error', `Failed to delete note: ${id}`, errorMessage);
 
@@ -258,7 +259,7 @@ export class ScriptonApiService {
     }
   }
 
-  async getUserInfo(): Promise<{ success: boolean; user?: any; error?: string }> {
+  async getUserInfo(): Promise<{ success: boolean; user?: Record<string, unknown>; error?: string }> {
     try {
       const response: AxiosResponse = await this.api.get('/user');
 
@@ -266,7 +267,7 @@ export class ScriptonApiService {
         success: true,
         user: response.data,
       };
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage = this.extractErrorMessage(error);
 
       return {
@@ -276,7 +277,7 @@ export class ScriptonApiService {
     }
   }
 
-  async getPublishedNotes(): Promise<{ success: boolean; notes?: any[]; error?: string }> {
+  async getPublishedNotes(): Promise<{ success: boolean; notes?: ScriptonPost[]; error?: string }> {
     try {
       const response: AxiosResponse = await this.api.get('/notes');
 
@@ -284,7 +285,7 @@ export class ScriptonApiService {
         success: true,
         notes: response.data.notes,
       };
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage = this.extractErrorMessage(error);
 
       return {
@@ -303,7 +304,7 @@ export class ScriptonApiService {
     this.log('info', 'Logs cleared');
   }
 
-  private log(level: 'error' | 'warn' | 'info' | 'debug', message: string, error?: any): void {
+  private log(level: 'error' | 'warn' | 'info' | 'debug', message: string, error?: unknown): void {
     if (!this.shouldLog(level)) {
       return;
     }
@@ -336,25 +337,28 @@ export class ScriptonApiService {
     return messageLevelIndex <= currentLevelIndex;
   }
 
-  private shouldRetry(error: any): boolean {
+  private shouldRetry(error: unknown): boolean {
     // Retry on network errors or 5xx server errors
-    const status = error.response?.status;
-    return !status || status >= 500 || error.code === 'NETWORK_ERROR';
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number }; code?: string };
+      const status = axiosError.response?.status;
+      return !status || status >= 500 || axiosError.code === 'NETWORK_ERROR';
+    }
+    return false;
   }
 
-  private extractErrorMessage(error: any): string {
-    if (error.response?.data?.message) {
-      return error.response.data.message;
+  private extractErrorMessage(error: unknown): string {
+    // Type guard for axios errors
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: { message?: string; error?: string } } };
+      if (axiosError.response?.data?.message) {
+        return axiosError.response.data.message;
+      }
+      if (axiosError.response?.data?.error) {
+        return axiosError.response.data.error;
+      }
     }
 
-    if (error.response?.data?.error) {
-      return error.response.data.error;
-    }
-
-    if (error.message) {
-      return error.message;
-    }
-
-    return 'Unknown error occurred';
+    return getErrorMessage(error);
   }
 }

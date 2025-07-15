@@ -1,16 +1,6 @@
-import { defineConfig } from 'vitest/config';
-import path from 'path';
+import { mergeConfig } from 'vite';
+import { sharedVitestConfig } from '../../vitest.shared';
 
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['src/__mocks__/obsidian.ts'],
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-      obsidian: path.resolve(__dirname, 'src/__mocks__/obsidian.ts'),
-    },
-  },
+export default mergeConfig(sharedVitestConfig, {
+  // Package-specific overrides can go here
 });

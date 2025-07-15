@@ -8,6 +8,8 @@ import {
   TAbstractFile,
   moment,
 } from 'obsidian';
+import { FrontmatterData, ParsedContent, ValidationIssue, MetadataTemplate, isFrontmatterData } from './types';
+import * as yaml from 'yaml';
 
 interface MetadataManagerSettings {
   // Auto-insert settings
@@ -111,8 +113,9 @@ export default class MetadataManagerPlugin extends Plugin {
     console.log('Metadata Manager plugin unloaded');
   }
 
-  async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  async loadSettings(): Promise<void> {
+    const data = await this.loadData();
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, data as Partial<MetadataManagerSettings>);
   }
 
   async saveSettings() {
@@ -289,7 +292,7 @@ export default class MetadataManagerPlugin extends Plugin {
     }
   }
 
-  private parseFrontmatter(content: string): { frontmatter: any; body: string } {
+  private parseFrontmatter(content: string): ParsedContent {
     const frontmatterRegex = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
     const match = content.match(frontmatterRegex);
 
@@ -298,8 +301,7 @@ export default class MetadataManagerPlugin extends Plugin {
     }
 
     try {
-      const yaml = require('yaml');
-      const frontmatter = yaml.parse(match[1]);
+      const frontmatter = yaml.parse(match[1]) as FrontmatterData;
       return { frontmatter, body: match[2] || '' };
     } catch (error) {
       console.error('Error parsing frontmatter:', error);
@@ -307,20 +309,19 @@ export default class MetadataManagerPlugin extends Plugin {
     }
   }
 
-  private formatFrontmatterObject(frontmatter: any): string {
-    const yaml = require('yaml');
-    const orderedData: any = {};
+  private formatFrontmatterObject(frontmatter: FrontmatterData): string {
+    const orderedData: FrontmatterData = {};
 
     // Add fields in specified order
     for (const field of this.settings.fieldOrder) {
-      if (frontmatter.hasOwnProperty(field)) {
+      if (field in frontmatter && frontmatter[field] !== undefined) {
         orderedData[field] = frontmatter[field];
       }
     }
 
     // Add remaining fields
     for (const [key, value] of Object.entries(frontmatter)) {
-      if (!orderedData.hasOwnProperty(key)) {
+      if (!(key in orderedData)) {
         orderedData[key] = value;
       }
     }
@@ -328,13 +329,13 @@ export default class MetadataManagerPlugin extends Plugin {
     return yaml.stringify(orderedData).trim();
   }
 
-  private validateFrontmatter(frontmatter: any): string[] {
+  private validateFrontmatter(frontmatter: FrontmatterData): string[] {
     const issues: string[] = [];
 
     // Check required fields
     for (const field of this.settings.requiredFields) {
       if (
-        !frontmatter.hasOwnProperty(field) ||
+        !(field in frontmatter) ||
         frontmatter[field] === '' ||
         frontmatter[field] == null
       ) {
