@@ -24,6 +24,10 @@ interface AwesomePluginSettings {
   weatherUnit: 'metric' | 'imperial';
   weatherLanguage: string;
   weatherEnabled: boolean;
+
+  // Fortune settings
+  fortuneEnabled: boolean;
+  fortuneLanguage: 'kr' | 'en';
 }
 
 const DEFAULT_SETTINGS: AwesomePluginSettings = {
@@ -38,6 +42,10 @@ const DEFAULT_SETTINGS: AwesomePluginSettings = {
   weatherUnit: 'metric',
   weatherLanguage: 'kr',
   weatherEnabled: false,
+
+  // Fortune defaults
+  fortuneEnabled: true,
+  fortuneLanguage: 'kr',
 };
 
 export default class AwesomePlugin extends Plugin {
@@ -61,7 +69,13 @@ export default class AwesomePlugin extends Plugin {
       weatherEnabled: this.settings.weatherEnabled,
     };
     
-    this.templateEngine = new TemplateEngine(weatherSettings);
+    // Create fortune settings from plugin settings
+    const fortuneSettings = {
+      enabled: this.settings.fortuneEnabled,
+      language: this.settings.fortuneLanguage,
+    };
+    
+    this.templateEngine = new TemplateEngine(weatherSettings, fortuneSettings);
 
     this.addCommand({
       id: 'insert-template',
@@ -289,6 +303,13 @@ export default class AwesomePlugin extends Plugin {
         weatherEnabled: this.settings.weatherEnabled,
       };
       this.templateEngine.updateWeatherSettings(weatherSettings);
+
+      // Update fortune settings in template engine
+      const fortuneSettings = {
+        enabled: this.settings.fortuneEnabled,
+        language: this.settings.fortuneLanguage,
+      };
+      this.templateEngine.updateFortuneSettings(fortuneSettings);
     }
   }
 
@@ -809,6 +830,33 @@ class AwesomePluginSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.weatherLanguage)
           .onChange(async (value) => {
             this.plugin.settings.weatherLanguage = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // Fortune settings section
+    containerEl.createEl('h3', { text: 'Fortune Settings' });
+
+    new Setting(containerEl)
+      .setName('Enable Fortune')
+      .setDesc('Enable fortune information in templates')
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.fortuneEnabled).onChange(async (value) => {
+          this.plugin.settings.fortuneEnabled = value;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName('Fortune Language')
+      .setDesc('Language for fortune descriptions')
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption('kr', '한국어')
+          .addOption('en', 'English')
+          .setValue(this.plugin.settings.fortuneLanguage)
+          .onChange(async (value: 'kr' | 'en') => {
+            this.plugin.settings.fortuneLanguage = value;
             await this.plugin.saveSettings();
           })
       );

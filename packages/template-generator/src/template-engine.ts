@@ -1,6 +1,7 @@
 import * as Handlebars from 'handlebars';
 import { ParsedTemplate } from './template-parser';
 import { WeatherService, WeatherSettings } from './weather-service';
+import { FortuneService, FortuneSettings } from './fortune-service';
 
 export interface TemplateVariables {
   [key: string]: any;
@@ -26,6 +27,10 @@ export interface TemplateContext {
   날씨: string;
   weather: string;
   
+  // Fortune variables
+  운세: string;
+  fortune: string;
+  
   // User-provided variables
   title?: string;
   author?: string;
@@ -37,12 +42,16 @@ export interface TemplateContext {
 export class TemplateEngine {
   private handlebars: typeof Handlebars;
   private weatherService: WeatherService;
+  private fortuneService: FortuneService;
   private weatherSettings?: WeatherSettings;
+  private fortuneSettings?: FortuneSettings;
 
-  constructor(weatherSettings?: WeatherSettings) {
+  constructor(weatherSettings?: WeatherSettings, fortuneSettings?: FortuneSettings) {
     this.handlebars = Handlebars.create();
     this.weatherService = new WeatherService();
+    this.fortuneService = new FortuneService();
     this.weatherSettings = weatherSettings;
+    this.fortuneSettings = fortuneSettings;
     this.registerHelpers();
   }
 
@@ -161,6 +170,19 @@ export class TemplateEngine {
       const weather = await this.weatherService.getWeather(this.weatherSettings);
       return weather ? this.weatherService.formatDetailedWeather(weather, this.weatherSettings) : '날씨 정보를 가져올 수 없습니다';
     });
+
+    // Fortune helpers
+    this.handlebars.registerHelper('fortuneSimple', () => {
+      if (!this.fortuneSettings) return '운세 정보 없음';
+      const fortune = this.fortuneService.getFortune(this.fortuneSettings);
+      return this.fortuneService.formatFortune(fortune, this.fortuneSettings);
+    });
+
+    this.handlebars.registerHelper('fortuneDetailed', () => {
+      if (!this.fortuneSettings) return '운세 정보 없음';
+      const fortune = this.fortuneService.getFortune(this.fortuneSettings);
+      return this.fortuneService.formatDetailedFortune(fortune, this.fortuneSettings);
+    });
   }
 
   private async getDefaultContext(): Promise<TemplateContext> {
@@ -187,6 +209,18 @@ export class TemplateEngine {
       }
     }
 
+    // Get fortune information
+    let fortuneInfo = '운세 정보 없음';
+    if (this.fortuneSettings && this.fortuneSettings.enabled) {
+      try {
+        const fortune = this.fortuneService.getFortune(this.fortuneSettings);
+        fortuneInfo = this.fortuneService.formatFortune(fortune, this.fortuneSettings);
+      } catch (error) {
+        console.warn('Failed to get fortune:', error);
+        fortuneInfo = '운세 서비스 오류';
+      }
+    }
+
     return {
       // English date variables
       date: now.toISOString().split('T')[0],
@@ -206,6 +240,10 @@ export class TemplateEngine {
       // Weather variables
       날씨: weatherInfo,
       weather: weatherInfo,
+      
+      // Fortune variables
+      운세: fortuneInfo,
+      fortune: fortuneInfo,
     };
   }
 
@@ -331,6 +369,10 @@ export class TemplateEngine {
     this.weatherSettings = weatherSettings;
   }
 
+  updateFortuneSettings(fortuneSettings: FortuneSettings): void {
+    this.fortuneSettings = fortuneSettings;
+  }
+
   getAvailableVariables(): string[] {
     return [
       // English variables
@@ -343,6 +385,7 @@ export class TemplateEngine {
       'title',
       'author',
       'weather',
+      'fortune',
       
       // Korean variables
       '날짜',
@@ -351,6 +394,7 @@ export class TemplateEngine {
       '어제',
       '요일',
       '날씨',
+      '운세',
     ];
   }
 
@@ -374,6 +418,10 @@ export class TemplateEngine {
       // Weather helpers
       'weatherSimple',
       'weatherDetailed',
+      
+      // Fortune helpers
+      'fortuneSimple',
+      'fortuneDetailed',
     ];
   }
 }

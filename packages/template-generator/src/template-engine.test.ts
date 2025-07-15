@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TemplateEngine } from './template-engine';
 import { TemplateParser } from './template-parser';
 import { WeatherSettings } from './weather-service';
+import { FortuneSettings } from './fortune-service';
 
 describe('TemplateEngine', () => {
   let engine: TemplateEngine;
@@ -281,11 +282,25 @@ Meeting with {{attendee}} on {{date}}`;
       expect(variables).toContain('weather');
     });
 
+    it('should include fortune variables in available variables list', () => {
+      const variables = engine.getAvailableVariables();
+      
+      expect(variables).toContain('운세');
+      expect(variables).toContain('fortune');
+    });
+
     it('should include weather helpers in available helpers list', () => {
       const helpers = engine.getAvailableHelpers();
       
       expect(helpers).toContain('weatherSimple');
       expect(helpers).toContain('weatherDetailed');
+    });
+
+    it('should include fortune helpers in available helpers list', () => {
+      const helpers = engine.getAvailableHelpers();
+      
+      expect(helpers).toContain('fortuneSimple');
+      expect(helpers).toContain('fortuneDetailed');
     });
 
     it('should show fallback message when weather settings are not configured', async () => {
@@ -359,6 +374,86 @@ Meeting with {{attendee}} on {{date}}`;
       } finally {
         consoleWarnSpy.mockRestore();
       }
+    });
+  });
+
+  describe('Fortune integration', () => {
+    it('should show fallback message when fortune settings are not configured', async () => {
+      const engineWithoutFortune = new TemplateEngine();
+      const result = await engineWithoutFortune.renderTemplateString('오늘 운세: {{운세}}');
+      
+      expect(result).toBe('오늘 운세: 운세 정보 없음');
+    });
+
+    it('should show fallback message when fortune is disabled', async () => {
+      const fortuneSettings: FortuneSettings = {
+        enabled: false,
+        language: 'kr',
+      };
+      
+      const engineWithDisabledFortune = new TemplateEngine(undefined, fortuneSettings);
+      const result = await engineWithDisabledFortune.renderTemplateString('오늘 운세: {{운세}}');
+      
+      expect(result).toBe('오늘 운세: 운세 정보 없음');
+    });
+
+    it('should generate fortune when enabled', async () => {
+      const fortuneSettings: FortuneSettings = {
+        enabled: true,
+        language: 'kr',
+      };
+      
+      const engineWithFortune = new TemplateEngine(undefined, fortuneSettings);
+      const result = await engineWithFortune.renderTemplateString('오늘 운세: {{운세}}');
+      
+      expect(result).toContain('오늘 운세: 🔮');
+      expect(result).not.toBe('오늘 운세: 운세 정보 없음');
+    });
+
+    it('should generate English fortune when language is en', async () => {
+      const fortuneSettings: FortuneSettings = {
+        enabled: true,
+        language: 'en',
+      };
+      
+      const engineWithEnglishFortune = new TemplateEngine(undefined, fortuneSettings);
+      const result = await engineWithEnglishFortune.renderTemplateString('Today fortune: {{fortune}}');
+      
+      expect(result).toContain('Today fortune: 🔮');
+      expect(result).not.toBe('Today fortune: Fortune unavailable');
+    });
+
+    it('should update fortune settings dynamically', () => {
+      const initialSettings: FortuneSettings = {
+        enabled: true,
+        language: 'kr',
+      };
+      
+      const engineWithFortune = new TemplateEngine(undefined, initialSettings);
+      
+      const updatedSettings: FortuneSettings = {
+        enabled: false,
+        language: 'en',
+      };
+      
+      // Should not throw when updating settings
+      expect(() => {
+        engineWithFortune.updateFortuneSettings(updatedSettings);
+      }).not.toThrow();
+    });
+
+    it('should provide consistent fortune for the same day', async () => {
+      const fortuneSettings: FortuneSettings = {
+        enabled: true,
+        language: 'kr',
+      };
+      
+      const engineWithFortune = new TemplateEngine(undefined, fortuneSettings);
+      
+      const result1 = await engineWithFortune.renderTemplateString('{{운세}}');
+      const result2 = await engineWithFortune.renderTemplateString('{{운세}}');
+      
+      expect(result1).toBe(result2);
     });
   });
 });
