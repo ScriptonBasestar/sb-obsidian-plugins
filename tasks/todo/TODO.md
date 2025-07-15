@@ -36,7 +36,7 @@
 ## 🔄 git-sync 플러그인
 
 - [x] 주기적 `tmp` 브랜치 자동 커밋 및 푸시
-- [ ] 커밋 메시지 생성을 위한 LLM API 연동 (Claude/GPT)
+- [x] 커밋 메시지 생성을 위한 LLM API 연동 (Claude/GPT)
 - [ ] 사용자가 지정한 프롬프트 기반 커밋 메시지 생성기
 - [ ] Obsidian 시작 시 `pull --rebase` 자동 실행
 - [ ] `tmp` → `main` 브랜치 병합 자동 처리/옵션 제공
