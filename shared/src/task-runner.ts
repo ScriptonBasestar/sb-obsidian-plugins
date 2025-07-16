@@ -23,7 +23,7 @@ export class TaskRunner {
   private doneDir: string;
   private alertDir: string;
 
-  constructor(basePath: string = './tasks') {
+  constructor(basePath = './tasks') {
     this.basePath = basePath;
     this.todoDir = path.join(basePath, 'todo');
     this.doneDir = path.join(basePath, 'done');

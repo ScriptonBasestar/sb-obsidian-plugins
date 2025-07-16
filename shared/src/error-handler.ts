@@ -18,7 +18,7 @@ export class PluginError extends Error {
   constructor(
     message: string,
     type: ErrorType = ErrorType.UNKNOWN,
-    pluginName: string = 'Unknown Plugin',
+    pluginName = 'Unknown Plugin',
     context?: Record<string, any>
   ) {
     super(message);

@@ -51,7 +51,7 @@ export function createMockAppWithFiles(
   files: Array<{ path: string; content: string; frontmatter?: Record<string, any> }>
 ): MockApp {
   const mockApp = createMockApp();
-  
+
   // Add files to vault
   files.forEach(({ path, content }) => {
     const file = {
@@ -66,7 +66,7 @@ export function createMockAppWithFiles(
         size: content.length,
       },
     };
-    
+
     // Mock vault methods to work with this file
     vi.mocked(mockApp.vault.read).mockImplementation(async (f) => {
       if (f === file || (typeof f === 'object' && f.path === path)) {
@@ -74,7 +74,7 @@ export function createMockAppWithFiles(
       }
       throw new Error('File not found');
     });
-    
+
     vi.mocked(mockApp.vault.getAbstractFileByPath).mockImplementation((p) => {
       if (p === path) {
         return file as any;

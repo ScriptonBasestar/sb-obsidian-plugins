@@ -9,7 +9,7 @@ export interface ConfirmDialogOptions {
 }
 
 export class ConfirmDialog extends Modal {
-  private result: boolean = false;
+  private result = false;
   private options: ConfirmDialogOptions;
   private onConfirm: () => void;
   private onCancel?: () => void;

@@ -87,7 +87,10 @@ export class StateManager<T extends Record<string, any>> extends EventEmitter {
       this.subscribers.set(key, new Set());
     }
 
-    this.subscribers.get(key)!.add(callback);
+    const keySubscribers = this.subscribers.get(key);
+    if (keySubscribers) {
+      keySubscribers.add(callback);
+    }
 
     // Return unsubscribe function
     return () => {
@@ -212,7 +215,7 @@ export class ComputedValue<T extends Record<string, any>, D> {
       this.cache = this.computation(this.stateManager.getState());
       this.isValid = true;
     }
-    return this.cache!;
+    return this.cache as D;
   }
 
   invalidate(): void {

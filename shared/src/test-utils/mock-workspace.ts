@@ -1,4 +1,14 @@
-import { Workspace, WorkspaceLeaf, View, MarkdownView, Editor, EditorPosition, EditorRange, EditorSelection, EditorTransaction } from 'obsidian';
+import {
+  Workspace,
+  WorkspaceLeaf,
+  View,
+  MarkdownView,
+  Editor,
+  EditorPosition,
+  EditorRange,
+  EditorSelection,
+  EditorTransaction,
+} from 'obsidian';
 import { vi } from 'vitest';
 
 export interface MockWorkspace extends Partial<Workspace> {
@@ -38,7 +48,7 @@ export interface MockEditor extends Partial<Editor> {
 
 export function createMockWorkspace(overrides?: Partial<MockWorkspace>): MockWorkspace {
   const mockLeaf = createMockWorkspaceLeaf();
-  
+
   const mockWorkspace: MockWorkspace = {
     activeLeaf: mockLeaf,
     getActiveViewOfType: vi.fn((type) => {
@@ -75,7 +85,7 @@ export function createMockWorkspace(overrides?: Partial<MockWorkspace>): MockWor
 
 export function createMockWorkspaceLeaf(overrides?: Partial<WorkspaceLeaf>): WorkspaceLeaf {
   const mockView = createMockMarkdownView();
-  
+
   return {
     view: mockView,
     openFile: vi.fn(async (file, openViewState) => {
@@ -83,7 +93,9 @@ export function createMockWorkspaceLeaf(overrides?: Partial<WorkspaceLeaf>): Wor
     }),
     detach: vi.fn(),
     getViewState: vi.fn().mockReturnValue({ type: 'markdown', state: {} }),
-    setViewState: vi.fn(async (viewState, eState) => {}),
+    setViewState: vi.fn(async (viewState, eState) => {
+      // Simulate setting view state
+    }),
     getEphemeralState: vi.fn().mockReturnValue({}),
     setEphemeralState: vi.fn(),
     togglePinned: vi.fn(),
@@ -106,7 +118,9 @@ export function createMockMarkdownView(overrides?: Partial<MarkdownView>): Markd
     file: mockFile,
     getViewType: vi.fn().mockReturnValue('markdown'),
     getState: vi.fn().mockReturnValue({ file: 'test.md', mode: 'source' }),
-    setState: vi.fn(async (state, result) => {}),
+    setState: vi.fn(async (state, result) => {
+      // Simulate setting state
+    }),
     getEphemeralState: vi.fn().mockReturnValue({}),
     setEphemeralState: vi.fn(),
     ...overrides,
@@ -175,7 +189,7 @@ export function createMockEditor(initialContent = ''): MockEditor {
       // Simplified transaction handling
       if (tx.changes) {
         tx.changes.forEach((change: any) => {
-          mockEditor.replaceRange!(change.text, change.from, change.to);
+          mockEditor.replaceRange(change.text, change.from, change.to);
         });
       }
     }),

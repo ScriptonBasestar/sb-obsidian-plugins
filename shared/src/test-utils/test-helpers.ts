@@ -10,14 +10,14 @@ export async function waitFor(
   interval = 100
 ): Promise<void> {
   const startTime = Date.now();
-  
+
   while (Date.now() - startTime < timeout) {
     if (await condition()) {
       return;
     }
-    await new Promise(resolve => setTimeout(resolve, interval));
+    await new Promise((resolve) => setTimeout(resolve, interval));
   }
-  
+
   throw new Error('Timeout waiting for condition');
 }
 
@@ -32,10 +32,8 @@ export async function waitForCall(
   await waitFor(() => {
     if (!mockFn.called) return false;
     if (!expectedArgs) return true;
-    
-    return mockFn.mock.calls.some(call =>
-      JSON.stringify(call) === JSON.stringify(expectedArgs)
-    );
+
+    return mockFn.mock.calls.some((call) => JSON.stringify(call) === JSON.stringify(expectedArgs));
   }, timeout);
 }
 
@@ -63,7 +61,7 @@ export function createMockFile(
     content,
     frontmatter,
   } as TFile & { content: string; frontmatter?: Record<string, any> };
-  
+
   return file;
 }
 
@@ -77,15 +75,13 @@ export function createMockFolder(path: string, children: string[] = []): TFolder
     name,
     parent: null,
     vault: {} as any,
-    children: children.map(child => {
+    children: children.map((child) => {
       const childPath = `${path}/${child}`;
-      return child.includes('.') 
-        ? createMockFile(childPath)
-        : createMockFolder(childPath);
+      return child.includes('.') ? createMockFile(childPath) : createMockFolder(childPath);
     }),
     isRoot: () => path === '/',
   } as unknown as TFolder;
-  
+
   return folder;
 }
 
@@ -97,7 +93,7 @@ export function mockNotice(): {
   reset: () => void;
 } {
   const notices: Array<{ message: string; timeout?: number }> = [];
-  
+
   // Mock the Notice constructor
   vi.mocked(Notice).mockImplementation((message: string, timeout?: number) => {
     notices.push({ message, timeout });
@@ -106,7 +102,7 @@ export function mockNotice(): {
       hide: vi.fn(),
     } as any;
   });
-  
+
   return {
     notices,
     reset: () => notices.splice(0, notices.length),
@@ -120,7 +116,7 @@ export function createFrontmatter(data: Record<string, any>): string {
   const yaml = Object.entries(data)
     .map(([key, value]) => {
       if (Array.isArray(value)) {
-        return `${key}: [${value.map(v => `"${v}"`).join(', ')}]`;
+        return `${key}: [${value.map((v) => `"${v}"`).join(', ')}]`;
       } else if (typeof value === 'object' && value !== null) {
         return `${key}: ${JSON.stringify(value)}`;
       } else {
@@ -128,17 +124,14 @@ export function createFrontmatter(data: Record<string, any>): string {
       }
     })
     .join('\n');
-    
+
   return `---\n${yaml}\n---`;
 }
 
 /**
  * Creates a mock markdown file with frontmatter
  */
-export function createMarkdownFile(
-  frontmatter: Record<string, any>,
-  content: string
-): string {
+export function createMarkdownFile(frontmatter: Record<string, any>, content: string): string {
   return `${createFrontmatter(frontmatter)}\n\n${content}`;
 }
 
@@ -150,26 +143,26 @@ export function extractFrontmatter(content: string): {
   body: string;
 } {
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  
+
   if (!match) {
     return { frontmatter: null, body: content };
   }
-  
+
   const [, frontmatterContent, body] = match;
   const frontmatter: Record<string, any> = {};
-  
-  frontmatterContent.split('\n').forEach(line => {
+
+  frontmatterContent.split('\n').forEach((line) => {
     const colonIndex = line.indexOf(':');
     if (colonIndex > 0) {
       const key = line.substring(0, colonIndex).trim();
       const value = line.substring(colonIndex + 1).trim();
-      
+
       // Parse arrays
       if (value.startsWith('[') && value.endsWith(']')) {
         frontmatter[key] = value
           .slice(1, -1)
           .split(',')
-          .map(v => v.trim().replace(/^["']|["']$/g, ''));
+          .map((v) => v.trim().replace(/^["']|["']$/g, ''));
       }
       // Parse booleans
       else if (value === 'true' || value === 'false') {
@@ -185,7 +178,7 @@ export function extractFrontmatter(content: string): {
       }
     }
   });
-  
+
   return { frontmatter, body: body.trim() };
 }
 
@@ -198,7 +191,7 @@ export async function withCleanup<T>(
   cleanup?: (context: T) => void | Promise<void>
 ): Promise<void> {
   const context = await setup();
-  
+
   try {
     await test(context);
   } finally {
@@ -259,16 +252,16 @@ export const testData = {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   },
-  
+
   randomDate: (start = new Date(2020, 0, 1), end = new Date()): Date => {
     return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
   },
-  
+
   randomTags: (count = 3): string[] => {
     const tags = ['work', 'personal', 'todo', 'idea', 'note', 'project', 'meeting', 'research'];
     return Array.from({ length: count }, () => tags[Math.floor(Math.random() * tags.length)]);
   },
-  
+
   randomFrontmatter: (): Record<string, any> => ({
     title: testData.randomString(20),
     created: testData.randomDate().toISOString(),

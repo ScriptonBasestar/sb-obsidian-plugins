@@ -31,11 +31,7 @@ export interface MockPluginOptions<T = any> {
 }
 
 export function createMockPlugin<T = any>(options: MockPluginOptions<T> = {}): MockPlugin<T> {
-  const {
-    manifest = {},
-    settings = {} as T,
-    app = createMockApp(),
-  } = options;
+  const { manifest = {}, settings = {} as T, app = createMockApp() } = options;
 
   const mockManifest: PluginManifest = {
     id: 'test-plugin',
@@ -119,11 +115,11 @@ export function createMockPlugin<T = any>(options: MockPluginOptions<T> = {}): M
   (mockPlugin as any).getRegisteredCommands = () => registeredCommands;
   (mockPlugin as any).getRegisteredEvents = () => registeredEvents;
   (mockPlugin as any).getRegisteredIntervals = () => registeredIntervals;
-  
+
   // Add cleanup method
   (mockPlugin as any).cleanup = () => {
     registeredIntervals.forEach(clearInterval);
-    registeredEvents.forEach(event => {
+    registeredEvents.forEach((event) => {
       if (event.off) event.off();
     });
   };
@@ -136,7 +132,7 @@ export function createMockPluginWithSettings<T>(
   savedSettings?: Partial<T>
 ): MockPlugin<T> {
   const settings = { ...defaultSettings, ...savedSettings };
-  
+
   return createMockPlugin({
     settings,
     manifest: {
@@ -151,24 +147,24 @@ export function createMockPluginClass<T = any>(
 ): new (app: App, manifest: PluginManifest) => Plugin {
   return class MockPluginClass extends Plugin {
     settings: T;
-    
+
     constructor(app: App, manifest: PluginManifest) {
       super(app, manifest);
       this.settings = options.settings || ({} as T);
     }
-    
+
     async onload() {
       // Mock implementation
     }
-    
+
     onunload() {
       // Mock implementation
     }
-    
+
     async loadSettings() {
       this.settings = Object.assign({}, options.settings, await this.loadData());
     }
-    
+
     async saveSettings() {
       await this.saveData(this.settings);
     }

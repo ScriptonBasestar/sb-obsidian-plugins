@@ -1,4 +1,12 @@
-import { Vault, TFile, TFolder, TAbstractFile, FileStats, DataAdapter, normalizePath } from 'obsidian';
+import {
+  Vault,
+  TFile,
+  TFolder,
+  TAbstractFile,
+  FileStats,
+  DataAdapter,
+  normalizePath,
+} from 'obsidian';
 import { vi } from 'vitest';
 
 export interface MockVault extends Partial<Vault> {
@@ -110,7 +118,7 @@ export function createMockVault(overrides?: Partial<MockVault>): MockVault {
     list: vi.fn(async (path) => {
       const normalizedPath = normalizePath(path);
       const items: { path: string; type: 'file' | 'folder' }[] = [];
-      
+
       // List files
       for (const [filePath] of files) {
         if (filePath.startsWith(normalizedPath + '/')) {
@@ -120,7 +128,7 @@ export function createMockVault(overrides?: Partial<MockVault>): MockVault {
           }
         }
       }
-      
+
       // List folders
       for (const folderPath of folders) {
         if (folderPath.startsWith(normalizedPath + '/')) {
@@ -130,8 +138,8 @@ export function createMockVault(overrides?: Partial<MockVault>): MockVault {
           }
         }
       }
-      
-      return { files: items.filter(i => i.type === 'file').map(i => i.path) };
+
+      return { files: items.filter((i) => i.type === 'file').map((i) => i.path) };
     }),
   };
 
@@ -139,47 +147,69 @@ export function createMockVault(overrides?: Partial<MockVault>): MockVault {
     adapter: mockAdapter as DataAdapter,
     read: vi.fn(async (file) => {
       const path = typeof file === 'string' ? file : file.path;
-      return mockAdapter.read!(normalizePath(path));
+      const readFn = mockAdapter.read;
+      if (!readFn) throw new Error('read method not available');
+      return readFn(normalizePath(path));
     }),
     cachedRead: vi.fn(async (file) => {
       const path = typeof file === 'string' ? file : file.path;
-      return mockAdapter.read!(normalizePath(path));
+      const readFn = mockAdapter.read;
+      if (!readFn) throw new Error('read method not available');
+      return readFn(normalizePath(path));
     }),
     create: vi.fn(async (path, content, options) => {
-      await mockAdapter.write!(normalizePath(path), content);
+      const writeFn = mockAdapter.write;
+      if (!writeFn) throw new Error('write method not available');
+      await writeFn(normalizePath(path), content);
       return createMockTFile(path, content);
     }),
     createBinary: vi.fn(async (path, content, options) => {
-      await mockAdapter.writeBinary!(normalizePath(path), content);
+      const writeBinaryFn = mockAdapter.writeBinary;
+      if (!writeBinaryFn) throw new Error('writeBinary method not available');
+      await writeBinaryFn(normalizePath(path), content);
       return createMockTFile(path, content);
     }),
     createFolder: vi.fn(async (path) => {
-      await mockAdapter.mkdir!(normalizePath(path));
+      const mkdirFn = mockAdapter.mkdir;
+      if (!mkdirFn) throw new Error('mkdir method not available');
+      await mkdirFn(normalizePath(path));
       return createMockTFolder(path);
     }),
     modify: vi.fn(async (file, content, options) => {
       const path = typeof file === 'string' ? file : file.path;
-      await mockAdapter.write!(normalizePath(path), content);
+      const writeFn = mockAdapter.write;
+      if (!writeFn) throw new Error('write method not available');
+      await writeFn(normalizePath(path), content);
     }),
     modifyBinary: vi.fn(async (file, content, options) => {
       const path = typeof file === 'string' ? file : file.path;
-      await mockAdapter.writeBinary!(normalizePath(path), content);
+      const writeBinaryFn = mockAdapter.writeBinary;
+      if (!writeBinaryFn) throw new Error('writeBinary method not available');
+      await writeBinaryFn(normalizePath(path), content);
     }),
     delete: vi.fn(async (file, force) => {
       const path = typeof file === 'string' ? file : file.path;
-      await mockAdapter.remove!(normalizePath(path));
+      const removeFn = mockAdapter.remove;
+      if (!removeFn) throw new Error('remove method not available');
+      await removeFn(normalizePath(path));
     }),
     trash: vi.fn(async (file, system) => {
       const path = typeof file === 'string' ? file : file.path;
-      await mockAdapter.remove!(normalizePath(path));
+      const removeFn = mockAdapter.remove;
+      if (!removeFn) throw new Error('remove method not available');
+      await removeFn(normalizePath(path));
     }),
     rename: vi.fn(async (file, newPath) => {
       const oldPath = typeof file === 'string' ? file : file.path;
-      await mockAdapter.rename!(normalizePath(oldPath), normalizePath(newPath));
+      const renameFn = mockAdapter.rename;
+      if (!renameFn) throw new Error('rename method not available');
+      await renameFn(normalizePath(oldPath), normalizePath(newPath));
     }),
     copy: vi.fn(async (file, newPath) => {
       const sourcePath = typeof file === 'string' ? file : file.path;
-      await mockAdapter.copy!(normalizePath(sourcePath), normalizePath(newPath));
+      const copyFn = mockAdapter.copy;
+      if (!copyFn) throw new Error('copy method not available');
+      await copyFn(normalizePath(sourcePath), normalizePath(newPath));
       return createMockTFile(newPath, '');
     }),
     getAbstractFileByPath: vi.fn((path) => {
@@ -193,24 +223,28 @@ export function createMockVault(overrides?: Partial<MockVault>): MockVault {
       return null;
     }),
     getFiles: vi.fn(() => {
-      return Array.from(files.keys()).map(path => createMockTFile(path, ''));
+      return Array.from(files.keys()).map((path) => createMockTFile(path, ''));
     }),
     getMarkdownFiles: vi.fn(() => {
       return Array.from(files.keys())
-        .filter(path => path.endsWith('.md'))
-        .map(path => createMockTFile(path, ''));
+        .filter((path) => path.endsWith('.md'))
+        .map((path) => createMockTFile(path, ''));
     }),
     getAllLoadedFiles: vi.fn(() => {
       const allFiles: TAbstractFile[] = [];
       files.forEach((_, path) => allFiles.push(createMockTFile(path, '')));
-      folders.forEach(path => allFiles.push(createMockTFolder(path)));
+      folders.forEach((path) => allFiles.push(createMockTFolder(path)));
       return allFiles;
     }),
     process: vi.fn(async (file, fn) => {
       const tFile = typeof file === 'string' ? createMockTFile(file, '') : file;
-      const content = await mockAdapter.read!(tFile.path);
+      const readFn = mockAdapter.read;
+      if (!readFn) throw new Error('read method not available');
+      const content = await readFn(tFile.path);
       const result = await fn(content);
-      await mockAdapter.write!(tFile.path, result);
+      const writeFn = mockAdapter.write;
+      if (!writeFn) throw new Error('write method not available');
+      await writeFn(tFile.path, result);
       return result;
     }),
     on: vi.fn(),
