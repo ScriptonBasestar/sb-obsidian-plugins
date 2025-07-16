@@ -1,0 +1,11 @@
+{
+  "id": "blog-platform-export",
+  "name": "Blog Platform Export",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "Export your Obsidian notes to popular blog platforms like Hugo, Jekyll, and WikiJS with automatic formatting conversion.",
+  "author": "SB Obsidian Plugins",
+  "authorUrl": "https://github.com/sb-obsidian-plugins",
+  "fundingUrl": "https://github.com/sponsors/sb-obsidian-plugins",
+  "isDesktopOnly": false
+}
