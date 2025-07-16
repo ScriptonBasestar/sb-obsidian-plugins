@@ -21,6 +21,16 @@ See [Task Runner Documentation](#task-runner) for detailed usage.
 
 ## 📦 Plugins
 
+### scripton-sync
+
+Advanced sync plugin combining settings sync, Git integration, and Scripton Cloud connectivity
+
+- **Settings Profiles**: Create and switch between multiple settings configurations
+- **Git Integration**: Auto-commit/push with AI-powered commit messages (OpenAI/Anthropic)
+- **Branch Strategies**: develop/hostname auto-branching with squash merge support
+- **Cloud Sync**: Download/upload settings from Scripton Cloud
+- **Conflict Resolution**: Manual or automatic merge conflict handling
+
 ### template-generator
 
 Template insertion plugin with dynamic content generation
@@ -29,15 +39,6 @@ Template insertion plugin with dynamic content generation
 - Dynamic variables (date, weather, fortune)
 - External API integration
 - Template preview and selection UI
-
-### git-sync
-
-Automatic git synchronization with AI-powered commit messages
-
-- Periodic auto-commit to `tmp` branch
-- LLM-powered commit message generation
-- Auto-pull on startup
-- Conflict resolution support
 
 ### metadata-manager
 
@@ -56,6 +57,24 @@ Publish notes to scripton.cloud platform
 - Selective note/folder publishing
 - Markdown to HTML/JSON conversion
 - Publishing status tracking
+
+### wikijs-sync
+
+Bidirectional synchronization with WikiJS
+
+- Real-time file watching and sync
+- GraphQL API integration
+- Conflict detection and resolution
+- Selective sync with exclude patterns
+
+### blog-platform-export
+
+Export notes to various blog platforms
+
+- Multi-platform support (Hugo, Jekyll, WikiJS)
+- Profile-based export configurations
+- Asset management and image handling
+- Markdown conversion with platform-specific formatting
 
 ## 🚀 Installation
 
@@ -92,9 +111,12 @@ pnpm build
 pnpm --filter @sb-obsidian-plugins/template-generator build
 
 # Link plugins to your Obsidian vault
+ln -s "$(pwd)/plugins/scripton-sync" "/path/to/your/vault/.obsidian/plugins/scripton-sync"
 ln -s "$(pwd)/plugins/template-generator" "/path/to/your/vault/.obsidian/plugins/template-generator"
-ln -s "$(pwd)/plugins/git-sync" "/path/to/your/vault/.obsidian/plugins/git-sync"
-# ... repeat for other plugins
+ln -s "$(pwd)/plugins/metadata-manager" "/path/to/your/vault/.obsidian/plugins/metadata-manager"
+ln -s "$(pwd)/plugins/publisher-scripton" "/path/to/your/vault/.obsidian/plugins/publisher-scripton"
+ln -s "$(pwd)/plugins/wikijs-sync" "/path/to/your/vault/.obsidian/plugins/wikijs-sync"
+ln -s "$(pwd)/plugins/blog-platform-export" "/path/to/your/vault/.obsidian/plugins/blog-platform-export"
 ```
 
 ## 🔄 Development Workflow
@@ -125,7 +147,7 @@ The plugin provides several configuration options:
 
 - **Template Folder**: Specify the folder containing your templates
 - **Auto Metadata**: Enable/disable automatic metadata generation
-- **Git Sync**: Enable/disable git synchronization features
+- **Scripton Sync**: Advanced sync settings (Git, Cloud, Profiles)
 - **Publishing**: Enable/disable publishing capabilities
 
 ## 🧪 Testing
@@ -144,7 +166,8 @@ make test-coverage
 
 - **Insert Template**: Insert a template at cursor position
 - **Auto-generate Metadata**: Add frontmatter metadata to current note
-- **Git Sync**: Synchronize with git repository
+- **Sync All**: Complete sync cycle (pull, commit, push)
+- **Commit Changes**: Create a commit with current changes
 - **Publish Note**: Publish current note to configured destination
 
 ## 🤝 Contributing
@@ -190,5 +213,5 @@ tasks/
 
 - Inspired by [Templater](https://github.com/SilentVoid13/Templater)
 - Metadata features inspired by [MetaEdit](https://github.com/chhoumann/MetaEdit)
-- Git integration inspired by [obsidian-git](https://github.com/denolehov/obsidian-git)
+- Git integration combines features from settings-sync and git-sync plugins
 - Publishing features inspired by [obsidian-publish](https://github.com/obsidianmd/obsidian-releases)

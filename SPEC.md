@@ -4,12 +4,11 @@
 
 ## 플러그인 개요
 
-총 **7개의 Obsidian 플러그인**이 포함되어 있으며, 각각 특정 기능을 담당합니다:
+총 **6개의 Obsidian 플러그인**이 포함되어 있으며, 각각 특정 기능을 담당합니다:
 
 | 플러그인 | 핵심 기능 | 카테고리 |
 |---------|-----------|----------|
-| [Settings Sync](#settings-sync) | 설정 동기화 및 프로필 관리 | 🔧 Configuration |
-| [Git Sync](#git-sync) | AI 기반 자동 Git 동기화 | 🔄 Version Control |
+| [Scripton Sync](#scripton-sync) | 고급 동기화 - 설정, Git, Scripton Cloud | 🔄 Sync & Version Control |
 | [WikiJS Sync](#wikijs-sync) | WikiJS 양방향 동기화 | 🌐 External Integration |
 | [Blog Platform Export](#blog-platform-export) | 블로그 플랫폼 내보내기 | 📝 Publishing |
 | [Publisher Scripton](#publisher-scripton) | Scripton 클라우드 퍼블리싱 | ☁️ Cloud Publishing |
@@ -18,48 +17,57 @@
 
 ---
 
-## Settings Sync
+## Scripton Sync
 
 ### 기본 정보
-- **ID**: `settings-sync`
-- **목적**: Git을 통한 Obsidian 설정 공유 및 동기화
-- **데스크톱 전용**: false
+- **ID**: `scripton-sync`
+- **목적**: 고급 동기화 - Obsidian 설정, Git 통합, Scripton Cloud 연동
+- **데스크톱 전용**: true
 
 ### 핵심 기능
+
+#### 1. 설정 동기화 및 프로필 관리
 - **🔄 설정 동기화**: Git 저장소를 통한 팀/개인 설정 공유
 - **👤 프로필 관리**: 여러 설정 프로필 생성 및 전환
 - **📦 백업 기능**: 설정 백업 및 복원
 - **🚀 초기화 마법사**: 새 볼트 설정 간편화
 - **📜 히스토리 추적**: 설정 변경 이력 관리
 
+#### 2. Git 통합 및 버전 관리
+- **🤖 AI 커밋 메시지**: OpenAI/Anthropic을 활용한 자동 커밋 메시지 생성
+- **⚡ 자동 동기화**: 파일 변경 시 자동 커밋 및 푸시
+- **🌿 브랜치 전략**: develop/hostname 자동 브랜치 생성 및 관리
+- **🔧 충돌 해결**: 자동/수동 머지 충돌 해결 옵션
+- **⏰ 스케줄링**: 시작 시 자동 풀, 주기적 동기화
+
+#### 3. Scripton Cloud 연동
+- **☁️ 클라우드 프로필**: Scripton Cloud에서 설정 프로필 다운로드/업로드
+- **🔌 플러그인 추천**: 추천 플러그인 검색 및 설치 가이드
+- **👥 팀 설정**: 조직/팀 단위 설정 관리
+- **🔐 API 인증**: 안전한 API 키 기반 인증
+
 ### 주요 컴포넌트
+
+#### Core 모듈
+- `GitService`: simple-git 기반 Git 작업 처리
+- `ScriptonCloudClient`: Scripton Cloud API 클라이언트
+
+#### Features 모듈
+- `AutoCommitService`: 자동 커밋 서비스
+- `BranchStrategyManager`: 브랜치 전략 관리
+- `LLMService`: AI 커밋 메시지 생성
+
+#### 기존 모듈
 - `ProfileManager`: 설정 프로필 관리
-- `GitManager`: Git 연동 (isomorphic-git)
 - `SyncManager`: 동기화 엔진
 - `BackupManager`: 백업 관리
 - `SettingsParser`: 설정 파일 파싱
 
----
-
-## Git Sync
-
-### 기본 정보
-- **ID**: `git-sync`
-- **목적**: Git 관리 기능
-- **데스크톱 전용**: true
-
-### 핵심 기능
-- **🤖 AI 커밋 메시지**: LLM을 활용한 자동 커밋 메시지 생성
-- **⚡ 자동 동기화**: 파일 변경 시 자동 커밋 및 푸시
-- **🌿 브랜치 관리**: 메인 브랜치와 임시 브랜치 간 자동 머지
-- **🔧 충돌 해결**: 수동 머지 충돌 시 외부 에디터 실행, AI로 자동 머지 기능 지원
-- **⏰ 스케줄링**: 시작 시 자동 풀, 주기적 동기화
-
-### 주요 컴포넌트
-- `GitService`: Git 명령어 실행
-- `AutoCommitService`: 자동 커밋 서비스
-- `LLMService`: AI 커밋 메시지 생성
-- `PromptTemplateService`: 프롬프트 템플릿 관리
+### 브랜치 전략
+- **Simple**: 기본 브랜치만 사용
+- **Develop/Host**: 호스트별 개발 브랜치 자동 생성 (권장)
+- **Feature Branch**: 기능별 브랜치 생성
+- **Custom**: 사용자 정의 전략
 
 ---
 
@@ -208,10 +216,11 @@
 - **Node.js**: 서버 사이드 기능 (데스크톱 전용)
 
 ### 📚 주요 라이브러리
-- **isomorphic-git**: Git 작업 (Settings Sync, Git Sync)
+- **simple-git**: Git 작업 (Scripton Sync)
 - **unified/remark**: 마크다운 파싱 및 변환 (Blog Platform Export)
 - **graphql-request**: GraphQL 통신 (WikiJS Sync)
 - **yaml**: YAML 파싱 (Metadata Manager)
+- **isomorphic-git**: 레거시 Git 지원 (일부 플러그인)
 
 ### 🧪 테스트 및 빌드
 - **Vitest**: 단위 테스트 프레임워크
@@ -226,9 +235,8 @@
 이 플러그인들은 완전한 지식 관리 및 퍼블리싱 워크플로를 구성합니다:
 
 1. **📝 Content Creation**: Template Generator → Metadata Manager
-2. **🔧 Configuration**: Settings Sync (프로필 관리)
-3. **🔄 Version Control**: Git Sync (자동 커밋)
-4. **🌐 External Sync**: WikiJS Sync (외부 위키 연동)
-5. **📤 Publishing**: Blog Platform Export, Publisher Scripton (다중 플랫폼 퍼블리싱)
+2. **🔄 Sync & Version Control**: Scripton Sync (설정 프로필, Git 동기화, 클라우드 연동)
+3. **🌐 External Sync**: WikiJS Sync (외부 위키 연동)
+4. **📤 Publishing**: Blog Platform Export, Publisher Scripton (다중 플랫폼 퍼블리싱)
 
 이러한 통합된 워크플로우를 통해 Obsidian을 중심으로 한 완전한 지식 관리 생태계를 구축할 수 있습니다.

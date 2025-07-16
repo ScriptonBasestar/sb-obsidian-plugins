@@ -1,0 +1,10 @@
+{
+  "id": "scripton-sync",
+  "name": "Scripton Sync",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Advanced sync for Obsidian - settings, Git integration, and Scripton Cloud sync with branch strategies",
+  "author": "Scripton",
+  "authorUrl": "https://github.com/archmagece/scripton",
+  "isDesktopOnly": true
+}

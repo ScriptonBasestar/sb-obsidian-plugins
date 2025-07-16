@@ -1,7 +1,7 @@
 {
-  "name": "@scripton/obsidian-settings-sync",
+  "name": "@scripton/obsidian-scripton-sync",
   "version": "1.0.0",
-  "description": "Obsidian plugin for syncing and sharing settings using Git",
+  "description": "Advanced sync for Obsidian - settings, Git integration, and Scripton Cloud sync with branch strategies",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -15,7 +15,9 @@
     "plugin",
     "settings",
     "sync",
-    "git"
+    "git",
+    "scripton",
+    "cloud"
   ],
   "author": "Scripton",
   "license": "MIT",
@@ -30,7 +32,7 @@
   },
   "dependencies": {
     "@sb-obsidian-plugins/shared": "workspace:*",
-    "isomorphic-git": "^1.25.0",
+    "simple-git": "^3.19.1",
     "js-yaml": "^4.1.0"
   }
 }
