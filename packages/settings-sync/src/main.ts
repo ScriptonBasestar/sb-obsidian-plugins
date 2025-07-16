@@ -6,6 +6,7 @@ import { ProfileManager } from './profile-manager';
 import { GitManager } from './git-manager';
 import { SyncManager } from './sync-manager';
 import { InitWizard } from './init-wizard';
+import { HistoryViewer } from './history-viewer';
 
 export default class SettingsSyncPlugin extends Plugin {
   settings: SettingsSyncSettings;
@@ -108,6 +109,16 @@ export default class SettingsSyncPlugin extends Plugin {
       name: 'Import settings',
       callback: async () => {
         await this.importSettings();
+      }
+    });
+
+    // View history command
+    this.addCommand({
+      id: 'view-history',
+      name: 'View settings history',
+      callback: async () => {
+        const viewer = new HistoryViewer(this.app, this.gitManager);
+        viewer.open();
       }
     });
   }

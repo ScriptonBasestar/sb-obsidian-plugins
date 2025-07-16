@@ -2,6 +2,7 @@ export interface SettingsSyncSettings {
   profiles: SettingsProfile[];
   activeProfile: string;
   gitRepo: string;
+  gitConfig?: GitConfig;
   autoSync: boolean;
   syncInterval: number;
   excludedFiles: string[];
