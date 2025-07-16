@@ -1,10 +1,13 @@
 ---
-status: refined
+status: converted
+new_file: /tasks/todo/20250116__wikijs-compatibility-implementation.md
+original_status: refined
 priority: high
 effort: hard
 tags: [integration, wikijs, sync, metadata]
 linked_backlogs: []
 created: 2025-01-16
+converted: 2025-01-16
 ---
 
 # WikiJS 호환성 기능 구현

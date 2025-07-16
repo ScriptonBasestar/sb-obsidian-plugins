@@ -34,7 +34,7 @@
     "git",
     "publish"
   ],
-  "author": "Your Name",
+  "author": "archmagece",
   "license": "MIT",
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.8",
@@ -54,7 +54,7 @@
     "vitest": "^0.33.0"
   },
   "engines": {
-    "node": ">=16.0.0",
-    "pnpm": ">=7.0.0"
+    "node": ">=18.0.0",
+    "pnpm": ">=10.0.0"
   }
 }

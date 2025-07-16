@@ -1,10 +1,13 @@
 ---
-status: refined
+status: converted
+new_file: /tasks/todo/20250116__blog-platform-export.md
+original_status: refined
 priority: medium
 effort: medium
 tags: [integration, blog, hugo, jekyll, export]
 linked_backlogs: []
 created: 2025-01-16
+converted: 2025-01-16
 ---
 
 # 블로그 플랫폼 호환성 기능

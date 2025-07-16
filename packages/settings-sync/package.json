@@ -1,0 +1,36 @@
+{
+  "name": "@scripton/obsidian-settings-sync",
+  "version": "1.0.0",
+  "description": "Obsidian plugin for syncing and sharing settings using Git",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "settings",
+    "sync",
+    "git"
+  ],
+  "author": "Scripton",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.20.2",
+    "obsidian": "latest",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.3",
+    "vitest": "^1.4.0"
+  },
+  "dependencies": {
+    "@sb-obsidian-plugins/shared": "workspace:*",
+    "isomorphic-git": "^1.25.0",
+    "js-yaml": "^4.1.0"
+  }
+}

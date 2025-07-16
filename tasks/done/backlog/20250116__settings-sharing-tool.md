@@ -1,10 +1,13 @@
 ---
-status: refined
+status: converted
+new_file: /tasks/todo/20250116__settings-sharing-tool.md
+original_status: refined
 priority: high
 effort: medium
 tags: [settings, git, collaboration, init]
 linked_backlogs: []
 created: 2025-01-16
+converted: 2025-01-16
 ---
 
 # 설정 공유 도구
