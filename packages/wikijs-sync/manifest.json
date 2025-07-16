@@ -1,0 +1,10 @@
+{
+  "id": "wikijs-sync",
+  "name": "WikiJS Sync",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Sync your Obsidian notes with WikiJS",
+  "author": "Scripton",
+  "authorUrl": "https://github.com/archmagece/scripton",
+  "isDesktopOnly": false
+}
