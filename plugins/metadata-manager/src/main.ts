@@ -8,8 +8,13 @@ import {
   TAbstractFile,
   moment,
 } from 'obsidian';
-import { FrontmatterData, ParsedContent, ValidationIssue, MetadataTemplate, isFrontmatterData } from './types';
+
 import * as yaml from 'yaml';
+
+import {
+  FrontmatterData,
+  ParsedContent,
+} from './types';
 
 interface MetadataManagerSettings {
   // Auto-insert settings
@@ -67,10 +72,10 @@ tags: []
 };
 
 export default class MetadataManagerPlugin extends Plugin {
-  settings: MetadataManagerSettings;
+  public settings: MetadataManagerSettings;
   private newFileQueue = new Set<string>();
 
-  async onload() {
+  public async onload(): Promise<void> {
     await this.loadSettings();
 
     // Register event handlers
@@ -83,7 +88,7 @@ export default class MetadataManagerPlugin extends Plugin {
       id: 'insert-frontmatter',
       name: 'Insert Frontmatter Template',
       editorCallback: (editor, view) => {
-        this.insertFrontmatter(view.file);
+        void this.insertFrontmatter(view.file);
       },
     });
 
@@ -91,7 +96,7 @@ export default class MetadataManagerPlugin extends Plugin {
       id: 'format-frontmatter',
       name: 'Format Frontmatter',
       editorCallback: (editor, view) => {
-        this.formatFrontmatter(view.file);
+        void this.formatFrontmatter(view.file);
       },
     });
 
@@ -99,7 +104,7 @@ export default class MetadataManagerPlugin extends Plugin {
       id: 'lint-frontmatter',
       name: 'Lint Frontmatter',
       editorCallback: (editor, view) => {
-        this.lintFrontmatter(view.file);
+        void this.lintFrontmatter(view.file);
       },
     });
 
@@ -109,20 +114,20 @@ export default class MetadataManagerPlugin extends Plugin {
     console.log('Metadata Manager plugin loaded');
   }
 
-  onunload() {
+  public onunload(): void {
     console.log('Metadata Manager plugin unloaded');
   }
 
-  async loadSettings(): Promise<void> {
+  public async loadSettings(): Promise<void> {
     const data = await this.loadData();
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, data as Partial<MetadataManagerSettings>);
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, data as Partial<MetadataManagerSettings> | null);
   }
 
-  async saveSettings() {
+  public async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
   }
 
-  private async onFileCreate(file: TAbstractFile) {
+  private async onFileCreate(file: TAbstractFile): Promise<void> {
     if (!(file instanceof TFile) || !file.name.endsWith('.md')) {
       return;
     }
@@ -134,7 +139,7 @@ export default class MetadataManagerPlugin extends Plugin {
     // Add to queue and process after delay
     this.newFileQueue.add(file.path);
 
-    setTimeout(async () => {
+    setTimeout(() => {
       if (this.newFileQueue.has(file.path)) {
         this.newFileQueue.delete(file.path);
         await this.processNewFile(file);
@@ -142,7 +147,7 @@ export default class MetadataManagerPlugin extends Plugin {
     }, this.settings.autoInsertDelay);
   }
 
-  private async onFileModify(file: TAbstractFile) {
+  private async onFileModify(file: TAbstractFile): Promise<void> {
     if (!(file instanceof TFile) || !file.name.endsWith('.md')) {
       return;
     }
@@ -153,7 +158,7 @@ export default class MetadataManagerPlugin extends Plugin {
     }
   }
 
-  private async processNewFile(file: TFile) {
+  private async processNewFile(file: TFile): Promise<void> {
     try {
       const content = await this.app.vault.read(file);
 
@@ -193,7 +198,7 @@ export default class MetadataManagerPlugin extends Plugin {
     });
   }
 
-  async insertFrontmatter(file: TFile) {
+  public async insertFrontmatter(file: TFile | null): Promise<void> {
     try {
       const content = await this.app.vault.read(file);
 
@@ -206,7 +211,7 @@ export default class MetadataManagerPlugin extends Plugin {
       const template = this.getTemplateForFile(file);
       const processedTemplate = this.processTemplate(template, file);
 
-      const newContent = processedTemplate + '\n\n' + content;
+      const newContent = `${processedTemplate}\n\n${content}`;
       await this.app.vault.modify(file, newContent);
 
       new Notice(`Frontmatter added to ${file.name}`);
@@ -248,7 +253,7 @@ export default class MetadataManagerPlugin extends Plugin {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
-  async formatFrontmatter(file: TFile) {
+  public async formatFrontmatter(file: TFile | null): Promise<void> {
     try {
       const content = await this.app.vault.read(file);
       const { frontmatter, body } = this.parseFrontmatter(content);
@@ -269,7 +274,7 @@ export default class MetadataManagerPlugin extends Plugin {
     }
   }
 
-  async lintFrontmatter(file: TFile) {
+  public async lintFrontmatter(file: TFile | null): Promise<void> {
     try {
       const content = await this.app.vault.read(file);
       const { frontmatter } = this.parseFrontmatter(content);
@@ -296,7 +301,7 @@ export default class MetadataManagerPlugin extends Plugin {
     const frontmatterRegex = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
     const match = content.match(frontmatterRegex);
 
-    if (!match) {
+    if (match === null) {
       return { frontmatter: null, body: content };
     }
 
@@ -334,25 +339,21 @@ export default class MetadataManagerPlugin extends Plugin {
 
     // Check required fields
     for (const field of this.settings.requiredFields) {
-      if (
-        !(field in frontmatter) ||
-        frontmatter[field] === '' ||
-        frontmatter[field] == null
-      ) {
+      if (!(field in frontmatter) || frontmatter[field] === '' || frontmatter[field] === null) {
         issues.push(`Missing required field: ${field}`);
       }
     }
 
     // Check field types
-    if (frontmatter.created && !this.isValidDate(frontmatter.created)) {
+    if (frontmatter.created !== undefined && !this.isValidDate(frontmatter.created)) {
       issues.push('Invalid created date format');
     }
 
-    if (frontmatter.modified && !this.isValidDate(frontmatter.modified)) {
+    if (frontmatter.modified !== undefined && !this.isValidDate(frontmatter.modified)) {
       issues.push('Invalid modified date format');
     }
 
-    if (frontmatter.tags && !Array.isArray(frontmatter.tags)) {
+    if (frontmatter.tags !== undefined && !Array.isArray(frontmatter.tags)) {
       issues.push('Tags should be an array');
     }
 
@@ -364,12 +365,12 @@ export default class MetadataManagerPlugin extends Plugin {
     return date.isValid();
   }
 
-  private async updateModifiedTimestamp(file: TFile) {
+  private async updateModifiedTimestamp(file: TFile): Promise<void> {
     try {
       const content = await this.app.vault.read(file);
       const { frontmatter, body } = this.parseFrontmatter(content);
 
-      if (!frontmatter) {
+      if (frontmatter === null) {
         return;
       }
 
@@ -385,14 +386,14 @@ export default class MetadataManagerPlugin extends Plugin {
 }
 
 class MetadataManagerSettingTab extends PluginSettingTab {
-  plugin: MetadataManagerPlugin;
+  public plugin: MetadataManagerPlugin;
 
   constructor(app: App, plugin: MetadataManagerPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
 
-  display(): void {
+  public display(): void {
     const { containerEl } = this;
     containerEl.empty();
 
