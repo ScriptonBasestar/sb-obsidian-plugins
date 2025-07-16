@@ -10,9 +10,9 @@ import {
   FuzzySuggestModal,
   Component,
 } from 'obsidian';
+
 import { ScriptonApiService } from './scripton-api-service';
 import { PublisherScriptonSettings, PublishOptions, PublishResult, getErrorMessage } from './types';
-
 
 const DEFAULT_SETTINGS: PublisherScriptonSettings = {
   // API settings
@@ -46,11 +46,11 @@ const DEFAULT_SETTINGS: PublisherScriptonSettings = {
 };
 
 export default class PublisherScriptonPlugin extends Plugin {
-  settings: PublisherScriptonSettings;
-  private apiService: ScriptonApiService;
-  private statusBarItem: HTMLElement;
+  public settings: PublisherScriptonSettings;
+  private apiService: ScriptonApiService | null = null;
+  private statusBarItem: HTMLElement | null = null;
 
-  async onload() {
+  public async onload(): Promise<void> {
     await this.loadSettings();
 
     // Initialize API service
@@ -66,7 +66,7 @@ export default class PublisherScriptonPlugin extends Plugin {
       name: 'Publish Current Note',
       editorCallback: (editor, view) => {
         if (view.file) {
-          this.publishNote(view.file);
+          void this.publishNote(view.file);
         }
       },
     });
@@ -77,7 +77,7 @@ export default class PublisherScriptonPlugin extends Plugin {
       callback: () => {
         new NoteSelectionModal(this.app, (file) => {
           new PublishOptionsModal(this.app, this.settings, (options) => {
-            this.publishNote(file, options);
+            void this.publishNote(file, options);
           }).open();
         }).open();
       },
@@ -88,7 +88,7 @@ export default class PublisherScriptonPlugin extends Plugin {
       name: 'Publish Folder',
       callback: () => {
         new FolderSelectionModal(this.app, (folder) => {
-          this.publishFolder(folder);
+          void this.publishFolder(folder);
         }).open();
       },
     });
@@ -96,14 +96,16 @@ export default class PublisherScriptonPlugin extends Plugin {
     this.addCommand({
       id: 'test-api-connection',
       name: 'Test API Connection',
-      callback: () => this.testApiConnection(),
+      callback: () => { void this.testApiConnection(); },
     });
 
     this.addCommand({
       id: 'view-publish-logs',
       name: 'View Publish Logs',
       callback: () => {
-        new PublishLogsModal(this.app, this.apiService.getLogs()).open();
+        if (this.apiService !== null) {
+          new PublishLogsModal(this.app, this.apiService.getLogs()).open();
+        }
       },
     });
 
@@ -113,28 +115,28 @@ export default class PublisherScriptonPlugin extends Plugin {
     console.log('Publisher Scripton plugin loaded');
   }
 
-  onunload() {
+  public onunload(): void {
     console.log('Publisher Scripton plugin unloaded');
   }
 
-  async loadSettings() {
+  public async loadSettings(): Promise<void> {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
-  async saveSettings() {
+  public async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
 
     // Update API service settings
-    if (this.apiService) {
+    if (this.apiService !== null) {
       this.apiService.updateSettings(this.settings);
     }
   }
 
-  private updateStatusBar(text: string) {
-    this.statusBarItem.setText(`Scripton: ${text}`);
+  private updateStatusBar(text: string): void {
+    this.statusBarItem?.setText(`Scripton: ${text}`);
   }
 
-  async publishNote(file: TFile, options?: PublishOptions) {
+  public async publishNote(file: TFile, options?: PublishOptions): Promise<void> {
     if (!this.settings.enablePublishing) {
       new Notice('Publishing is disabled in settings');
       return;
@@ -160,6 +162,11 @@ export default class PublisherScriptonPlugin extends Plugin {
         preserveLinks: options?.preserveLinks ?? this.settings.preserveLinks,
       };
 
+      if (this.apiService === null) {
+        new Notice('API service not initialized');
+        return;
+      }
+
       const result = await this.apiService.publishNote(publishOptions);
 
       if (result.success) {
@@ -176,7 +183,7 @@ export default class PublisherScriptonPlugin extends Plugin {
     }
   }
 
-  async publishFolder(folder: TFolder) {
+  public async publishFolder(folder: TFolder): Promise<void> {
     if (!this.settings.enablePublishing) {
       new Notice('Publishing is disabled in settings');
       return;
@@ -211,7 +218,7 @@ export default class PublisherScriptonPlugin extends Plugin {
   private getMarkdownFilesInFolder(folder: TFolder): TFile[] {
     const files: TFile[] = [];
 
-    const processFolder = (currentFolder: TFolder) => {
+    const processFolder = (currentFolder: TFolder): void => {
       for (const child of currentFolder.children) {
         if (child instanceof TFile && child.extension === 'md') {
           files.push(child);
@@ -252,7 +259,7 @@ export default class PublisherScriptonPlugin extends Plugin {
 
   private convertWikiLinksToMarkdown(content: string): string {
     // Convert [[link]] to [link](link)
-    return content.replace(/\[\[([^\]]+)\]\]/g, (match, linkText) => {
+    return content.replace(/\[\[([^\]]+)\]\]/g, (_match, linkText) => {
       const parts = linkText.split('|');
       const link = parts[0].trim();
       const display = parts[1]?.trim() || link;
@@ -273,6 +280,9 @@ export default class PublisherScriptonPlugin extends Plugin {
       if (attachmentFile) {
         try {
           // Upload attachment and get URL
+          if (this.apiService === null) {
+            continue;
+          }
           const uploadResult = await this.apiService.uploadAttachment(attachmentFile);
           if (uploadResult.success) {
             processedContent = processedContent.replace(
@@ -304,7 +314,7 @@ export default class PublisherScriptonPlugin extends Plugin {
     }
 
     // Extract inline tags
-    const inlineTagMatches = content.matchAll(/#[\w\/-]+/g);
+    const inlineTagMatches = content.matchAll(/#[\w/-]+/g);
     for (const match of inlineTagMatches) {
       const tag = match[0].substring(1); // Remove #
       if (!tags.includes(tag)) {
@@ -315,7 +325,7 @@ export default class PublisherScriptonPlugin extends Plugin {
     return tags;
   }
 
-  async testApiConnection() {
+  public async testApiConnection(): Promise<void> {
     if (!this.settings.apiKey) {
       new Notice('API key not configured');
       return;
@@ -323,6 +333,10 @@ export default class PublisherScriptonPlugin extends Plugin {
 
     try {
       this.updateStatusBar('Testing connection...');
+      if (this.apiService === null) {
+        new Notice('API service not initialized');
+        return;
+      }
       const result = await this.apiService.testConnection();
 
       if (result.success) {
@@ -334,7 +348,7 @@ export default class PublisherScriptonPlugin extends Plugin {
       }
     } catch (error) {
       console.error('API test error:', error);
-      new Notice(`Connection test error: ${error.message}`);
+      new Notice(`Connection test error: ${getErrorMessage(error)}`);
       this.updateStatusBar('Test error');
     }
   }

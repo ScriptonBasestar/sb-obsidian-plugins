@@ -155,7 +155,7 @@ export class ScriptonApiService {
 
   private async retryPublishNote(
     options: PublishNoteOptions,
-    attempt: number = 1
+    attempt = 1
   ): Promise<PublishResult> {
     if (attempt > this.settings.maxRetries) {
       this.log('error', `Max retries exceeded for note: ${options.title}`);
@@ -259,7 +259,11 @@ export class ScriptonApiService {
     }
   }
 
-  async getUserInfo(): Promise<{ success: boolean; user?: Record<string, unknown>; error?: string }> {
+  async getUserInfo(): Promise<{
+    success: boolean;
+    user?: Record<string, unknown>;
+    error?: string;
+  }> {
     try {
       const response: AxiosResponse = await this.api.get('/user');
 
