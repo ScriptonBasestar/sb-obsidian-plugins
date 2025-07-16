@@ -60,7 +60,7 @@ pnpm -v
 pnpm run build:all
 
 # 개별 플러그인 빌드 (선택사항)
-cd packages/template-generator
+cd plugins/template-generator
 pnpm run build
 
 cd ../git-sync
@@ -85,10 +85,10 @@ pnpm run build
 OBSIDIAN_PLUGINS_DIR="~/Library/Application Support/obsidian/plugins"
 
 # 각 플러그인 복사
-cp -r packages/template-generator "$OBSIDIAN_PLUGINS_DIR/"
-cp -r packages/git-sync "$OBSIDIAN_PLUGINS_DIR/"
-cp -r packages/metadata-manager "$OBSIDIAN_PLUGINS_DIR/"
-cp -r packages/publisher-scripton "$OBSIDIAN_PLUGINS_DIR/"
+cp -r plugins/template-generator "$OBSIDIAN_PLUGINS_DIR/"
+cp -r plugins/git-sync "$OBSIDIAN_PLUGINS_DIR/"
+cp -r plugins/metadata-manager "$OBSIDIAN_PLUGINS_DIR/"
+cp -r plugins/publisher-scripton "$OBSIDIAN_PLUGINS_DIR/"
 ```
 
 ## 🔧 개별 플러그인 설치
@@ -97,7 +97,7 @@ cp -r packages/publisher-scripton "$OBSIDIAN_PLUGINS_DIR/"
 
 ```bash
 # 1. 플러그인 디렉토리로 이동
-cd packages/template-generator
+cd plugins/template-generator
 
 # 2. 의존성 설치 및 빌드
 pnpm install
@@ -116,7 +116,7 @@ cp styles.css "$PLUGIN_DIR/" 2>/dev/null || true
 
 ```bash
 # 1. 플러그인 디렉토리로 이동
-cd packages/git-sync
+cd plugins/git-sync
 
 # 2. 의존성 설치 및 빌드
 pnpm install
@@ -132,7 +132,7 @@ cp main.js manifest.json "$PLUGIN_DIR/"
 
 ```bash
 # 1. 플러그인 디렉토리로 이동
-cd packages/metadata-manager
+cd plugins/metadata-manager
 
 # 2. 의존성 설치 및 빌드
 pnpm install
@@ -148,7 +148,7 @@ cp main.js manifest.json "$PLUGIN_DIR/"
 
 ```bash
 # 1. 플러그인 디렉토리로 이동
-cd packages/publisher-scripton
+cd plugins/publisher-scripton
 
 # 2. 의존성 설치 및 빌드
 pnpm install
@@ -239,8 +239,8 @@ OBSIDIAN_PLUGINS_DIR="~/Library/Application Support/obsidian/plugins"
 
 for plugin in template-generator git-sync metadata-manager publisher-scripton; do
     echo "Updating $plugin..."
-    cp packages/$plugin/main.js "$OBSIDIAN_PLUGINS_DIR/$plugin/"
-    cp packages/$plugin/manifest.json "$OBSIDIAN_PLUGINS_DIR/$plugin/"
+    cp plugins/$plugin/main.js "$OBSIDIAN_PLUGINS_DIR/$plugin/"
+    cp plugins/$plugin/manifest.json "$OBSIDIAN_PLUGINS_DIR/$plugin/"
 done
 
 echo "All plugins updated!"
@@ -301,8 +301,8 @@ xcopy packages\template-generator\manifest.json "%APPDATA%\Obsidian\plugins\temp
 ~/Library/Application Support/obsidian/plugins/
 
 # 설치 명령어 예시
-cp packages/template-generator/main.js "~/Library/Application Support/obsidian/plugins/template-generator/"
-cp packages/template-generator/manifest.json "~/Library/Application Support/obsidian/plugins/template-generator/"
+cp plugins/template-generator/main.js "~/Library/Application Support/obsidian/plugins/template-generator/"
+cp plugins/template-generator/manifest.json "~/Library/Application Support/obsidian/plugins/template-generator/"
 ```
 
 ### Linux
@@ -312,8 +312,8 @@ cp packages/template-generator/manifest.json "~/Library/Application Support/obsi
 ~/.config/obsidian/plugins/
 
 # 설치 명령어 예시
-cp packages/template-generator/main.js ~/.config/obsidian/plugins/template-generator/
-cp packages/template-generator/manifest.json ~/.config/obsidian/plugins/template-generator/
+cp plugins/template-generator/main.js ~/.config/obsidian/plugins/template-generator/
+cp plugins/template-generator/manifest.json ~/.config/obsidian/plugins/template-generator/
 ```
 
 ## 🔐 보안 고려사항
@@ -322,10 +322,10 @@ cp packages/template-generator/manifest.json ~/.config/obsidian/plugins/template
 
 ```bash
 # 1. 체크섬 확인
-sha256sum packages/template-generator/main.js
+sha256sum plugins/template-generator/main.js
 
 # 2. 코드 검토
-cat packages/template-generator/src/main.ts | head -50
+cat plugins/template-generator/src/main.ts | head -50
 
 # 3. 의존성 검토
 pnpm audit

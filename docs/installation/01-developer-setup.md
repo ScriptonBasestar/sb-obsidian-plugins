@@ -72,10 +72,10 @@ cd ~/obsidian-dev-vault
 mkdir -p .obsidian/plugins
 
 # 3. 개발용 플러그인 심볼릭 링크 생성
-ln -s /path/to/sb-obsidian-plugins/packages/template-generator .obsidian/plugins/
-ln -s /path/to/sb-obsidian-plugins/packages/git-sync .obsidian/plugins/
-ln -s /path/to/sb-obsidian-plugins/packages/metadata-manager .obsidian/plugins/
-ln -s /path/to/sb-obsidian-plugins/packages/publisher-scripton .obsidian/plugins/
+ln -s /path/to/sb-obsidian-plugins/plugins/template-generator .obsidian/plugins/
+ln -s /path/to/sb-obsidian-plugins/plugins/git-sync .obsidian/plugins/
+ln -s /path/to/sb-obsidian-plugins/plugins/metadata-manager .obsidian/plugins/
+ln -s /path/to/sb-obsidian-plugins/plugins/publisher-scripton .obsidian/plugins/
 ```
 
 ### 2. Obsidian 설정
@@ -102,11 +102,11 @@ ln -s /path/to/sb-obsidian-plugins/packages/publisher-scripton .obsidian/plugins
 
 ```bash
 # 각 플러그인 디렉토리에서 개발 모드 실행
-cd packages/template-generator
+cd plugins/template-generator
 pnpm run dev  # 파일 변경 시 자동 빌드
 
 # 별도 터미널에서
-cd packages/git-sync
+cd plugins/git-sync
 pnpm run dev
 
 # 모든 패키지 동시 개발 모드
@@ -147,8 +147,8 @@ git push origin feature/new-awesome-feature
       "type": "node",
       "request": "launch",
       "name": "Debug Plugin",
-      "program": "${workspaceFolder}/packages/template-generator/src/main.ts",
-      "outFiles": ["${workspaceFolder}/packages/template-generator/dist/**/*.js"],
+      "program": "${workspaceFolder}/plugins/template-generator/src/main.ts",
+      "outFiles": ["${workspaceFolder}/plugins/template-generator/dist/**/*.js"],
       "sourceMaps": true,
       "console": "integratedTerminal"
     }
@@ -178,7 +178,7 @@ pnpm run test:coverage
 
 ```
 sb-obsidian-plugins/
-├── packages/                    # 개별 플러그인
+├── plugins/                    # 개별 플러그인
 │   ├── template-generator/      # 템플릿 생성기
 │   ├── git-sync/               # Git 동기화
 │   ├── metadata-manager/       # 메타데이터 관리
@@ -210,7 +210,7 @@ sb-obsidian-plugins/
 ### 1. 단위 테스트 (Vitest)
 
 ```typescript
-// packages/template-generator/src/__tests__/main.test.ts
+// plugins/template-generator/src/__tests__/main.test.ts
 import { describe, it, expect, vi } from 'vitest';
 import { TemplateGenerator } from '../main';
 
@@ -226,7 +226,7 @@ describe('TemplateGenerator', () => {
 ### 2. 통합 테스트 (Obsidian Mock)
 
 ```typescript
-// packages/template-generator/src/__tests__/integration.test.ts
+// plugins/template-generator/src/__tests__/integration.test.ts
 import { App, TFile } from 'obsidian';
 import { TemplateGenerator } from '../main';
 

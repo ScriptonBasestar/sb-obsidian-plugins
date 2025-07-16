@@ -69,7 +69,7 @@ for plugin in "${PLUGINS[@]}"; do
     git init
 
     # 3. 플러그인 파일 복사
-    cp -r "../../packages/$plugin/"* .
+    cp -r "../../plugins/$plugin/"* .
 
     # 4. 공통 파일 복사
     cp ../../LICENSE .

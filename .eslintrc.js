@@ -4,7 +4,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: ['./tsconfig.json', './packages/*/tsconfig.json', './shared/tsconfig.json'],
+    project: ['./tsconfig.json', './plugins/*/tsconfig.json', './shared/tsconfig.json'],
   },
   env: {
     browser: true,

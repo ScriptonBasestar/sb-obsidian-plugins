@@ -92,8 +92,8 @@ pnpm build
 pnpm --filter @sb-obsidian-plugins/template-generator build
 
 # Link plugins to your Obsidian vault
-ln -s "$(pwd)/packages/template-generator" "/path/to/your/vault/.obsidian/plugins/template-generator"
-ln -s "$(pwd)/packages/git-sync" "/path/to/your/vault/.obsidian/plugins/git-sync"
+ln -s "$(pwd)/plugins/template-generator" "/path/to/your/vault/.obsidian/plugins/template-generator"
+ln -s "$(pwd)/plugins/git-sync" "/path/to/your/vault/.obsidian/plugins/git-sync"
 # ... repeat for other plugins
 ```
 

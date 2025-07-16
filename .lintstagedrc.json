@@ -2,7 +2,7 @@
   "*.{ts,tsx}": ["eslint --fix --max-warnings 0", "prettier --write"],
   "*.{js,jsx}": ["eslint --fix --max-warnings 0", "prettier --write"],
   "*.{json,md,yaml,yml}": ["prettier --write"],
-  "packages/{git-sync,metadata-manager,publisher-scripton}/src/**/*.ts": [
+  "plugins/{git-sync,metadata-manager,publisher-scripton}/src/**/*.ts": [
     "bash -c 'cd $(git rev-parse --show-toplevel) && pnpm --filter $(basename $(dirname $(dirname $0))) run typecheck'"
   ],
   "shared/src/**/*.ts": [
