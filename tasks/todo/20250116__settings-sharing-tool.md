@@ -32,10 +32,10 @@ original_backlog: /tasks/backlog/refined/20250116__settings-sharing-tool.md
 - [x] 프로필 내보내기/가져오기 기능 구현 (effort: 2h)
 
 ### Phase 4: Obsidian Init 자동화 (effort: 1.5d)
-- [ ] Init 명령어 및 CLI 스타일 마법사 구현 (priority: high)
-- [ ] 플러그인 자동 설치 스크립트 구현 (effort: 4h)
-- [ ] 테마 및 CSS 스니펫 자동 배포 시스템 (effort: 3h)
-- [ ] 핫키 설정 병합 및 충돌 해결 로직 (effort: 3h)
+- [x] Init 명령어 및 CLI 스타일 마법사 구현 (priority: high)
+- [x] 플러그인 자동 설치 스크립트 구현 (effort: 4h)
+- [x] 테마 및 CSS 스니펫 자동 배포 시스템 (effort: 3h)
+- [x] 핫키 설정 병합 및 충돌 해결 로직 (effort: 3h)
 
 ### Phase 5: UI 및 사용자 경험 (effort: 1d)
 - [ ] 설정 공유 관리 패널 UI 구현 (priority: medium)
