@@ -203,11 +203,12 @@ export class LLMService {
    * Build prompt from context
    */
   private buildPrompt(context: CommitContext): string {
-    let prompt = this.settings.commitPrompt || 'Generate a commit message for the following changes:\n\n';
+    let prompt =
+      this.settings.commitPrompt || 'Generate a commit message for the following changes:\n\n';
 
     // Add file information
     prompt += `Files changed (${context.stats.files}):\n`;
-    context.files.slice(0, 20).forEach(file => {
+    context.files.slice(0, 20).forEach((file) => {
       prompt += `- ${file}\n`;
     });
     if (context.files.length > 20) {

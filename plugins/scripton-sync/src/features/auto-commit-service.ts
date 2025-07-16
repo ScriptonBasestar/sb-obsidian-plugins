@@ -1,8 +1,10 @@
 import { Vault, TFile, TFolder, Notice } from 'obsidian';
+
 import { GitService } from '../core/git-service';
-import { LLMService } from './llm-service';
-import { BranchStrategyManager } from './branch-strategy';
 import { ScriptonSyncSettings, GitResult, BranchConfig } from '../types';
+
+import { BranchStrategyManager } from './branch-strategy';
+import { LLMService } from './llm-service';
 
 export interface CommitResult {
   success: boolean;
@@ -29,8 +31,8 @@ export class AutoCommitService {
   private llmService: LLMService | null = null;
   private branchManager: BranchStrategyManager;
   private intervalId: NodeJS.Timeout | null = null;
-  private commitCount: number = 0;
-  private lastCommitTime: number = 0;
+  private commitCount = 0;
+  private lastCommitTime = 0;
 
   constructor(
     gitService: GitService,
@@ -42,7 +44,7 @@ export class AutoCommitService {
     this.settings = settings;
     this.vault = vault;
     this.branchManager = branchManager;
-    
+
     if (settings.enableAICommitMessages && settings.llmProvider !== 'none') {
       this.llmService = new LLMService({
         provider: settings.llmProvider,
@@ -153,7 +155,7 @@ export class AutoCommitService {
       }
 
       // Generate commit message
-      let commitMessage = await this.generateCommitMessage(status);
+      const commitMessage = await this.generateCommitMessage(status);
 
       // Commit changes
       const commitResult = await this.gitService.commit(commitMessage);
@@ -174,9 +176,7 @@ export class AutoCommitService {
         hash: commitResult.data?.hash,
       };
 
-      new Notice(
-        `Auto commit successful: ${result.filesChanged} files changed`
-      );
+      new Notice(`Auto commit successful: ${result.filesChanged} files changed`);
 
       // Handle auto push if enabled
       if (this.settings.enableAutoPush && this.commitCount >= this.settings.pushAfterCommits) {
@@ -228,7 +228,7 @@ export class AutoCommitService {
     const timestamp = new Date().toLocaleString();
     const fileCount = status.staged.length + status.unstaged.length + status.untracked.length;
     const hostname = require('os').hostname();
-    
+
     return `Auto commit from ${hostname} - ${fileCount} files changed (${timestamp})`;
   }
 
@@ -271,7 +271,7 @@ export class AutoCommitService {
 
       if (result.success && !result.data?.skipped) {
         new Notice('Auto merge to default branch successful');
-        
+
         // Push the merged changes
         await this.gitService.push('origin', this.settings.defaultBranch);
       }
@@ -292,9 +292,8 @@ export class AutoCommitService {
   } {
     const now = Date.now();
     const intervalMs = this.settings.commitIntervalMinutes * 60 * 1000;
-    const nextCommit = this.intervalId && this.lastCommitTime
-      ? this.lastCommitTime + intervalMs
-      : null;
+    const nextCommit =
+      this.intervalId && this.lastCommitTime ? this.lastCommitTime + intervalMs : null;
 
     return {
       enabled: this.settings.enableAutoCommit,

@@ -5,10 +5,13 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "node esbuild.config.mjs production",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "lint": "eslint src --ext .ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "clean": "rm -rf dist lib",
+    "release": "npm run build && zip -r scripton-sync.zip main.js manifest.json styles.css"
   },
   "keywords": [
     "obsidian",

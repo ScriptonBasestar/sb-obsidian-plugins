@@ -1,7 +1,9 @@
+import * as os from 'os';
+
 import { Notice } from 'obsidian';
+
 import { GitService } from '../core/git-service';
 import { BranchStrategy, BranchConfig, GitResult } from '../types';
-import * as os from 'os';
 
 export class BranchStrategyManager {
   private gitService: GitService;
@@ -42,28 +44,28 @@ export class BranchStrategyManager {
   private async initDevelopHostStrategy(config: BranchConfig): Promise<GitResult> {
     try {
       const branchName = `${config.developPrefix}${this.hostname}`;
-      
+
       // Check if branch already exists
       const branchExists = await this.gitService.branchExists(branchName);
-      
+
       if (!branchExists) {
         // Create the host branch from default branch
         await this.gitService.switchBranch(config.defaultBranch);
         const result = await this.gitService.createHostBranch(config.developPrefix);
-        
+
         if (result.success) {
           new Notice(`Created branch: ${branchName}`);
         }
-        
+
         return result;
       } else {
         // Switch to existing branch
         const result = await this.gitService.switchBranch(branchName);
-        
+
         if (result.success) {
           new Notice(`Switched to branch: ${branchName}`);
         }
-        
+
         return result;
       }
     } catch (error) {
@@ -110,21 +112,18 @@ export class BranchStrategyManager {
   /**
    * Create a feature branch
    */
-  async createFeatureBranch(
-    featureName: string, 
-    config: BranchConfig
-  ): Promise<GitResult> {
+  async createFeatureBranch(featureName: string, config: BranchConfig): Promise<GitResult> {
     try {
       const branchName = `${config.featurePrefix}${featureName}`;
-      
+
       // Switch to default branch first
       await this.gitService.switchBranch(config.defaultBranch);
-      
+
       // Create the feature branch
       await this.gitService.createHostBranch(branchName);
-      
+
       new Notice(`Created feature branch: ${branchName}`);
-      
+
       return { success: true, data: { branch: branchName } };
     } catch (error) {
       console.error('Failed to create feature branch:', error);
@@ -138,32 +137,30 @@ export class BranchStrategyManager {
   async mergeToDefault(config: BranchConfig): Promise<GitResult> {
     try {
       const currentBranch = await this.gitService.getCurrentBranch();
-      
+
       if (currentBranch === config.defaultBranch) {
-        return { 
-          success: false, 
-          error: 'Already on default branch' 
+        return {
+          success: false,
+          error: 'Already on default branch',
         };
       }
 
       // Switch to default branch
       await this.gitService.switchBranch(config.defaultBranch);
-      
+
       // Merge with appropriate strategy
       const mergeStrategy = config.squashMerge ? 'squash' : 'merge';
       const result = await this.gitService.merge(currentBranch, mergeStrategy);
-      
+
       if (result.success && config.squashMerge) {
         // If squash merge, we need to commit
-        await this.gitService.commit(
-          `Squash merge from ${currentBranch}`
-        );
+        await this.gitService.commit(`Squash merge from ${currentBranch}`);
       }
-      
+
       if (result.success) {
         new Notice(`Merged ${currentBranch} to ${config.defaultBranch}`);
       }
-      
+
       return result;
     } catch (error) {
       console.error('Failed to merge to default:', error);
@@ -180,23 +177,19 @@ export class BranchStrategyManager {
     }
 
     const currentBranch = await this.gitService.getCurrentBranch();
-    
+
     // Only auto-merge from develop/host branches
-    if (config.strategy === 'develop-host' && 
-        currentBranch.startsWith(config.developPrefix)) {
+    if (config.strategy === 'develop-host' && currentBranch.startsWith(config.developPrefix)) {
       return await this.mergeToDefault(config);
     }
-    
+
     return { success: true, data: { skipped: true } };
   }
 
   /**
    * Get branch name for current strategy
    */
-  async getBranchForStrategy(
-    strategy: BranchStrategy, 
-    config: BranchConfig
-  ): Promise<string> {
+  async getBranchForStrategy(strategy: BranchStrategy, config: BranchConfig): Promise<string> {
     switch (strategy) {
       case 'develop-host':
         return `${config.developPrefix}${this.hostname}`;
@@ -210,31 +203,30 @@ export class BranchStrategyManager {
   /**
    * Clean up old branches
    */
-  async cleanupOldBranches(
-    config: BranchConfig, 
-    daysOld: number = 30
-  ): Promise<GitResult> {
+  async cleanupOldBranches(config: BranchConfig, daysOld = 30): Promise<GitResult> {
     try {
       const branches = await this.gitService.listBranches();
       const currentBranch = await this.gitService.getCurrentBranch();
       const now = new Date();
-      
+
       let deletedCount = 0;
-      
+
       for (const branch of branches) {
         // Skip current branch, default branch, and remote branches
-        if (branch === currentBranch || 
-            branch === config.defaultBranch ||
-            branch.includes('remotes/')) {
+        if (
+          branch === currentBranch ||
+          branch === config.defaultBranch ||
+          branch.includes('remotes/')
+        ) {
           continue;
         }
-        
+
         // Check if branch is old enough
         const lastCommit = await this.gitService.getCommitHistory(1);
         if (lastCommit.length > 0) {
           const commitDate = new Date(lastCommit[0].date);
           const daysDiff = (now.getTime() - commitDate.getTime()) / (1000 * 60 * 60 * 24);
-          
+
           if (daysDiff > daysOld) {
             // Delete the branch
             await this.gitService.git.branch(['-d', branch]);
@@ -242,14 +234,14 @@ export class BranchStrategyManager {
           }
         }
       }
-      
+
       if (deletedCount > 0) {
         new Notice(`Cleaned up ${deletedCount} old branches`);
       }
-      
-      return { 
-        success: true, 
-        data: { deletedCount } 
+
+      return {
+        success: true,
+        data: { deletedCount },
       };
     } catch (error) {
       console.error('Failed to cleanup old branches:', error);
@@ -268,9 +260,9 @@ export class BranchStrategyManager {
   }> {
     const status = await this.gitService.getStatus();
     const branchName = status.currentBranch;
-    
+
     let type: 'develop' | 'feature' | 'default' | 'other' = 'other';
-    
+
     if (branchName.startsWith('develop/')) {
       type = 'develop';
     } else if (branchName.startsWith('feature/')) {
@@ -278,12 +270,12 @@ export class BranchStrategyManager {
     } else if (branchName === 'main' || branchName === 'master') {
       type = 'default';
     }
-    
+
     return {
       name: branchName,
       type,
       ahead: status.ahead,
-      behind: status.behind
+      behind: status.behind,
     };
   }
 }

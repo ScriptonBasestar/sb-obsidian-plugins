@@ -12,39 +12,39 @@ export interface ScriptonSyncSettings {
   activeProfile: string;
   scriptonCloudUrl?: string;
   scriptonCloudApiKey?: string;
-  
+
   // Git configuration
   gitConfig?: GitConfig;
-  
+
   // Branch strategy
   branchStrategy: BranchStrategy;
   defaultBranch: string;
   tempBranchPrefix: string;
   autoMergeToDefault: boolean;
-  
+
   // Auto sync settings
   autoSync: boolean;
   syncInterval: number;
-  
+
   // Auto commit settings
   enableAutoCommit: boolean;
   commitIntervalMinutes: number;
   includeUntracked: boolean;
-  
+
   // Auto push settings
   enableAutoPush: boolean;
   pushAfterCommits: number;
-  
+
   // Auto pull settings
   enableAutoPull: boolean;
   pullOnStartup: boolean;
   pullOnStartupDelay: number;
   pullOnStartupSilent: boolean;
-  
+
   // Merge settings
   enableAutoMerge: boolean;
   mergeStrategy: 'merge' | 'rebase' | 'squash';
-  
+
   // LLM settings for commit messages
   enableAICommitMessages: boolean;
   llmProvider: 'none' | 'openai' | 'anthropic';
@@ -52,16 +52,16 @@ export interface ScriptonSyncSettings {
   commitPrompt: string;
   useTemplateEngine: boolean;
   selectedTemplate: string;
-  
+
   // Conflict resolution
   conflictResolution: 'manual' | 'merge' | 'overwrite';
   openEditorOnConflict: boolean;
   editorCommand: string;
-  
+
   // File exclusions and security
   excludedFiles: string[];
   sensitiveKeys: string[];
-  
+
   // Metadata
   lastSync: string;
 }
@@ -101,7 +101,7 @@ export interface ProfileSettings {
 export interface PluginSettings {
   id: string;
   enabled: boolean;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
 }
 
 export interface AppearanceSettings {
@@ -123,7 +123,7 @@ export interface HotkeySettings {
 export interface CorePluginSettings {
   [pluginId: string]: {
     enabled: boolean;
-    settings?: Record<string, any>;
+    settings?: Record<string, unknown>;
   };
 }
 
@@ -156,7 +156,7 @@ export interface GitResult {
   success: boolean;
   error?: string;
   conflicts?: boolean;
-  data?: any;
+  data?: unknown;
 }
 
 // Sync related types
@@ -191,7 +191,7 @@ export interface CloudSyncResult {
 
 // General types
 export interface ObsidianSettings {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Default settings
@@ -201,39 +201,39 @@ export const DEFAULT_SETTINGS: ScriptonSyncSettings = {
   activeProfile: '',
   scriptonCloudUrl: 'https://scripton.cloud',
   scriptonCloudApiKey: '',
-  
+
   // Git configuration
   gitConfig: undefined,
-  
+
   // Branch strategy
   branchStrategy: 'develop-host',
   defaultBranch: 'main',
   tempBranchPrefix: 'develop/',
   autoMergeToDefault: true,
-  
+
   // Auto sync
   autoSync: false,
   syncInterval: 30,
-  
+
   // Auto commit
   enableAutoCommit: false,
   commitIntervalMinutes: 10,
   includeUntracked: true,
-  
+
   // Auto push
   enableAutoPush: false,
   pushAfterCommits: 5,
-  
+
   // Auto pull
   enableAutoPull: false,
   pullOnStartup: true,
   pullOnStartupDelay: 10,
   pullOnStartupSilent: true,
-  
+
   // Merge settings
   enableAutoMerge: false,
   mergeStrategy: 'squash',
-  
+
   // LLM settings
   enableAICommitMessages: false,
   llmProvider: 'none',
@@ -241,12 +241,12 @@ export const DEFAULT_SETTINGS: ScriptonSyncSettings = {
   commitPrompt: 'Generate a concise commit message for the following changes:',
   useTemplateEngine: false,
   selectedTemplate: 'default',
-  
+
   // Conflict resolution
   conflictResolution: 'manual',
   openEditorOnConflict: true,
   editorCommand: 'code',
-  
+
   // File exclusions
   excludedFiles: [
     'workspace.json',
@@ -254,19 +254,12 @@ export const DEFAULT_SETTINGS: ScriptonSyncSettings = {
     'graph.json',
     'canvas.json',
     '.obsidian/workspace',
-    '.obsidian/workspaces.json'
+    '.obsidian/workspaces.json',
   ],
-  
+
   // Security
-  sensitiveKeys: [
-    'apiKey',
-    'token',
-    'password',
-    'secret',
-    'credential',
-    'auth'
-  ],
-  
+  sensitiveKeys: ['apiKey', 'token', 'password', 'secret', 'credential', 'auth'],
+
   // Metadata
-  lastSync: ''
+  lastSync: '',
 };

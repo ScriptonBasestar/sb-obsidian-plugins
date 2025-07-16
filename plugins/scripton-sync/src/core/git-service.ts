@@ -1,6 +1,8 @@
-import { simpleGit, SimpleGit, StatusResult } from 'simple-git';
-import { GitResult, GitStatus, GitConfig } from '../types';
 import * as os from 'os';
+
+import { simpleGit, SimpleGit, StatusResult } from 'simple-git';
+
+import { GitResult, GitStatus, GitConfig } from '../types';
 
 export class GitService {
   private git: SimpleGit;
@@ -16,15 +18,15 @@ export class GitService {
   /**
    * Initialize Git repository
    */
-  async init(defaultBranch: string = 'main'): Promise<GitResult> {
+  public async init(defaultBranch = 'main'): Promise<GitResult> {
     try {
       await this.git.init();
       await this.git.checkoutLocalBranch(defaultBranch);
-      
+
       // Create initial commit
       await this.git.add('.gitignore');
       await this.git.commit('Initial commit');
-      
+
       return { success: true };
     } catch (error) {
       console.error('Failed to initialize repository:', error);
@@ -35,7 +37,7 @@ export class GitService {
   /**
    * Check if repository is initialized
    */
-  async isInitialized(): Promise<boolean> {
+  public async isInitialized(): Promise<boolean> {
     try {
       await this.git.status();
       return true;
@@ -47,7 +49,7 @@ export class GitService {
   /**
    * Configure git author
    */
-  async configureAuthor(config: GitConfig['author']): Promise<GitResult> {
+  public async configureAuthor(config: GitConfig['author']): Promise<GitResult> {
     try {
       await this.git.addConfig('user.name', config.name);
       await this.git.addConfig('user.email', config.email);
@@ -61,7 +63,7 @@ export class GitService {
   /**
    * Get the current git status
    */
-  async getStatus(): Promise<GitStatus> {
+  public async getStatus(): Promise<GitStatus> {
     try {
       const status: StatusResult = await this.git.status();
       const branch = await this.git.revparse(['--abbrev-ref', 'HEAD']);
@@ -102,13 +104,13 @@ export class GitService {
   /**
    * Create a branch based on hostname
    */
-  async createHostBranch(prefix: string = 'develop/'): Promise<GitResult> {
+  public async createHostBranch(prefix = 'develop/'): Promise<GitResult> {
     try {
       const branchName = `${prefix}${this.hostname}`;
       await this.git.checkoutLocalBranch(branchName);
-      return { 
-        success: true, 
-        data: { branch: branchName }
+      return {
+        success: true,
+        data: { branch: branchName },
       };
     } catch (error) {
       console.error('Failed to create host branch:', error);
@@ -119,7 +121,7 @@ export class GitService {
   /**
    * Switch to branch
    */
-  async switchBranch(branch: string): Promise<GitResult> {
+  public async switchBranch(branch: string): Promise<GitResult> {
     try {
       await this.git.checkout(branch);
       return { success: true };
@@ -132,10 +134,7 @@ export class GitService {
   /**
    * Add files to staging area
    */
-  async addFiles(
-    files: string[] | '.' = '.',
-    includeUntracked: boolean = true
-  ): Promise<GitResult> {
+  public async addFiles(files: string[] | '.' = '.', includeUntracked = true): Promise<GitResult> {
     try {
       if (includeUntracked && files === '.') {
         await this.git.add('.');
@@ -155,7 +154,7 @@ export class GitService {
   /**
    * Commit staged changes
    */
-  async commit(message: string): Promise<GitResult> {
+  public async commit(message: string): Promise<GitResult> {
     try {
       const result = await this.git.commit(message);
       return {
@@ -174,14 +173,10 @@ export class GitService {
   /**
    * Push to remote
    */
-  async push(
-    remote: string = 'origin',
-    branch?: string,
-    setUpstream: boolean = false
-  ): Promise<GitResult> {
+  public async push(remote = 'origin', branch?: string, setUpstream = false): Promise<GitResult> {
     try {
       const currentBranch = branch || (await this.getCurrentBranch());
-      
+
       if (setUpstream) {
         await this.git.push(remote, currentBranch, ['--set-upstream']);
       } else {
@@ -198,14 +193,10 @@ export class GitService {
   /**
    * Pull from remote
    */
-  async pull(
-    remote: string = 'origin',
-    branch?: string,
-    rebase: boolean = false
-  ): Promise<GitResult> {
+  public async pull(remote = 'origin', branch?: string, rebase = false): Promise<GitResult> {
     try {
       const currentBranch = branch || (await this.getCurrentBranch());
-      
+
       if (rebase) {
         await this.git.pull(remote, currentBranch, ['--rebase']);
       } else {
@@ -215,16 +206,16 @@ export class GitService {
       return { success: true };
     } catch (error) {
       console.error('Failed to pull:', error);
-      
+
       // Check if this is a conflict
       if (error.message.includes('conflict')) {
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: error.message,
-          conflicts: true
+          conflicts: true,
         };
       }
-      
+
       return { success: false, error: error.message };
     }
   }
@@ -232,7 +223,7 @@ export class GitService {
   /**
    * Merge branch
    */
-  async merge(
+  public async merge(
     sourceBranch: string,
     strategy: 'merge' | 'squash' | 'rebase' = 'merge'
   ): Promise<GitResult> {
@@ -251,15 +242,15 @@ export class GitService {
       return { success: true };
     } catch (error) {
       console.error('Failed to merge:', error);
-      
+
       if (error.message.includes('conflict')) {
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: error.message,
-          conflicts: true
+          conflicts: true,
         };
       }
-      
+
       return { success: false, error: error.message };
     }
   }
@@ -267,7 +258,7 @@ export class GitService {
   /**
    * Get current branch name
    */
-  async getCurrentBranch(): Promise<string> {
+  public async getCurrentBranch(): Promise<string> {
     try {
       const branch = await this.git.revparse(['--abbrev-ref', 'HEAD']);
       return branch.trim();
@@ -280,7 +271,7 @@ export class GitService {
   /**
    * List all branches
    */
-  async listBranches(includeRemote: boolean = false): Promise<string[]> {
+  public async listBranches(includeRemote = false): Promise<string[]> {
     try {
       const branches = await this.git.branch([includeRemote ? '-a' : '-l']);
       return branches.all;
@@ -293,7 +284,7 @@ export class GitService {
   /**
    * Check if branch exists
    */
-  async branchExists(branchName: string): Promise<boolean> {
+  public async branchExists(branchName: string): Promise<boolean> {
     try {
       const branches = await this.listBranches();
       return branches.includes(branchName);
@@ -306,7 +297,7 @@ export class GitService {
   /**
    * Add remote
    */
-  async addRemote(name: string, url: string): Promise<GitResult> {
+  public async addRemote(name: string, url: string): Promise<GitResult> {
     try {
       await this.git.addRemote(name, url);
       return { success: true };
@@ -319,7 +310,9 @@ export class GitService {
   /**
    * Get remotes
    */
-  async getRemotes(): Promise<Array<{name: string, refs: {fetch: string, push: string}}>> {
+  public async getRemotes(): Promise<
+    Array<{ name: string; refs: { fetch: string; push: string } }>
+  > {
     try {
       return await this.git.getRemotes(true);
     } catch (error) {
@@ -331,7 +324,7 @@ export class GitService {
   /**
    * Fetch from remote
    */
-  async fetch(remote: string = 'origin'): Promise<GitResult> {
+  public async fetch(remote = 'origin'): Promise<GitResult> {
     try {
       await this.git.fetch(remote);
       return { success: true };
@@ -344,7 +337,7 @@ export class GitService {
   /**
    * Get conflict files
    */
-  async getConflictFiles(): Promise<string[]> {
+  public async getConflictFiles(): Promise<string[]> {
     try {
       const status = await this.git.status();
       return status.conflicted;
@@ -357,7 +350,7 @@ export class GitService {
   /**
    * Abort merge
    */
-  async abortMerge(): Promise<GitResult> {
+  public async abortMerge(): Promise<GitResult> {
     try {
       await this.git.merge(['--abort']);
       return { success: true };
@@ -370,7 +363,7 @@ export class GitService {
   /**
    * Get commit history
    */
-  async getCommitHistory(limit: number = 10): Promise<any[]> {
+  public async getCommitHistory(limit = 10): Promise<unknown[]> {
     try {
       const log = await this.git.log(['-n', limit.toString()]);
       return log.all;
@@ -383,7 +376,7 @@ export class GitService {
   /**
    * Create and push tag
    */
-  async createTag(tagName: string, message?: string): Promise<GitResult> {
+  public async createTag(tagName: string, message?: string): Promise<GitResult> {
     try {
       if (message) {
         await this.git.tag(['-a', tagName, '-m', message]);
@@ -400,8 +393,8 @@ export class GitService {
   /**
    * Reset to specific commit
    */
-  async reset(
-    target: string = 'HEAD', 
+  public async reset(
+    target = 'HEAD',
     mode: 'soft' | 'mixed' | 'hard' = 'mixed'
   ): Promise<GitResult> {
     try {
@@ -416,7 +409,7 @@ export class GitService {
   /**
    * Stash changes
    */
-  async stash(message?: string): Promise<GitResult> {
+  public async stash(message?: string): Promise<GitResult> {
     try {
       if (message) {
         await this.git.stash(['push', '-m', message]);
@@ -433,7 +426,7 @@ export class GitService {
   /**
    * Apply stash
    */
-  async stashPop(): Promise<GitResult> {
+  public async stashPop(): Promise<GitResult> {
     try {
       await this.git.stash(['pop']);
       return { success: true };

@@ -1,10 +1,6 @@
 import { requestUrl, RequestUrlParam, Notice } from 'obsidian';
-import { 
-  ScriptonCloudConfig, 
-  CloudSyncResult, 
-  SettingsProfile, 
-  ChangeItem 
-} from '../types';
+
+import { ScriptonCloudConfig, CloudSyncResult, SettingsProfile, ChangeItem } from '../types';
 
 export interface CloudResponse<T = any> {
   success: boolean;
@@ -67,15 +63,12 @@ export class ScriptonCloudClient {
    */
   async getProfiles(): Promise<CloudProfile[]> {
     try {
-      const response = await this.request<{ profiles: CloudProfile[] }>(
-        'GET',
-        '/api/v1/profiles'
-      );
-      
+      const response = await this.request<{ profiles: CloudProfile[] }>('GET', '/api/v1/profiles');
+
       if (response.success && response.data) {
         return response.data.profiles;
       }
-      
+
       return [];
     } catch (error) {
       console.error('Failed to get profiles:', error);
@@ -88,15 +81,12 @@ export class ScriptonCloudClient {
    */
   async getProfile(profileId: string): Promise<CloudProfile | null> {
     try {
-      const response = await this.request<CloudProfile>(
-        'GET',
-        `/api/v1/profiles/${profileId}`
-      );
-      
+      const response = await this.request<CloudProfile>('GET', `/api/v1/profiles/${profileId}`);
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Failed to get profile:', error);
@@ -152,10 +142,7 @@ export class ScriptonCloudClient {
   /**
    * Update an existing profile
    */
-  async updateProfile(
-    profileId: string, 
-    profile: SettingsProfile
-  ): Promise<CloudSyncResult> {
+  async updateProfile(profileId: string, profile: SettingsProfile): Promise<CloudSyncResult> {
     try {
       const response = await this.request<{ version: string; changes: ChangeItem[] }>(
         'PUT',
@@ -217,11 +204,11 @@ export class ScriptonCloudClient {
         'GET',
         '/api/v1/plugins/recommended'
       );
-      
+
       if (response.success && response.data) {
         return response.data.plugins;
       }
-      
+
       return [];
     } catch (error) {
       console.error('Failed to get recommended plugins:', error);
@@ -238,11 +225,11 @@ export class ScriptonCloudClient {
         'GET',
         `/api/v1/plugins/search?q=${encodeURIComponent(query)}`
       );
-      
+
       if (response.success && response.data) {
         return response.data.plugins;
       }
-      
+
       return [];
     } catch (error) {
       console.error('Failed to search plugins:', error);
@@ -259,15 +246,12 @@ export class ScriptonCloudClient {
     manualSteps?: string[];
   } | null> {
     try {
-      const response = await this.request<any>(
-        'GET',
-        `/api/v1/plugins/${pluginId}/install`
-      );
-      
+      const response = await this.request<any>('GET', `/api/v1/plugins/${pluginId}/install`);
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Failed to get plugin install info:', error);
@@ -281,7 +265,7 @@ export class ScriptonCloudClient {
   async applyProfile(profileId: string): Promise<CloudSyncResult> {
     try {
       const profile = await this.getProfile(profileId);
-      
+
       if (!profile) {
         return {
           success: false,
@@ -321,12 +305,12 @@ export class ScriptonCloudClient {
     body?: any
   ): Promise<CloudResponse<T>> {
     const url = `${this.config.apiUrl}${path}`;
-    
+
     const params: RequestUrlParam = {
       url,
       method,
       headers: {
-        'Authorization': `Bearer ${this.config.apiKey}`,
+        Authorization: `Bearer ${this.config.apiKey}`,
         'Content-Type': 'application/json',
       },
     };
@@ -337,7 +321,7 @@ export class ScriptonCloudClient {
 
     try {
       const response = await requestUrl(params);
-      
+
       if (response.status >= 200 && response.status < 300) {
         return {
           success: true,
@@ -385,11 +369,11 @@ export class ScriptonCloudClient {
         'GET',
         `/api/v1/organizations/${this.config.organizationId}/settings`
       );
-      
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Failed to get organization settings:', error);
@@ -406,15 +390,12 @@ export class ScriptonCloudClient {
     }
 
     try {
-      const response = await this.request(
-        'GET',
-        `/api/v1/teams/${this.config.teamId}/settings`
-      );
-      
+      const response = await this.request('GET', `/api/v1/teams/${this.config.teamId}/settings`);
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Failed to get team settings:', error);
