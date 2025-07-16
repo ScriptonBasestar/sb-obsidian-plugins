@@ -162,7 +162,7 @@ export class ProfileManager {
   /**
    * Convert profile settings back to Obsidian format
    */
-  private convertToObsidianSettings(profileSettings: ProfileSettings): ObsidianSettings {
+  convertToObsidianSettings(profileSettings: ProfileSettings): ObsidianSettings {
     const obsidianSettings: ObsidianSettings = {
       appearance: profileSettings.appearance,
       hotkeys: profileSettings.hotkeys,

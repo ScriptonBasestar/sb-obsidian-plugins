@@ -38,15 +38,15 @@ original_backlog: /tasks/backlog/refined/20250116__settings-sharing-tool.md
 - [x] 핫키 설정 병합 및 충돌 해결 로직 (effort: 3h)
 
 ### Phase 5: UI 및 사용자 경험 (effort: 1d)
-- [ ] 설정 공유 관리 패널 UI 구현 (priority: medium)
-- [ ] 프로필 선택기 드롭다운 UI 구현 (effort: 2h)
-- [ ] 동기화 상태 표시 및 알림 시스템 (effort: 2h)
-- [ ] 설정 비교 뷰어 구현 (effort: 3h)
+- [x] 설정 공유 관리 패널 UI 구현 (priority: medium)
+- [x] 프로필 선택기 드롭다운 UI 구현 (effort: 2h)
+- [x] 동기화 상태 표시 및 알림 시스템 (effort: 2h)
+- [x] 설정 비교 뷰어 구현 (effort: 3h)
 
 ### Phase 6: 안정성 및 문서화 (effort: 0.5d)
-- [ ] 백업 및 복원 기능 구현 (priority: medium)
-- [ ] 설정 마이그레이션 도구 구현 (effort: 2h)
-- [ ] 사용자 가이드 및 문서 작성 (effort: 2h)
+- [x] 백업 및 복원 기능 구현 (priority: medium)
+- [x] 설정 마이그레이션 도구 구현 (effort: 2h)
+- [x] 사용자 가이드 및 문서 작성 (effort: 2h)
 
 ## 기술 요구사항
 - Git 명령어 실행을 위한 child_process 또는 isomorphic-git

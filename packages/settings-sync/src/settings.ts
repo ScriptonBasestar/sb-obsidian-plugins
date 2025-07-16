@@ -1,6 +1,7 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, setIcon } from 'obsidian';
 import SettingsSyncPlugin from './main';
 import { SettingsSyncSettings, SettingsProfile } from './types';
+import { SettingsComparisonViewer } from './settings-comparison';
 
 export class SettingsSyncSettingTab extends PluginSettingTab {
   plugin: SettingsSyncPlugin;
@@ -15,6 +16,10 @@ export class SettingsSyncSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     containerEl.createEl('h2', { text: 'Settings Sync Configuration' });
+
+    // Sync status indicator
+    const statusContainer = containerEl.createDiv('sync-status-container');
+    this.renderSyncStatus(statusContainer);
 
     // Git Repository Settings
     new Setting(containerEl)
@@ -135,11 +140,118 @@ export class SettingsSyncSettingTab extends PluginSettingTab {
           await this.plugin.initializeVault();
         }));
 
+    new Setting(containerEl)
+      .setName('Compare settings')
+      .setDesc('Compare settings between profiles or with current settings')
+      .addButton(button => button
+        .setButtonText('Open Comparison')
+        .onClick(() => {
+          const viewer = new SettingsComparisonViewer(this.app, this.plugin);
+          viewer.open();
+        }));
+
     // Last Sync Info
     if (this.plugin.settings.lastSync) {
       new Setting(containerEl)
         .setName('Last sync')
         .setDesc(`Last synchronized: ${new Date(this.plugin.settings.lastSync).toLocaleString()}`);
     }
+
+    this.addStyles();
+  }
+
+  private renderSyncStatus(container: HTMLElement) {
+    container.empty();
+    
+    const statusEl = container.createDiv('sync-status');
+    const iconEl = statusEl.createSpan('sync-status-icon');
+    const textEl = statusEl.createSpan('sync-status-text');
+    
+    if (this.plugin.syncManager?.syncInProgress) {
+      setIcon(iconEl, 'sync');
+      iconEl.addClass('sync-in-progress');
+      textEl.setText('Syncing...');
+    } else if (this.plugin.settings.lastSync) {
+      const lastSync = new Date(this.plugin.settings.lastSync);
+      const now = new Date();
+      const diffMinutes = Math.floor((now.getTime() - lastSync.getTime()) / (1000 * 60));
+      
+      if (diffMinutes < 5) {
+        setIcon(iconEl, 'check');
+        iconEl.addClass('sync-success');
+        textEl.setText('Recently synced');
+      } else if (diffMinutes < 60) {
+        setIcon(iconEl, 'check');
+        iconEl.addClass('sync-ok');
+        textEl.setText(`Synced ${diffMinutes} minutes ago`);
+      } else {
+        setIcon(iconEl, 'alert-circle');
+        iconEl.addClass('sync-warning');
+        textEl.setText(`Last sync: ${lastSync.toLocaleString()}`);
+      }
+    } else {
+      setIcon(iconEl, 'alert-triangle');
+      iconEl.addClass('sync-error');
+      textEl.setText('Never synced');
+    }
+  }
+
+  private addStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+      .sync-status-container {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: var(--background-secondary);
+        border-radius: 5px;
+      }
+      
+      .sync-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .sync-status-icon {
+        display: flex;
+        align-items: center;
+      }
+      
+      .sync-status-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      
+      .sync-status-icon.sync-in-progress svg {
+        animation: spin 1s linear infinite;
+        color: var(--interactive-accent);
+      }
+      
+      .sync-status-icon.sync-success svg {
+        color: var(--text-success);
+      }
+      
+      .sync-status-icon.sync-ok svg {
+        color: var(--text-success);
+      }
+      
+      .sync-status-icon.sync-warning svg {
+        color: var(--text-warning);
+      }
+      
+      .sync-status-icon.sync-error svg {
+        color: var(--text-error);
+      }
+      
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
 }

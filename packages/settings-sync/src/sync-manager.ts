@@ -9,7 +9,7 @@ export class SyncManager {
   private plugin: SettingsSyncPlugin;
   private parser: SettingsParser;
   private git: GitManager;
-  private syncInProgress: boolean = false;
+  syncInProgress: boolean = false;
 
   constructor(app: App, plugin: SettingsSyncPlugin) {
     this.app = app;

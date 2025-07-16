@@ -7,6 +7,7 @@ import { GitManager } from './git-manager';
 import { SyncManager } from './sync-manager';
 import { InitWizard } from './init-wizard';
 import { HistoryViewer } from './history-viewer';
+import { BackupManager } from './backup-manager';
 
 export default class SettingsSyncPlugin extends Plugin {
   settings: SettingsSyncSettings;
@@ -14,6 +15,7 @@ export default class SettingsSyncPlugin extends Plugin {
   profileManager: ProfileManager;
   gitManager: GitManager;
   syncManager: SyncManager;
+  backupManager: BackupManager;
   autoSyncInterval: number | null = null;
 
   async onload() {
@@ -24,6 +26,7 @@ export default class SettingsSyncPlugin extends Plugin {
     this.profileManager = new ProfileManager(this.app, this);
     this.gitManager = new GitManager(this.app, this);
     this.syncManager = new SyncManager(this.app, this);
+    this.backupManager = new BackupManager(this.app, this.settings.sensitiveKeys);
 
     // Add ribbon icon
     this.addRibbonIcon('git-branch', 'Settings Sync', async () => {
@@ -119,6 +122,28 @@ export default class SettingsSyncPlugin extends Plugin {
       callback: async () => {
         const viewer = new HistoryViewer(this.app, this.gitManager);
         viewer.open();
+      }
+    });
+
+    // Backup commands
+    this.addCommand({
+      id: 'create-backup',
+      name: 'Create settings backup',
+      callback: async () => {
+        try {
+          await this.backupManager.createBackup();
+        } catch (error) {
+          new Notice(`Backup failed: ${error.message}`);
+        }
+      }
+    });
+
+    this.addCommand({
+      id: 'restore-backup',
+      name: 'Restore settings from backup',
+      callback: async () => {
+        // In a real implementation, this would show a backup selection modal
+        new Notice('Backup restore UI coming soon');
       }
     });
   }
