@@ -24,7 +24,7 @@ export class ConversionEngine {
         listItemIndent: 'one',
         emphasis: '*',
         strong: '*',
-        rule: '-'
+        rule: '-',
       });
   }
 
@@ -34,13 +34,13 @@ export class ConversionEngine {
   async parseFile(file: TFile): Promise<ParsedContent> {
     const content = await this.vault.read(file);
     const { frontmatter, body } = this.extractFrontmatter(content);
-    
+
     return {
       frontmatter,
       content: body,
       links: this.extractLinks(body),
       images: this.extractImages(body),
-      attachments: this.extractAttachments(body)
+      attachments: this.extractAttachments(body),
     };
   }
 
@@ -56,7 +56,7 @@ export class ConversionEngine {
     }
 
     try {
-      const frontmatter = yaml.load(match[1]) as Record<string, any> || {};
+      const frontmatter = (yaml.load(match[1]) as Record<string, any>) || {};
       const body = content.slice(match[0].length);
       return { frontmatter, body };
     } catch (error) {
@@ -77,7 +77,7 @@ export class ConversionEngine {
     while ((match = wikiLinkRegex.exec(content)) !== null) {
       const fullMatch = match[0];
       const linkContent = match[1];
-      const [target, alias] = linkContent.includes('|') 
+      const [target, alias] = linkContent.includes('|')
         ? linkContent.split('|', 2)
         : [linkContent, undefined];
 
@@ -88,8 +88,8 @@ export class ConversionEngine {
         alias: alias?.trim(),
         position: {
           start: match.index,
-          end: match.index + fullMatch.length
-        }
+          end: match.index + fullMatch.length,
+        },
       });
     }
 
@@ -112,8 +112,8 @@ export class ConversionEngine {
         alias: alias || undefined,
         position: {
           start: match.index,
-          end: match.index + fullMatch.length
-        }
+          end: match.index + fullMatch.length,
+        },
       });
     }
 
@@ -135,8 +135,8 @@ export class ConversionEngine {
         path: match[1].trim(),
         position: {
           start: match.index,
-          end: match.index + match[0].length
-        }
+          end: match.index + match[0].length,
+        },
       });
     }
 
@@ -150,8 +150,8 @@ export class ConversionEngine {
         title: match[3] || undefined,
         position: {
           start: match.index,
-          end: match.index + match[0].length
-        }
+          end: match.index + match[0].length,
+        },
       });
     }
 
@@ -163,7 +163,7 @@ export class ConversionEngine {
    */
   extractAttachments(content: string): AttachmentInfo[] {
     const attachments: AttachmentInfo[] = [];
-    
+
     // Embedded attachments: ![[file.pdf]]
     const attachmentRegex = /!\[\[([^\]]+?\.(pdf|doc|docx|txt|zip|rar|mp3|mp4|avi|mov))\]\]/gi;
     let match;
@@ -173,8 +173,8 @@ export class ConversionEngine {
         type: match[2].toLowerCase(),
         position: {
           start: match.index,
-          end: match.index + match[0].length
-        }
+          end: match.index + match[0].length,
+        },
       });
     }
 
@@ -184,18 +184,21 @@ export class ConversionEngine {
   /**
    * Convert Obsidian wikilinks to standard markdown links
    */
-  convertWikiLinksToMarkdown(content: string, linkMapping: Map<string, string> = new Map()): string {
+  convertWikiLinksToMarkdown(
+    content: string,
+    linkMapping: Map<string, string> = new Map()
+  ): string {
     return content.replace(/\[\[([^\]]+?)\]\]/g, (match, linkContent) => {
-      const [target, alias] = linkContent.includes('|') 
+      const [target, alias] = linkContent.includes('|')
         ? linkContent.split('|', 2)
         : [linkContent, linkContent];
 
       const cleanTarget = target.trim();
       const displayText = alias?.trim() || cleanTarget;
-      
+
       // Use mapping if available, otherwise create a slug
       const mappedTarget = linkMapping.get(cleanTarget) || this.slugify(cleanTarget);
-      
+
       return `[${displayText}](${mappedTarget})`;
     });
   }
@@ -207,10 +210,10 @@ export class ConversionEngine {
     return content.replace(/!\[\[([^\]]+?)\]\]/g, (match, imagePath) => {
       const cleanPath = imagePath.trim();
       const mappedPath = pathMapping.get(cleanPath) || cleanPath;
-      
+
       // Extract filename for alt text
       const filename = cleanPath.split('/').pop()?.split('.')[0] || 'image';
-      
+
       return `![${filename}](${mappedPath})`;
     });
   }
@@ -257,10 +260,10 @@ export class ConversionEngine {
     // Remove Obsidian-specific syntax
     content = content.replace(/%%[^%]*%%/g, ''); // Comments
     content = content.replace(/\^[a-zA-Z0-9-_]+/g, ''); // Block references
-    
+
     // Clean up multiple empty lines
     content = content.replace(/\n\n\n+/g, '\n\n');
-    
+
     return content.trim();
   }
 
@@ -305,7 +308,7 @@ export class ConversionEngine {
 
     return {
       valid: true,
-      warnings
+      warnings,
     };
   }
 
@@ -315,13 +318,13 @@ export class ConversionEngine {
   extractHeadings(content: string): Array<{ level: number; text: string; anchor: string }> {
     const headings: Array<{ level: number; text: string; anchor: string }> = [];
     const headingRegex = /^(#{1,6})\s+(.+)$/gm;
-    
+
     let match;
     while ((match = headingRegex.exec(content)) !== null) {
       const level = match[1].length;
       const text = match[2].trim();
       const anchor = this.slugify(text);
-      
+
       headings.push({ level, text, anchor });
     }
 

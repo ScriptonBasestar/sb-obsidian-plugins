@@ -53,6 +53,7 @@ Configure how Obsidian frontmatter maps to WikiJS metadata:
 ### Manual Sync
 
 Use the ribbon icon or command palette:
+
 - `Sync with WikiJS`: Full synchronization
 - `Push all to WikiJS`: One-way sync from Obsidian
 - `Pull all from WikiJS`: One-way sync from WikiJS
@@ -61,6 +62,7 @@ Use the ribbon icon or command palette:
 ### Auto-sync
 
 Enable auto-sync in settings to automatically sync changes:
+
 - File changes are detected and queued for sync
 - Configurable delay to avoid excessive API calls
 - Status bar shows last sync time
@@ -133,11 +135,13 @@ The plugin includes comprehensive error handling:
 ### Testing
 
 Run the test suite:
+
 ```bash
 npm run test
 ```
 
 Tests include:
+
 - Unit tests for all core components
 - Integration tests for sync workflows
 - Performance optimization tests

@@ -1,51 +1,51 @@
 version: 2
 updates:
   # Maintain dependencies for npm
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Asia/Seoul"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Seoul'
     open-pull-requests-limit: 10
     groups:
       production-dependencies:
-        dependency-type: "production"
+        dependency-type: 'production'
       development-dependencies:
-        dependency-type: "development"
+        dependency-type: 'development'
         patterns:
-          - "*"
+          - '*'
         exclude-patterns:
-          - "obsidian"
+          - 'obsidian'
     labels:
-      - "dependencies"
-      - "automated"
+      - 'dependencies'
+      - 'automated'
     reviewers:
-      - "archmagece"
+      - 'archmagece'
     commit-message:
-      prefix: "chore"
-      prefix-development: "chore"
-      include: "scope"
+      prefix: 'chore'
+      prefix-development: 'chore'
+      include: 'scope'
     ignore:
       # Don't update Obsidian API - we control this manually
-      - dependency-name: "obsidian"
+      - dependency-name: 'obsidian'
       # Major version updates that might break compatibility
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-        
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
   # Maintain dependencies for GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Asia/Seoul"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Seoul'
     labels:
-      - "github-actions"
-      - "automated"
+      - 'github-actions'
+      - 'automated'
     reviewers:
-      - "archmagece"
+      - 'archmagece'
     commit-message:
-      prefix: "ci"
+      prefix: 'ci'

@@ -19,27 +19,31 @@ export class BlogPlatformExportSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Default platform')
       .setDesc('The default platform to use for quick exports')
-      .addDropdown(dropdown => dropdown
-        .addOption('hugo', 'Hugo')
-        .addOption('jekyll', 'Jekyll')
-        .addOption('wikijs', 'WikiJS')
-        .setValue(this.plugin.settings.defaultPlatform)
-        .onChange(async (value: any) => {
-          this.plugin.settings.defaultPlatform = value;
-          await this.plugin.saveSettings();
-        }));
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption('hugo', 'Hugo')
+          .addOption('jekyll', 'Jekyll')
+          .addOption('wikijs', 'WikiJS')
+          .setValue(this.plugin.settings.defaultPlatform)
+          .onChange(async (value: any) => {
+            this.plugin.settings.defaultPlatform = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     // Output path
     new Setting(containerEl)
       .setName('Output path')
       .setDesc('Default output directory for file-based exports (Hugo, Jekyll)')
-      .addText(text => text
-        .setPlaceholder('/path/to/blog')
-        .setValue(this.plugin.settings.outputPath)
-        .onChange(async (value) => {
-          this.plugin.settings.outputPath = value;
-          await this.plugin.saveSettings();
-        }));
+      .addText((text) =>
+        text
+          .setPlaceholder('/path/to/blog')
+          .setValue(this.plugin.settings.outputPath)
+          .onChange(async (value) => {
+            this.plugin.settings.outputPath = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     // Asset handling
     containerEl.createEl('h3', { text: 'Asset Handling' });
@@ -47,22 +51,24 @@ export class BlogPlatformExportSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Copy images')
       .setDesc('Copy image files during export')
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.assetHandling.copyImages)
-        .onChange(async (value) => {
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.assetHandling.copyImages).onChange(async (value) => {
           this.plugin.settings.assetHandling.copyImages = value;
           await this.plugin.saveSettings();
-        }));
+        })
+      );
 
     new Setting(containerEl)
       .setName('Copy attachments')
       .setDesc('Copy attachment files during export')
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.assetHandling.copyAttachments)
-        .onChange(async (value) => {
-          this.plugin.settings.assetHandling.copyAttachments = value;
-          await this.plugin.saveSettings();
-        }));
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.assetHandling.copyAttachments)
+          .onChange(async (value) => {
+            this.plugin.settings.assetHandling.copyAttachments = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     // Profiles section
     containerEl.createEl('h3', { text: 'Export Profiles' });
@@ -73,11 +79,11 @@ export class BlogPlatformExportSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Add profile')
       .setDesc('Create a new export profile')
-      .addButton(button => button
-        .setButtonText('Add Profile')
-        .onClick(() => {
+      .addButton((button) =>
+        button.setButtonText('Add Profile').onClick(() => {
           this.showProfileCreationModal();
-        }));
+        })
+      );
 
     // Actions
     containerEl.createEl('h3', { text: 'Actions' });
@@ -85,23 +91,23 @@ export class BlogPlatformExportSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Create default profiles')
       .setDesc('Add default Hugo and Jekyll profiles')
-      .addButton(button => button
-        .setButtonText('Create Defaults')
-        .onClick(async () => {
+      .addButton((button) =>
+        button.setButtonText('Create Defaults').onClick(async () => {
           const defaults = this.plugin.profileManager.createDefaultProfiles();
           await this.plugin.saveSettings();
           new Notice(`Created ${defaults.length} default profiles`);
           this.display(); // Refresh
-        }));
+        })
+      );
 
     new Setting(containerEl)
       .setName('Export test')
       .setDesc('Test export functionality with current settings')
-      .addButton(button => button
-        .setButtonText('Test Export')
-        .onClick(() => {
+      .addButton((button) =>
+        button.setButtonText('Test Export').onClick(() => {
           this.testExport();
-        }));
+        })
+      );
 
     this.addStyles();
   }
@@ -112,25 +118,25 @@ export class BlogPlatformExportSettingTab extends PluginSettingTab {
     const profiles = this.plugin.settings.profiles;
 
     if (profiles.length === 0) {
-      container.createEl('p', { 
+      container.createEl('p', {
         text: 'No export profiles configured. Create a profile to get started.',
-        cls: 'setting-item-description'
+        cls: 'setting-item-description',
       });
       return;
     }
 
     profiles.forEach((profile, index) => {
       const profileEl = container.createDiv('profile-item');
-      
+
       const headerEl = profileEl.createDiv('profile-header');
       headerEl.createEl('h4', { text: profile.name });
-      headerEl.createEl('span', { 
+      headerEl.createEl('span', {
         text: profile.platform.toUpperCase(),
-        cls: `platform-badge platform-${profile.platform}`
+        cls: `platform-badge platform-${profile.platform}`,
       });
 
       const actionsEl = profileEl.createDiv('profile-actions');
-      
+
       // Edit button
       const editBtn = actionsEl.createEl('button', { text: 'Edit' });
       editBtn.addEventListener('click', () => {
@@ -138,9 +144,9 @@ export class BlogPlatformExportSettingTab extends PluginSettingTab {
       });
 
       // Delete button
-      const deleteBtn = actionsEl.createEl('button', { 
+      const deleteBtn = actionsEl.createEl('button', {
         text: 'Delete',
-        cls: 'mod-warning'
+        cls: 'mod-warning',
       });
       deleteBtn.addEventListener('click', async () => {
         if (confirm(`Delete profile "${profile.name}"?`)) {

@@ -10,7 +10,7 @@ describe('WikiJSClient', () => {
 
   beforeEach(() => {
     mockGraphQLClient = {
-      request: vi.fn()
+      request: vi.fn(),
     };
     (GraphQLClient as any).mockImplementation(() => mockGraphQLClient);
     client = new WikiJSClient('https://wiki.example.com', 'test-api-key');
@@ -19,7 +19,7 @@ describe('WikiJSClient', () => {
   describe('testConnection', () => {
     it('should return true when connection is successful', async () => {
       mockGraphQLClient.request.mockResolvedValue({
-        pages: { list: [] }
+        pages: { list: [] },
       });
 
       const result = await client.testConnection();
@@ -40,7 +40,7 @@ describe('WikiJSClient', () => {
         path: '/test-page',
         title: 'Test Page',
         content: 'Test content',
-        editor: 'markdown'
+        editor: 'markdown',
       };
 
       mockGraphQLClient.request.mockResolvedValue({
@@ -48,10 +48,10 @@ describe('WikiJSClient', () => {
           create: {
             responseResult: {
               succeeded: true,
-              slug: 'test-page'
-            }
-          }
-        }
+              slug: 'test-page',
+            },
+          },
+        },
       });
 
       const result = await client.createPage(pageInput);
@@ -63,7 +63,7 @@ describe('WikiJSClient', () => {
       const pageInput = {
         path: '/test-page',
         title: 'Test Page',
-        content: 'Test content'
+        content: 'Test content',
       };
 
       mockGraphQLClient.request.mockResolvedValue({
@@ -72,10 +72,10 @@ describe('WikiJSClient', () => {
             responseResult: {
               succeeded: false,
               errorCode: 'PAGE_EXISTS',
-              message: 'Page already exists'
-            }
-          }
-        }
+              message: 'Page already exists',
+            },
+          },
+        },
       });
 
       const result = await client.createPage(pageInput);
@@ -90,17 +90,17 @@ describe('WikiJSClient', () => {
       const pageInput = {
         path: '/test-page',
         title: 'Updated Test Page',
-        content: 'Updated content'
+        content: 'Updated content',
       };
 
       mockGraphQLClient.request.mockResolvedValue({
         pages: {
           update: {
             responseResult: {
-              succeeded: true
-            }
-          }
-        }
+              succeeded: true,
+            },
+          },
+        },
       });
 
       const result = await client.updatePage(pageId, pageInput);
@@ -117,13 +117,13 @@ describe('WikiJSClient', () => {
         title: 'Test Page',
         content: 'Test content',
         tags: ['test'],
-        updatedAt: '2024-01-16T00:00:00Z'
+        updatedAt: '2024-01-16T00:00:00Z',
       };
 
       mockGraphQLClient.request.mockResolvedValue({
         pages: {
-          single: mockPage
-        }
+          single: mockPage,
+        },
       });
 
       const result = await client.getPage(pagePath);
@@ -133,8 +133,8 @@ describe('WikiJSClient', () => {
     it('should return null when page not found', async () => {
       mockGraphQLClient.request.mockResolvedValue({
         pages: {
-          single: null
-        }
+          single: null,
+        },
       });
 
       const result = await client.getPage('/non-existent');
@@ -146,21 +146,21 @@ describe('WikiJSClient', () => {
     it('should list pages with pagination', async () => {
       const mockPages = [
         { id: '1', path: '/page1', title: 'Page 1' },
-        { id: '2', path: '/page2', title: 'Page 2' }
+        { id: '2', path: '/page2', title: 'Page 2' },
       ];
 
       mockGraphQLClient.request.mockResolvedValue({
         pages: {
-          list: mockPages
-        }
+          list: mockPages,
+        },
       });
 
       const result = await client.listPages(10, 0);
       expect(result).toEqual(mockPages);
-      expect(mockGraphQLClient.request).toHaveBeenCalledWith(
-        expect.anything(),
-        { limit: 10, offset: 0 }
-      );
+      expect(mockGraphQLClient.request).toHaveBeenCalledWith(expect.anything(), {
+        limit: 10,
+        offset: 0,
+      });
     });
   });
 
@@ -170,10 +170,10 @@ describe('WikiJSClient', () => {
         pages: {
           delete: {
             responseResult: {
-              succeeded: true
-            }
-          }
-        }
+              succeeded: true,
+            },
+          },
+        },
       });
 
       const result = await client.deletePage('123');
@@ -183,14 +183,12 @@ describe('WikiJSClient', () => {
 
   describe('searchPages', () => {
     it('should search pages by query', async () => {
-      const mockResults = [
-        { id: '1', path: '/result1', title: 'Result 1', content: 'Match' }
-      ];
+      const mockResults = [{ id: '1', path: '/result1', title: 'Result 1', content: 'Match' }];
 
       mockGraphQLClient.request.mockResolvedValue({
         pages: {
-          search: mockResults
-        }
+          search: mockResults,
+        },
       });
 
       const result = await client.searchPages('test query');

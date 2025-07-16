@@ -64,7 +64,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
         } else {
           new Notice('No markdown file is currently active');
         }
-      }
+      },
     });
 
     // Export with profile
@@ -73,7 +73,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
       name: 'Export with profile...',
       callback: () => {
         this.showExportModal();
-      }
+      },
     });
 
     // Quick export (use default profile)
@@ -94,7 +94,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
         } else {
           new Notice('No markdown file is currently active');
         }
-      }
+      },
     });
 
     // Export folder
@@ -103,7 +103,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
       name: 'Export folder...',
       callback: () => {
         this.showFolderExportModal();
-      }
+      },
     });
 
     // Manage profiles
@@ -113,7 +113,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
       callback: () => {
         this.app.setting.open();
         this.app.setting.openTabById('blog-platform-export');
-      }
+      },
     });
   }
 
@@ -131,8 +131,8 @@ export default class BlogPlatformExportPlugin extends Plugin {
     const profiles = this.settings.profiles;
     if (profiles.length > 0) {
       menu.addSeparator();
-      
-      profiles.forEach(profile => {
+
+      profiles.forEach((profile) => {
         menu.addItem((item) => {
           item
             .setTitle(`Export to ${profile.name}`)
@@ -147,7 +147,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
 
   async exportCurrentFile(file: TFile) {
     const profiles = this.settings.profiles;
-    
+
     if (profiles.length === 0) {
       new Notice('No export profiles configured. Please create a profile first.');
       this.showExportModal();
@@ -166,12 +166,14 @@ export default class BlogPlatformExportPlugin extends Plugin {
   async exportWithProfile(files: TFile[], profile: ExportProfile) {
     try {
       new Notice(`Starting export to ${profile.name}...`);
-      
+
       const result = await this.exportManager.exportFiles(files, profile);
-      
+
       if (result.success) {
-        new Notice(`✅ Export completed! ${result.processedFiles} files exported to ${profile.platform}`);
-        
+        new Notice(
+          `✅ Export completed! ${result.processedFiles} files exported to ${profile.platform}`
+        );
+
         if (result.warnings.length > 0) {
           new Notice(`⚠️ ${result.warnings.length} warnings occurred. Check console for details.`);
           console.warn('Export warnings:', result.warnings);
@@ -184,7 +186,6 @@ export default class BlogPlatformExportPlugin extends Plugin {
       // Update last export time
       this.settings.lastExport = new Date().toISOString();
       await this.saveSettings();
-
     } catch (error) {
       new Notice(`❌ Export failed: ${error.message}`);
       console.error('Export error:', error);
@@ -208,17 +209,17 @@ export default class BlogPlatformExportPlugin extends Plugin {
     modal.titleEl.setText('Select Export Profile');
 
     const profiles = this.settings.profiles;
-    
-    profiles.forEach(profile => {
+
+    profiles.forEach((profile) => {
       const button = modal.contentEl.createEl('button', {
         text: `${profile.name} (${profile.platform})`,
-        cls: 'mod-cta'
+        cls: 'mod-cta',
       });
-      
+
       button.style.display = 'block';
       button.style.width = '100%';
       button.style.marginBottom = '10px';
-      
+
       button.addEventListener('click', () => {
         modal.close();
         this.exportWithProfile(files, profile);
@@ -227,7 +228,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
 
     // Add cancel button
     const cancelButton = modal.contentEl.createEl('button', {
-      text: 'Cancel'
+      text: 'Cancel',
     });
     cancelButton.style.marginTop = '20px';
     cancelButton.addEventListener('click', () => {
@@ -244,7 +245,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
   }
 
   async updateProfile(profileId: string, updates: Partial<ExportProfile>) {
-    const profileIndex = this.settings.profiles.findIndex(p => p.id === profileId);
+    const profileIndex = this.settings.profiles.findIndex((p) => p.id === profileId);
     if (profileIndex !== -1) {
       Object.assign(this.settings.profiles[profileIndex], updates);
       await this.saveSettings();
@@ -252,13 +253,13 @@ export default class BlogPlatformExportPlugin extends Plugin {
   }
 
   async deleteProfile(profileId: string) {
-    this.settings.profiles = this.settings.profiles.filter(p => p.id !== profileId);
+    this.settings.profiles = this.settings.profiles.filter((p) => p.id !== profileId);
     await this.saveSettings();
   }
 
   // Utility methods
   getProfile(profileId: string): ExportProfile | undefined {
-    return this.settings.profiles.find(p => p.id === profileId);
+    return this.settings.profiles.find((p) => p.id === profileId);
   }
 
   getAllProfiles(): ExportProfile[] {
@@ -267,8 +268,10 @@ export default class BlogPlatformExportPlugin extends Plugin {
 
   getDefaultProfile(): ExportProfile | undefined {
     const defaultPlatform = this.settings.defaultPlatform;
-    return this.settings.profiles.find(p => p.platform === defaultPlatform) || 
-           this.settings.profiles[0];
+    return (
+      this.settings.profiles.find((p) => p.platform === defaultPlatform) ||
+      this.settings.profiles[0]
+    );
   }
 
   // Export status and history
@@ -313,7 +316,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 

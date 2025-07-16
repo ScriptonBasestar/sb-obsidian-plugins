@@ -3,12 +3,12 @@ import { WikiJSClient } from '@sb-obsidian-plugins/wikijs-sync/src/wikijs-client
 import { MetadataConverter } from '@sb-obsidian-plugins/wikijs-sync/src/metadata-converter';
 import { PathMapper } from '@sb-obsidian-plugins/wikijs-sync/src/path-mapper';
 import { ConversionEngine } from '../conversion-engine';
-import { 
-  WikiJSSettings, 
-  ExportProfile, 
-  ConversionResult, 
+import {
+  WikiJSSettings,
+  ExportProfile,
+  ConversionResult,
   ConversionError,
-  ParsedContent 
+  ParsedContent,
 } from '../types';
 
 export class WikiJSExporter {
@@ -25,28 +25,28 @@ export class WikiJSExporter {
     this.conversionEngine = new ConversionEngine(vault);
     this.profile = profile;
     this.settings = profile.settings.wikijs!;
-    
+
     // Initialize WikiJS components
     this.client = new WikiJSClient(this.settings.wikiUrl, this.settings.apiKey);
     this.metadataConverter = new MetadataConverter({
       tags: {
         enabled: true,
-        prefix: this.settings.tagPrefix || ''
+        prefix: this.settings.tagPrefix || '',
       },
       categories: {
         enabled: true,
-        fieldName: 'categories'
+        fieldName: 'categories',
       },
-      customFields: []
+      customFields: [],
     });
-    
+
     // Convert export profile path mappings to WikiJS format
-    const wikiPathMappings = this.profile.pathMappings.map(mapping => ({
+    const wikiPathMappings = this.profile.pathMappings.map((mapping) => ({
       obsidianPath: mapping.obsidianPath,
       wikiPath: mapping.targetPath,
-      enabled: mapping.enabled
+      enabled: mapping.enabled,
     }));
-    
+
     this.pathMapper = new PathMapper(vault, wikiPathMappings);
   }
 
@@ -61,7 +61,7 @@ export class WikiJSExporter {
       errors: [],
       warnings: [],
       outputPath: this.settings.wikiUrl,
-      assets: []
+      assets: [],
     };
 
     try {
@@ -84,7 +84,7 @@ export class WikiJSExporter {
         } catch (error) {
           result.errors.push({
             file: file.path,
-            error: error.message
+            error: error.message,
           });
         }
       }
@@ -94,7 +94,7 @@ export class WikiJSExporter {
       result.success = false;
       result.errors.push({
         file: 'general',
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -110,7 +110,7 @@ export class WikiJSExporter {
 
     // Check if page already exists
     const existingPage = await this.client.getPage(wikiPageData.path);
-    
+
     let response;
     if (existingPage) {
       // Update existing page
@@ -135,27 +135,27 @@ export class WikiJSExporter {
   private async convertToWikiJS(file: TFile, parsed: ParsedContent): Promise<any> {
     // Convert frontmatter to WikiJS metadata
     const wikiMetadata = this.metadataConverter.obsidianToWiki(parsed.frontmatter);
-    
+
     // Process content
     let content = parsed.content;
-    
+
     // Convert wikilinks to standard markdown links
     const linkMapping = await this.buildLinkMapping();
     content = this.conversionEngine.convertWikiLinksToMarkdown(content, linkMapping);
-    
+
     // Convert embedded images to standard markdown
     const imageMapping = await this.buildImageMapping();
     content = this.conversionEngine.convertEmbeddedImages(content, imageMapping);
-    
+
     // Process code blocks and math for WikiJS
     content = this.conversionEngine.processCodeBlocks(content, 'wikijs');
-    
+
     // Clean content
     content = this.conversionEngine.cleanContent(content);
 
     // Get WikiJS path
     const wikiPath = this.pathMapper.obsidianToWiki(file.path);
-    
+
     // Build page data
     const pageData = {
       path: this.addPathPrefix(wikiPath),
@@ -166,7 +166,7 @@ export class WikiJSExporter {
       isPublished: this.settings.publishByDefault !== false,
       isPrivate: parsed.frontmatter.private || false,
       locale: this.settings.locale || 'en',
-      editor: this.settings.defaultEditor || 'markdown'
+      editor: this.settings.defaultEditor || 'markdown',
     };
 
     return pageData;
@@ -178,22 +178,22 @@ export class WikiJSExporter {
   private async buildLinkMapping(): Promise<Map<string, string>> {
     const mapping = new Map<string, string>();
     const files = this.vault.getMarkdownFiles();
-    
+
     for (const file of files) {
       if (!this.shouldSkipFile(file)) {
         const wikiPath = this.pathMapper.obsidianToWiki(file.path);
         const finalPath = this.addPathPrefix(wikiPath);
-        
+
         // Map both filename and full path
         mapping.set(file.basename, finalPath);
         mapping.set(file.path, finalPath);
-        
+
         // Map without extension
         const nameWithoutExt = file.basename.replace(/\.md$/, '');
         mapping.set(nameWithoutExt, finalPath);
       }
     }
-    
+
     return mapping;
   }
 
@@ -203,7 +203,7 @@ export class WikiJSExporter {
   private async buildImageMapping(): Promise<Map<string, string>> {
     const mapping = new Map<string, string>();
     const files = this.vault.getFiles();
-    
+
     for (const file of files) {
       if (this.isImageFile(file)) {
         // For WikiJS, we'll use the asset upload endpoint or reference by path
@@ -213,7 +213,7 @@ export class WikiJSExporter {
         mapping.set(file.name, assetUrl);
       }
     }
-    
+
     return mapping;
   }
 
@@ -222,13 +222,13 @@ export class WikiJSExporter {
    */
   private addPathPrefix(wikiPath: string): string {
     if (this.settings.pathPrefix) {
-      const prefix = this.settings.pathPrefix.startsWith('/') 
-        ? this.settings.pathPrefix 
+      const prefix = this.settings.pathPrefix.startsWith('/')
+        ? this.settings.pathPrefix
         : '/' + this.settings.pathPrefix;
-      
+
       return prefix + (wikiPath.startsWith('/') ? wikiPath : '/' + wikiPath);
     }
-    
+
     return wikiPath;
   }
 
@@ -258,14 +258,14 @@ export class WikiJSExporter {
       errors: [],
       warnings: [],
       outputPath: this.settings.wikiUrl,
-      assets: []
+      assets: [],
     };
 
     const batchSize = 5; // Process 5 pages at a time
-    
+
     for (let i = 0; i < pages.length; i += batchSize) {
       const batch = pages.slice(i, i + batchSize);
-      
+
       const batchPromises = batch.map(async (pageData) => {
         try {
           const response = await this.client.createPage(pageData);
@@ -274,22 +274,22 @@ export class WikiJSExporter {
           } else {
             result.errors.push({
               file: pageData.path,
-              error: response.message || 'Unknown error'
+              error: response.message || 'Unknown error',
             });
           }
         } catch (error) {
           result.errors.push({
             file: pageData.path,
-            error: error.message
+            error: error.message,
           });
         }
       });
 
       await Promise.all(batchPromises);
-      
+
       // Small delay between batches to avoid overwhelming the server
       if (i + batchSize < pages.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
@@ -302,7 +302,7 @@ export class WikiJSExporter {
    */
   async syncDirectoryStructure(): Promise<void> {
     const pageTree = await this.pathMapper.buildPageTree();
-    
+
     // WikiJS doesn't require explicit directory creation
     // Pages are automatically organized by their path
     console.log('Directory structure mapped:', pageTree);
@@ -315,30 +315,32 @@ export class WikiJSExporter {
     if (file.extension !== 'md') return true;
 
     const filter = this.profile.filters;
-    
+
     // Check include/exclude folders
     if (filter.includeFolders.length > 0) {
-      const inIncluded = filter.includeFolders.some(folder => file.path.startsWith(folder));
+      const inIncluded = filter.includeFolders.some((folder) => file.path.startsWith(folder));
       if (!inIncluded) return true;
     }
 
-    if (filter.excludeFolders.some(folder => file.path.startsWith(folder))) {
+    if (filter.excludeFolders.some((folder) => file.path.startsWith(folder))) {
       return true;
     }
 
     // Check include/exclude files
     if (filter.includeFiles.length > 0) {
-      const inIncluded = filter.includeFiles.some(pattern => {
+      const inIncluded = filter.includeFiles.some((pattern) => {
         const regex = new RegExp(pattern.replace('*', '.*'));
         return regex.test(file.path);
       });
       if (!inIncluded) return true;
     }
 
-    if (filter.excludeFiles.some(pattern => {
-      const regex = new RegExp(pattern.replace('*', '.*'));
-      return regex.test(file.path);
-    })) {
+    if (
+      filter.excludeFiles.some((pattern) => {
+        const regex = new RegExp(pattern.replace('*', '.*'));
+        return regex.test(file.path);
+      })
+    ) {
       return true;
     }
 
@@ -376,13 +378,13 @@ export class WikiJSExporter {
       return {
         url: this.settings.wikiUrl,
         connected: await this.testConnection(),
-        locale: this.settings.locale || 'en'
+        locale: this.settings.locale || 'en',
       };
     } catch (error) {
       return {
         url: this.settings.wikiUrl,
         connected: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

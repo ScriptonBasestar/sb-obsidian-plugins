@@ -198,6 +198,6 @@ export const DEFAULT_SETTINGS: BlogPlatformExportSettings = {
     optimizeImages: false,
     imageFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
     maxImageSize: 2048,
-    preserveStructure: true
-  }
+    preserveStructure: true,
+  },
 };

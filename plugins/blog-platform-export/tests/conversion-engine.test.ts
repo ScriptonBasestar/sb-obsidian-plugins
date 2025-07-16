@@ -8,7 +8,7 @@ describe('ConversionEngine', () => {
 
   beforeEach(() => {
     mockVault = {
-      read: vi.fn()
+      read: vi.fn(),
     } as any;
     engine = new ConversionEngine(mockVault);
   });
@@ -66,14 +66,14 @@ Content`;
         original: '[[Another Note]]',
         target: 'Another Note',
         alias: undefined,
-        position: { start: 17, end: 32 }
+        position: { start: 17, end: 32 },
       });
       expect(links[1]).toEqual({
         type: 'wikilink',
         original: '[[Note|Alias]]',
         target: 'Note',
         alias: 'Alias',
-        position: { start: 37, end: 51 }
+        position: { start: 37, end: 51 },
       });
     });
 
@@ -98,7 +98,7 @@ Content`;
       expect(images[0]).toEqual({
         type: 'embedded',
         path: 'image.png',
-        position: { start: 18, end: 32 }
+        position: { start: 18, end: 32 },
       });
       expect(images[1].path).toBe('folder/image2.jpg');
     });
@@ -113,7 +113,7 @@ Content`;
         path: './image.png',
         alt: 'Alt text',
         title: 'Title',
-        position: { start: 7, end: 39 }
+        position: { start: 7, end: 39 },
       });
     });
   });
@@ -182,7 +182,9 @@ Content`;
 
       expect(result).not.toContain('%%comment%%');
       expect(result).not.toContain('^abc123');
-      expect(result.trim()).toBe('Some content  here.\n      \n      With a block reference \n      \n      And more content.');
+      expect(result.trim()).toBe(
+        'Some content  here.\n      \n      With a block reference \n      \n      And more content.'
+      );
     });
 
     it('should clean up multiple empty lines', () => {
@@ -243,12 +245,12 @@ Content`;
       expect(headings[0]).toEqual({
         level: 1,
         text: 'Main Title',
-        anchor: 'main-title'
+        anchor: 'main-title',
       });
       expect(headings[1]).toEqual({
         level: 2,
         text: 'Section One',
-        anchor: 'section-one'
+        anchor: 'section-one',
       });
     });
   });

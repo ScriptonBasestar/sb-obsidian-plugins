@@ -130,19 +130,15 @@ export const DEFAULT_SETTINGS: WikiJSSyncSettings = {
   metadataMapping: {
     tags: {
       enabled: true,
-      prefix: ''
+      prefix: '',
     },
     categories: {
       enabled: true,
-      fieldName: 'categories'
+      fieldName: 'categories',
     },
-    customFields: []
+    customFields: [],
   },
-  excludedFolders: [
-    '.obsidian',
-    '.trash',
-    'templates'
-  ],
+  excludedFolders: ['.obsidian', '.trash', 'templates'],
   excludedFiles: [],
-  lastSync: ''
+  lastSync: '',
 };

@@ -4,7 +4,7 @@
 export * from '@sb-obsidian-plugins/shared/src/test-utils';
 
 // Export mock Obsidian classes and types
-export { 
+export {
   App,
   Plugin,
   PluginManifest,

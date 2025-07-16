@@ -21,7 +21,10 @@
       "Bash(git commit:*)",
       "Bash(mv:*)",
       "Bash(cp:*)",
-      "Bash(npx prettier:*)"
+      "Bash(npx prettier:*)",
+      "Bash(pnpm run lint:*)",
+      "Bash(npm run lint)",
+      "Bash(npx eslint:*)"
     ],
     "deny": []
   }

@@ -1,13 +1,13 @@
 import { GraphQLClient } from 'graphql-request';
 import { gql } from 'graphql-request';
-import { 
-  WikiPage, 
-  WikiPageInput, 
+import {
+  WikiPage,
+  WikiPageInput,
   GraphQLResponse,
   PageCreateResponse,
   PageUpdateResponse,
   PageQueryResponse,
-  ResponseResult
+  ResponseResult,
 } from './types';
 
 export class WikiJSClient {
@@ -18,11 +18,11 @@ export class WikiJSClient {
     this.apiKey = apiKey;
     this.client = new GraphQLClient(`${wikiUrl}/graphql`, {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
       },
       timeout: 30000,
-      errorPolicy: 'all'
+      errorPolicy: 'all',
     });
   }
 
@@ -171,7 +171,7 @@ export class WikiJSClient {
         isPublished: input.isPublished ?? true,
         isPrivate: input.isPrivate ?? false,
         locale: input.locale || 'en',
-        editor: input.editor || 'markdown'
+        editor: input.editor || 'markdown',
       };
 
       const response: PageCreateResponse = await this.client.request(mutation, variables);
@@ -181,7 +181,7 @@ export class WikiJSClient {
       return {
         succeeded: false,
         errorCode: 'UNKNOWN_ERROR',
-        message: error.message
+        message: error.message,
       };
     }
   }
@@ -243,7 +243,7 @@ export class WikiJSClient {
         isPublished: input.isPublished ?? true,
         isPrivate: input.isPrivate ?? false,
         locale: input.locale || 'en',
-        editor: input.editor || 'markdown'
+        editor: input.editor || 'markdown',
       };
 
       const response: PageUpdateResponse = await this.client.request(mutation, variables);
@@ -253,7 +253,7 @@ export class WikiJSClient {
       return {
         succeeded: false,
         errorCode: 'UNKNOWN_ERROR',
-        message: error.message
+        message: error.message,
       };
     }
   }
@@ -284,7 +284,7 @@ export class WikiJSClient {
       return {
         succeeded: false,
         errorCode: 'UNKNOWN_ERROR',
-        message: error.message
+        message: error.message,
       };
     }
   }
@@ -366,7 +366,7 @@ export class WikiJSClient {
         return await operation();
       } catch (error) {
         lastError = error;
-        
+
         // Don't retry on authentication errors
         if (error.message?.includes('401') || error.message?.includes('403')) {
           throw error;
@@ -374,7 +374,7 @@ export class WikiJSClient {
 
         // Wait before retrying
         if (i < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+          await new Promise((resolve) => setTimeout(resolve, delay * (i + 1)));
         }
       }
     }
@@ -387,14 +387,12 @@ export class WikiJSClient {
    */
   async batchCreatePages(pages: WikiPageInput[]): Promise<ResponseResult[]> {
     const results: ResponseResult[] = [];
-    
+
     // Process in batches of 10
     const batchSize = 10;
     for (let i = 0; i < pages.length; i += batchSize) {
       const batch = pages.slice(i, i + batchSize);
-      const batchResults = await Promise.all(
-        batch.map(page => this.createPage(page))
-      );
+      const batchResults = await Promise.all(batch.map((page) => this.createPage(page)));
       results.push(...batchResults);
     }
 
@@ -408,11 +406,11 @@ export class WikiJSClient {
     this.apiKey = apiKey;
     this.client = new GraphQLClient(this.client['url'], {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
       },
       timeout: 30000,
-      errorPolicy: 'all'
+      errorPolicy: 'all',
     });
   }
 }

@@ -16,7 +16,7 @@ export class AssetManager {
    * Copy assets from vault to target directory
    */
   async copyAssets(
-    sourceFiles: TFile[], 
+    sourceFiles: TFile[],
     targetDir: string,
     subdir: string = 'assets'
   ): Promise<AssetInfo[]> {
@@ -54,7 +54,7 @@ export class AssetManager {
 
     // Extract asset references from source files
     for (const file of sourceFiles) {
-      this.extractAssetReferences(file).forEach(ref => {
+      this.extractAssetReferences(file).forEach((ref) => {
         referencedPaths.add(ref);
       });
     }
@@ -62,12 +62,10 @@ export class AssetManager {
     // Find corresponding files in vault
     const referencedAssets: TFile[] = [];
     for (const assetPath of referencedPaths) {
-      const asset = allFiles.find(f => 
-        f.path === assetPath || 
-        f.name === assetPath ||
-        f.path.endsWith('/' + assetPath)
+      const asset = allFiles.find(
+        (f) => f.path === assetPath || f.name === assetPath || f.path.endsWith('/' + assetPath)
       );
-      
+
       if (asset && this.isAssetFile(asset)) {
         referencedAssets.push(asset);
       }
@@ -122,7 +120,7 @@ export class AssetManager {
       originalPath: asset.path,
       targetPath,
       size: buffer.byteLength,
-      type: this.isImageFile(asset) ? 'image' : 'attachment'
+      type: this.isImageFile(asset) ? 'image' : 'attachment',
     };
   }
 
@@ -187,9 +185,9 @@ export class AssetManager {
     const dir = path.dirname(asset.targetPath);
     const files = await fs.readdir(dir);
     const basename = path.basename(asset.targetPath, path.extname(asset.targetPath));
-    
+
     // Look for similar files
-    const similar = files.filter(f => {
+    const similar = files.filter((f) => {
       const otherBasename = path.basename(f, path.extname(f));
       return otherBasename === basename && f !== path.basename(asset.targetPath);
     });
@@ -198,7 +196,7 @@ export class AssetManager {
     for (const similarFile of similar) {
       const similarPath = path.join(dir, similarFile);
       const similarStat = await fs.stat(similarPath);
-      
+
       if (similarStat.size === asset.size) {
         // Likely duplicate, remove the similar file
         await fs.remove(similarPath);
@@ -210,7 +208,7 @@ export class AssetManager {
    * Update asset references in content
    */
   updateAssetReferences(
-    content: string, 
+    content: string,
     assetMapping: Map<string, string>,
     baseUrl?: string
   ): string {
@@ -228,16 +226,19 @@ export class AssetManager {
     });
 
     // Update markdown image paths
-    updatedContent = updatedContent.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, imagePath) => {
-      if (!imagePath.startsWith('http')) {
-        const mappedPath = assetMapping.get(imagePath);
-        if (mappedPath) {
-          const finalPath = baseUrl ? baseUrl + '/' + mappedPath : mappedPath;
-          return `![${alt}](${finalPath})`;
+    updatedContent = updatedContent.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      (match, alt, imagePath) => {
+        if (!imagePath.startsWith('http')) {
+          const mappedPath = assetMapping.get(imagePath);
+          if (mappedPath) {
+            const finalPath = baseUrl ? baseUrl + '/' + mappedPath : mappedPath;
+            return `![${alt}](${finalPath})`;
+          }
         }
+        return match;
       }
-      return match;
-    });
+    );
 
     return updatedContent;
   }
@@ -251,10 +252,10 @@ export class AssetManager {
     for (const asset of assets) {
       const originalName = path.basename(asset.originalPath);
       const relativePath = path.relative(baseUrl || '', asset.targetPath);
-      
+
       // Map by full path
       mapping.set(asset.originalPath, relativePath);
-      
+
       // Map by filename
       mapping.set(originalName, relativePath);
     }
@@ -267,8 +268,8 @@ export class AssetManager {
    */
   generateAssetReport(assets: AssetInfo[]): any {
     const totalSize = assets.reduce((sum, asset) => sum + asset.size, 0);
-    const images = assets.filter(a => a.type === 'image');
-    const attachments = assets.filter(a => a.type === 'attachment');
+    const images = assets.filter((a) => a.type === 'image');
+    const attachments = assets.filter((a) => a.type === 'attachment');
 
     return {
       totalAssets: assets.length,
@@ -276,13 +277,13 @@ export class AssetManager {
       totalSizeFormatted: this.formatBytes(totalSize),
       images: {
         count: images.length,
-        size: images.reduce((sum, asset) => sum + asset.size, 0)
+        size: images.reduce((sum, asset) => sum + asset.size, 0),
       },
       attachments: {
         count: attachments.length,
-        size: attachments.reduce((sum, asset) => sum + asset.size, 0)
+        size: attachments.reduce((sum, asset) => sum + asset.size, 0),
       },
-      assets: assets
+      assets: assets,
     };
   }
 
@@ -291,12 +292,38 @@ export class AssetManager {
    */
   private isAssetFile(file: TFile): boolean {
     const assetExtensions = [
-      'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'tiff',
-      'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
-      'txt', 'rtf', 'csv',
-      'zip', 'rar', '7z', 'tar', 'gz',
-      'mp3', 'wav', 'flac', 'aac',
-      'mp4', 'avi', 'mov', 'mkv', 'wmv'
+      'png',
+      'jpg',
+      'jpeg',
+      'gif',
+      'webp',
+      'svg',
+      'bmp',
+      'tiff',
+      'pdf',
+      'doc',
+      'docx',
+      'xls',
+      'xlsx',
+      'ppt',
+      'pptx',
+      'txt',
+      'rtf',
+      'csv',
+      'zip',
+      'rar',
+      '7z',
+      'tar',
+      'gz',
+      'mp3',
+      'wav',
+      'flac',
+      'aac',
+      'mp4',
+      'avi',
+      'mov',
+      'mkv',
+      'wmv',
     ];
     return assetExtensions.includes(file.extension.toLowerCase());
   }
@@ -314,11 +341,11 @@ export class AssetManager {
    */
   private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
-    
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
@@ -327,12 +354,12 @@ export class AssetManager {
    */
   async cleanupUnusedAssets(targetDir: string, usedAssets: AssetInfo[]): Promise<void> {
     const assetsDir = path.join(targetDir, 'assets');
-    
-    if (!await fs.pathExists(assetsDir)) {
+
+    if (!(await fs.pathExists(assetsDir))) {
       return;
     }
 
-    const usedPaths = new Set(usedAssets.map(a => a.targetPath));
+    const usedPaths = new Set(usedAssets.map((a) => a.targetPath));
     const allFiles = await this.getAllFiles(assetsDir);
 
     for (const filePath of allFiles) {
@@ -347,12 +374,12 @@ export class AssetManager {
    */
   private async getAllFiles(dir: string): Promise<string[]> {
     const files: string[] = [];
-    
+
     const entries = await fs.readdir(dir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
-      
+
       if (entry.isDirectory()) {
         const subFiles = await this.getAllFiles(fullPath);
         files.push(...subFiles);
@@ -360,7 +387,7 @@ export class AssetManager {
         files.push(fullPath);
       }
     }
-    
+
     return files;
   }
 }

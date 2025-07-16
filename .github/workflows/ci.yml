@@ -10,82 +10,82 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-          
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Run ESLint
         run: pnpm run lint
-        
+
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-          
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Run TypeScript check
         run: pnpm run typecheck
 
   test:
     name: Test
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: [18, 20, 22]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-          
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Run tests
         run: pnpm test
-        
+
       - name: Upload coverage reports
         if: matrix.node-version == '18'
         uses: codecov/codecov-action@v3
@@ -98,28 +98,28 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-          
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Build all packages
         run: pnpm run build
-        
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -129,29 +129,29 @@ jobs:
             packages/*/manifest.json
             packages/*/styles.css
           retention-days: 7
-          
+
   compatibility:
     name: Obsidian Compatibility Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-          
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Check manifest files
         run: |
           for manifest in packages/*/manifest.json; do
@@ -161,20 +161,20 @@ jobs:
             # Check version format
             jq -e '.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")' "$manifest" || exit 1
           done
-          
+
       - name: Check API compatibility
         run: |
           # Check for deprecated Obsidian API usage
           ! grep -r "workspace.activeLeaf" packages/*/src --include="*.ts" || echo "Warning: deprecated API usage found"
-          
+
   security:
     name: Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Run npm audit
         run: |
           cd packages/git-sync && npm audit --production
@@ -182,7 +182,7 @@ jobs:
           cd ../publisher-scripton && npm audit --production
           cd ../template-generator && npm audit --production
         continue-on-error: true
-        
+
       - name: Check for secrets
         run: |
           # Check for potential secrets or API keys

@@ -22,7 +22,7 @@ export class MetadataConverter {
       customData: Record<string, any>;
     } = {
       tags: [],
-      customData: {}
+      customData: {},
     };
 
     if (!frontmatter) {
@@ -67,8 +67,8 @@ export class MetadataConverter {
     // Convert tags
     if (this.mapping.tags.enabled && wikiPage.tags.length > 0) {
       const prefix = this.mapping.tags.prefix;
-      frontmatter.tags = prefix 
-        ? wikiPage.tags.map(tag => tag.startsWith(prefix) ? tag.slice(prefix.length) : tag)
+      frontmatter.tags = prefix
+        ? wikiPage.tags.map((tag) => (tag.startsWith(prefix) ? tag.slice(prefix.length) : tag))
         : wikiPage.tags;
     }
 
@@ -103,7 +103,7 @@ export class MetadataConverter {
       if (Array.isArray(frontmatter.tags)) {
         tags.push(...frontmatter.tags.map(String));
       } else if (typeof frontmatter.tags === 'string') {
-        tags.push(...frontmatter.tags.split(',').map(t => t.trim()));
+        tags.push(...frontmatter.tags.split(',').map((t) => t.trim()));
       }
     }
 
@@ -118,7 +118,7 @@ export class MetadataConverter {
 
     // Apply prefix if configured
     const prefix = this.mapping.tags.prefix;
-    return prefix ? tags.map(tag => prefix + tag) : tags;
+    return prefix ? tags.map((tag) => prefix + tag) : tags;
   }
 
   /**
@@ -127,8 +127,8 @@ export class MetadataConverter {
   private extractCategories(tags: string[]): string[] {
     // Assuming categories are tags with a specific prefix like 'category:'
     return tags
-      .filter(tag => tag.startsWith('category:'))
-      .map(tag => tag.replace('category:', ''));
+      .filter((tag) => tag.startsWith('category:'))
+      .map((tag) => tag.replace('category:', ''));
   }
 
   /**

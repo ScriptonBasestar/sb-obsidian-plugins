@@ -9,8 +9,8 @@ export class ExportModal extends Modal {
   private selectedProfile: ExportProfile | null = null;
 
   constructor(
-    app: App, 
-    profileManager: ProfileManager, 
+    app: App,
+    profileManager: ProfileManager,
     onExport: (files: TFile[], profile: ExportProfile) => void
   ) {
     super(app);
@@ -40,9 +40,9 @@ export class ExportModal extends Modal {
     const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
     cancelBtn.addEventListener('click', () => this.close());
 
-    const exportBtn = buttonContainer.createEl('button', { 
+    const exportBtn = buttonContainer.createEl('button', {
       text: 'Export',
-      cls: 'mod-cta'
+      cls: 'mod-cta',
     });
     exportBtn.style.marginLeft = '10px';
     exportBtn.addEventListener('click', () => this.handleExport());
@@ -55,7 +55,7 @@ export class ExportModal extends Modal {
 
     // Quick options
     const quickOptions = fileContainer.createDiv('quick-options');
-    
+
     const currentFileBtn = quickOptions.createEl('button', { text: 'Current File' });
     currentFileBtn.addEventListener('click', () => {
       const activeFile = this.app.workspace.getActiveFile();
@@ -88,14 +88,14 @@ export class ExportModal extends Modal {
     selectedContainer.style.marginTop = '10px';
 
     if (this.selectedFiles.length === 0) {
-      selectedContainer.createEl('p', { 
+      selectedContainer.createEl('p', {
         text: 'No files selected',
-        cls: 'setting-item-description'
+        cls: 'setting-item-description',
       });
     } else {
-      selectedContainer.createEl('p', { 
+      selectedContainer.createEl('p', {
         text: `${this.selectedFiles.length} file(s) selected:`,
-        cls: 'setting-item-description'
+        cls: 'setting-item-description',
       });
 
       const fileList = selectedContainer.createEl('ul');
@@ -104,15 +104,15 @@ export class ExportModal extends Modal {
       fileList.style.margin = '5px 0';
       fileList.style.padding = '0 20px';
 
-      this.selectedFiles.forEach(file => {
+      this.selectedFiles.forEach((file) => {
         const listItem = fileList.createEl('li', { text: file.path });
         listItem.style.fontSize = '0.9em';
       });
 
       // Clear selection button
-      const clearBtn = selectedContainer.createEl('button', { 
+      const clearBtn = selectedContainer.createEl('button', {
         text: 'Clear Selection',
-        cls: 'mod-warning'
+        cls: 'mod-warning',
       });
       clearBtn.style.fontSize = '0.8em';
       clearBtn.addEventListener('click', () => {
@@ -126,16 +126,16 @@ export class ExportModal extends Modal {
     const profiles = this.profileManager.getAllProfiles();
 
     if (profiles.length === 0) {
-      container.createEl('p', { 
+      container.createEl('p', {
         text: 'No export profiles configured. Please create a profile in settings first.',
-        cls: 'setting-item-description'
+        cls: 'setting-item-description',
       });
       return;
     }
 
     const profileContainer = container.createDiv('profile-selection');
 
-    profiles.forEach(profile => {
+    profiles.forEach((profile) => {
       const profileEl = profileContainer.createDiv('profile-option');
       profileEl.style.border = '1px solid var(--background-modifier-border)';
       profileEl.style.borderRadius = '5px';
@@ -158,16 +158,16 @@ export class ExportModal extends Modal {
       label.style.marginLeft = '10px';
 
       label.appendChild(radio);
-      
+
       const info = label.createDiv('profile-info');
       info.style.marginLeft = '10px';
-      
+
       const name = info.createEl('div', { text: profile.name });
       name.style.fontWeight = 'bold';
-      
-      const platform = info.createEl('div', { 
+
+      const platform = info.createEl('div', {
         text: `Platform: ${profile.platform.toUpperCase()}`,
-        cls: 'setting-item-description'
+        cls: 'setting-item-description',
       });
 
       // Click anywhere on the profile to select it
@@ -180,7 +180,7 @@ export class ExportModal extends Modal {
   }
 
   private updateExportButton(button?: HTMLButtonElement) {
-    const exportBtn = button || this.contentEl.querySelector('.mod-cta') as HTMLButtonElement;
+    const exportBtn = button || (this.contentEl.querySelector('.mod-cta') as HTMLButtonElement);
     if (!exportBtn) return;
 
     const canExport = this.selectedFiles.length > 0 && this.selectedProfile !== null;

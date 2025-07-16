@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - **scripton-sync**: New comprehensive sync plugin combining settings-sync and git-sync features
   - Settings profile management with multiple configuration support
   - Git integration with simple-git library
@@ -18,21 +19,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tab-based settings UI for better organization
 
 ### Changed
+
 - Consolidated settings-sync and git-sync plugins into scripton-sync
 - Updated plugin count from 7 to 6 in documentation
 - Improved branch management with automatic squash merge support
 
 ### Removed
+
 - git-sync plugin (functionality merged into scripton-sync)
 - settings-sync plugin (functionality merged into scripton-sync)
 
 ### Fixed
+
 - Various TypeScript type definitions for better type safety
 - Git authentication and conflict handling improvements
 
 ## [1.0.0] - Previous Release
 
 ### Added
+
 - Initial release with 7 plugins:
   - template-generator
   - git-sync
@@ -43,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - blog-platform-export
 
 ### Features
+
 - Monorepo structure using pnpm workspaces
 - Shared configuration and utilities
 - Comprehensive test coverage

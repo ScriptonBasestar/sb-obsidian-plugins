@@ -3,13 +3,7 @@ import { WikiJSClient } from './wikijs-client';
 import { MetadataConverter } from './metadata-converter';
 import { PathMapper } from './path-mapper';
 import { PerformanceUtils } from './performance-utils';
-import { 
-  WikiJSSyncSettings, 
-  SyncResult, 
-  ConflictItem, 
-  WikiPage,
-  WikiPageInput 
-} from './types';
+import { WikiJSSyncSettings, SyncResult, ConflictItem, WikiPage, WikiPageInput } from './types';
 
 export class SyncEngine {
   private app: App;
@@ -23,11 +17,7 @@ export class SyncEngine {
   private checksumCache = PerformanceUtils.createCache<string, string>(30 * 60 * 1000); // 30 min TTL
   private syncQueue = PerformanceUtils.createQueue<void>();
 
-  constructor(
-    app: App,
-    client: WikiJSClient,
-    settings: WikiJSSyncSettings
-  ) {
+  constructor(app: App, client: WikiJSClient, settings: WikiJSSyncSettings) {
     this.app = app;
     this.vault = app.vault;
     this.client = client;
@@ -47,7 +37,7 @@ export class SyncEngine {
         synced: 0,
         failed: 0,
         conflicts: [],
-        errors: []
+        errors: [],
       };
     }
 
@@ -58,7 +48,7 @@ export class SyncEngine {
       synced: 0,
       failed: 0,
       conflicts: [],
-      errors: []
+      errors: [],
     };
 
     try {
@@ -88,7 +78,6 @@ export class SyncEngine {
 
       result.message = `Sync completed: ${result.synced} synced, ${result.failed} failed, ${result.conflicts.length} conflicts`;
       new Notice(result.message);
-
     } catch (error) {
       console.error('Sync error:', error);
       result.success = false;
@@ -106,8 +95,8 @@ export class SyncEngine {
    * Sync from Obsidian to WikiJS
    */
   private async syncObsidianToWiki(result: SyncResult): Promise<void> {
-    const files = this.vault.getMarkdownFiles().filter(file => !this.shouldSkipFile(file));
-    
+    const files = this.vault.getMarkdownFiles().filter((file) => !this.shouldSkipFile(file));
+
     // Process files in batches for better performance
     await PerformanceUtils.batchProcess(
       files,
@@ -125,7 +114,7 @@ export class SyncEngine {
         concurrency: 2,
         onProgress: (processed, total) => {
           new Notice(`Syncing... ${processed}/${total}`, 2000);
-        }
+        },
       }
     );
   }
@@ -135,7 +124,7 @@ export class SyncEngine {
    */
   private async syncWikiToObsidian(result: SyncResult): Promise<void> {
     const wikiPages = await this.client.listPages(1000, 0);
-    
+
     for (const wikiPage of wikiPages) {
       try {
         await this.syncPageToObsidian(wikiPage, result);
@@ -153,8 +142,8 @@ export class SyncEngine {
   private async syncBidirectional(result: SyncResult): Promise<void> {
     const files = this.vault.getMarkdownFiles();
     const wikiPages = await this.client.listPages(1000, 0);
-    const wikiPageMap = new Map(wikiPages.map(p => [p.path, p]));
-    
+    const wikiPageMap = new Map(wikiPages.map((p) => [p.path, p]));
+
     // Sync existing files
     for (const file of files) {
       if (this.shouldSkipFile(file)) {
@@ -198,19 +187,19 @@ export class SyncEngine {
   private async syncFileToWiki(file: TFile, result: SyncResult): Promise<void> {
     const content = await this.vault.read(file);
     const wikiPath = this.pathMapper.obsidianToWiki(file.path);
-    
+
     // Calculate checksum to skip unchanged files
     const contentChecksum = await PerformanceUtils.calculateChecksum(content);
     const cachedChecksum = this.checksumCache.get(file.path);
-    
+
     if (cachedChecksum === contentChecksum) {
       return; // Skip unchanged file
     }
-    
+
     // Parse frontmatter and content
     const { frontmatter, body } = this.metadataConverter.extractFrontmatter(content);
     const metadata = this.metadataConverter.obsidianToWiki(frontmatter);
-    
+
     // Prepare page input
     const pageInput: WikiPageInput = {
       path: wikiPath,
@@ -218,12 +207,12 @@ export class SyncEngine {
       content: body,
       description: metadata.description,
       tags: metadata.tags,
-      editor: 'markdown'
+      editor: 'markdown',
     };
 
     // Check if page exists
     const existingPage = await this.client.getPage(wikiPath);
-    
+
     let response;
     if (existingPage) {
       // Update existing page
@@ -248,11 +237,11 @@ export class SyncEngine {
   private async syncPageToObsidian(wikiPage: WikiPage, result: SyncResult): Promise<void> {
     const obsidianPath = this.pathMapper.wikiToObsidian(wikiPage.path);
     const file = this.vault.getAbstractFileByPath(obsidianPath);
-    
+
     // Convert metadata
     const frontmatter = this.metadataConverter.wikiToObsidian(wikiPage);
     const content = this.metadataConverter.mergeFrontmatter(wikiPage.content, frontmatter);
-    
+
     if (file instanceof TFile) {
       // Update existing file
       await this.vault.modify(file, content);
@@ -261,7 +250,7 @@ export class SyncEngine {
       await this.ensureDirectoryExists(obsidianPath);
       await this.vault.create(obsidianPath, content);
     }
-    
+
     result.synced++;
     this.updateLastSyncTime(obsidianPath);
   }
@@ -270,8 +259,8 @@ export class SyncEngine {
    * Handle bidirectional sync for a file
    */
   private async syncBidirectionalFile(
-    file: TFile, 
-    wikiPage: WikiPage, 
+    file: TFile,
+    wikiPage: WikiPage,
     result: SyncResult
   ): Promise<void> {
     const fileModTime = file.stat.mtime;
@@ -288,7 +277,7 @@ export class SyncEngine {
         path: file.path,
         type: 'content',
         localModified: new Date(fileModTime).toISOString(),
-        remoteModified: wikiPage.updatedAt
+        remoteModified: wikiPage.updatedAt,
       };
 
       // Auto-resolve based on settings or add to conflicts
@@ -338,11 +327,11 @@ export class SyncEngine {
   private async ensureDirectoryExists(filePath: string): Promise<void> {
     const parts = filePath.split('/');
     parts.pop(); // Remove filename
-    
+
     let currentPath = '';
     for (const part of parts) {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
-      
+
       if (!this.vault.getAbstractFileByPath(currentPath)) {
         await this.vault.createFolder(currentPath);
       }
@@ -405,7 +394,7 @@ export class SyncEngine {
         synced: 0,
         failed: 0,
         conflicts: [],
-        errors: []
+        errors: [],
       };
 
       try {

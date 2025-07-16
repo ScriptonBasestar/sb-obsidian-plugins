@@ -20,13 +20,13 @@ export class PerformanceUtils {
     // Process in batches
     for (let i = 0; i < items.length; i += batchSize) {
       const batch = items.slice(i, i + batchSize);
-      
+
       // Process batch with concurrency limit
       const batchPromises = [];
       for (let j = 0; j < batch.length; j += concurrency) {
         const concurrent = batch.slice(j, j + concurrency);
-        const promises = concurrent.map(item => processor(item));
-        batchPromises.push(...await Promise.all(promises));
+        const promises = concurrent.map((item) => processor(item));
+        batchPromises.push(...(await Promise.all(promises)));
       }
 
       results.push(...batchPromises);
@@ -108,7 +108,7 @@ export class PerformanceUtils {
       set(key: K, value: V): void {
         cache.set(key, {
           value,
-          expiry: Date.now() + ttl
+          expiry: Date.now() + ttl,
         });
       },
 
@@ -125,7 +125,7 @@ export class PerformanceUtils {
           }
         }
         return cache.size;
-      }
+      },
     };
   }
 
@@ -176,20 +176,20 @@ export class PerformanceUtils {
    * Simple delay utility
    */
   static delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * Memory-efficient file processing
    */
-  static async* readFileInChunks(
+  static async *readFileInChunks(
     file: TFile,
     vault: any,
     chunkSize: number = 1024 * 1024 // 1MB chunks
   ): AsyncGenerator<string> {
     const content = await vault.read(file);
     const chunks = this.chunkContent(content, chunkSize);
-    
+
     for (const chunk of chunks) {
       yield chunk;
     }
@@ -207,12 +207,7 @@ export class PerformanceUtils {
       backoffFactor?: number;
     } = {}
   ): Promise<T> {
-    const {
-      maxRetries = 3,
-      initialDelay = 1000,
-      maxDelay = 30000,
-      backoffFactor = 2
-    } = options;
+    const { maxRetries = 3, initialDelay = 1000, maxDelay = 30000, backoffFactor = 2 } = options;
 
     let lastError: Error;
     let delay = initialDelay;
@@ -222,14 +217,14 @@ export class PerformanceUtils {
         return await operation();
       } catch (error) {
         lastError = error as Error;
-        
+
         if (attempt === maxRetries) {
           throw lastError;
         }
 
         console.warn(`Retry attempt ${attempt + 1} failed:`, error);
         await this.delay(delay);
-        
+
         delay = Math.min(delay * backoffFactor, maxDelay);
       }
     }
@@ -246,9 +241,9 @@ export class PerformanceUtils {
 
     const process = async () => {
       if (processing || queue.length === 0) return;
-      
+
       processing = true;
-      
+
       while (queue.length > 0) {
         const task = queue.shift()!;
         try {
@@ -257,7 +252,7 @@ export class PerformanceUtils {
           console.error('Queue task error:', error);
         }
       }
-      
+
       processing = false;
     };
 
@@ -273,7 +268,7 @@ export class PerformanceUtils {
 
       clear(): void {
         queue.length = 0;
-      }
+      },
     };
   }
 
@@ -285,6 +280,6 @@ export class PerformanceUtils {
     const data = encoder.encode(content);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 }

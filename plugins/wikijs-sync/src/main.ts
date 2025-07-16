@@ -16,7 +16,7 @@ export default class WikiJSSyncPlugin extends Plugin {
 
     // Initialize API client
     this.client = new WikiJSClient(this.settings.wikiUrl, this.settings.apiKey);
-    
+
     // Initialize sync engine
     this.syncEngine = new SyncEngine(this.app, this.client, this.settings);
 
@@ -67,7 +67,7 @@ export default class WikiJSSyncPlugin extends Plugin {
       name: 'Sync with WikiJS',
       callback: async () => {
         await this.manualSync();
-      }
+      },
     });
 
     // Force push to WikiJS
@@ -79,7 +79,7 @@ export default class WikiJSSyncPlugin extends Plugin {
         this.settings.syncDirection = 'obsidian-to-wiki';
         await this.manualSync();
         this.settings.syncDirection = oldDirection;
-      }
+      },
     });
 
     // Force pull from WikiJS
@@ -91,7 +91,7 @@ export default class WikiJSSyncPlugin extends Plugin {
         this.settings.syncDirection = 'wiki-to-obsidian';
         await this.manualSync();
         this.settings.syncDirection = oldDirection;
-      }
+      },
     });
 
     // Sync current file
@@ -105,7 +105,7 @@ export default class WikiJSSyncPlugin extends Plugin {
         } else {
           new Notice('No active file');
         }
-      }
+      },
     });
 
     // Show sync status
@@ -114,23 +114,23 @@ export default class WikiJSSyncPlugin extends Plugin {
       name: 'Show WikiJS sync status',
       callback: () => {
         this.showSyncStatus();
-      }
+      },
     });
   }
 
   async manualSync() {
     new Notice('Starting WikiJS sync...');
     this.updateStatusBar('Syncing...');
-    
+
     const result = await this.syncEngine.sync();
-    
+
     if (result.success) {
       this.settings.lastSync = new Date().toISOString();
       await this.saveSettings();
     }
 
     this.updateStatusBar();
-    
+
     // Show detailed results if there were issues
     if (result.conflicts.length > 0 || result.errors.length > 0) {
       this.showSyncResults(result);
@@ -139,14 +139,14 @@ export default class WikiJSSyncPlugin extends Plugin {
 
   async syncCurrentFile(file: TFile) {
     new Notice(`Syncing ${file.basename}...`);
-    
+
     // Create a temporary sync engine with single file
     const tempSettings = { ...this.settings };
-    tempSettings.excludedFiles = this.settings.excludedFiles.filter(f => f !== file.path);
-    
+    tempSettings.excludedFiles = this.settings.excludedFiles.filter((f) => f !== file.path);
+
     const tempEngine = new SyncEngine(this.app, this.client, tempSettings);
     const result = await tempEngine.sync();
-    
+
     if (result.synced > 0) {
       new Notice(`Successfully synced ${file.basename}`);
     } else if (result.failed > 0) {
@@ -156,12 +156,12 @@ export default class WikiJSSyncPlugin extends Plugin {
 
   startAutoSync() {
     this.stopAutoSync();
-    
+
     const intervalMs = this.settings.syncInterval * 60 * 1000;
     this.autoSyncInterval = window.setInterval(async () => {
       await this.manualSync();
     }, intervalMs);
-    
+
     new Notice(`Auto-sync enabled (every ${this.settings.syncInterval} minutes)`);
   }
 
@@ -197,7 +197,7 @@ export default class WikiJSSyncPlugin extends Plugin {
       const lastSync = new Date(this.settings.lastSync);
       const now = new Date();
       const diffMinutes = Math.floor((now.getTime() - lastSync.getTime()) / (1000 * 60));
-      
+
       if (diffMinutes < 1) {
         this.statusBarItem.setText('WikiJS: Just synced');
       } else if (diffMinutes < 60) {
@@ -213,11 +213,13 @@ export default class WikiJSSyncPlugin extends Plugin {
 
   showSyncStatus() {
     const { lastSync, syncDirection, autoSync } = this.settings;
-    
+
     let statusText = 'WikiJS Sync Status\n\n';
     statusText += `Direction: ${this.formatSyncDirection(syncDirection)}\n`;
-    statusText += `Auto-sync: ${autoSync ? `Enabled (every ${this.settings.syncInterval}m)` : 'Disabled'}\n`;
-    
+    statusText += `Auto-sync: ${
+      autoSync ? `Enabled (every ${this.settings.syncInterval}m)` : 'Disabled'
+    }\n`;
+
     if (lastSync) {
       statusText += `Last sync: ${new Date(lastSync).toLocaleString()}\n`;
     } else {
@@ -230,17 +232,17 @@ export default class WikiJSSyncPlugin extends Plugin {
   showSyncResults(result: any) {
     let message = `Sync Results:\n`;
     message += `✓ Synced: ${result.synced}\n`;
-    
+
     if (result.failed > 0) {
       message += `✗ Failed: ${result.failed}\n`;
     }
-    
+
     if (result.conflicts.length > 0) {
       message += `⚠ Conflicts: ${result.conflicts.length}\n`;
       message += 'See console for details.';
       console.log('Sync conflicts:', result.conflicts);
     }
-    
+
     if (result.errors.length > 0) {
       console.error('Sync errors:', result.errors);
     }

@@ -22,15 +22,15 @@ describe('SyncEngine', () => {
       create: vi.fn(),
       createFolder: vi.fn(),
       getAbstractFileByPath: vi.fn(),
-      configDir: '.obsidian'
+      configDir: '.obsidian',
     } as any;
 
     // Mock App
     mockApp = {
       vault: mockVault,
       workspace: {
-        getActiveFile: vi.fn()
-      }
+        getActiveFile: vi.fn(),
+      },
     } as any;
 
     // Mock WikiJSClient
@@ -39,7 +39,7 @@ describe('SyncEngine', () => {
       listPages: vi.fn().mockResolvedValue([]),
       getPage: vi.fn(),
       createPage: vi.fn(),
-      updatePage: vi.fn()
+      updatePage: vi.fn(),
     } as any;
 
     // Settings
@@ -69,9 +69,7 @@ describe('SyncEngine', () => {
     });
 
     it('should sync based on direction setting', async () => {
-      const mockFiles = [
-        { path: 'test.md', stat: { mtime: Date.now() }, basename: 'test' }
-      ];
+      const mockFiles = [{ path: 'test.md', stat: { mtime: Date.now() }, basename: 'test' }];
       mockVault.getMarkdownFiles.mockReturnValue(mockFiles);
       mockVault.read.mockResolvedValue('# Test\nContent');
 
@@ -86,9 +84,7 @@ describe('SyncEngine', () => {
 
       // Test Wiki to Obsidian
       settings.syncDirection = 'wiki-to-obsidian';
-      mockClient.listPages.mockResolvedValue([
-        { path: '/test', title: 'Test', content: '# Test' }
-      ]);
+      mockClient.listPages.mockResolvedValue([{ path: '/test', title: 'Test', content: '# Test' }]);
       await syncEngine.sync();
       expect(mockVault.create).toHaveBeenCalled();
     });
@@ -98,7 +94,7 @@ describe('SyncEngine', () => {
     it('should skip excluded folders', async () => {
       const mockFiles = [
         { path: '.obsidian/config.md', stat: { mtime: Date.now() } },
-        { path: 'valid.md', stat: { mtime: Date.now() } }
+        { path: 'valid.md', stat: { mtime: Date.now() } },
       ];
       mockVault.getMarkdownFiles.mockReturnValue(mockFiles);
       mockVault.read.mockResolvedValue('Content');
@@ -111,7 +107,7 @@ describe('SyncEngine', () => {
       expect(mockClient.createPage).toHaveBeenCalledTimes(1);
       expect(mockClient.createPage).toHaveBeenCalledWith(
         expect.objectContaining({
-          path: expect.stringContaining('valid')
+          path: expect.stringContaining('valid'),
         })
       );
     });
@@ -120,7 +116,7 @@ describe('SyncEngine', () => {
       settings.excludedFiles = ['README.md'];
       const mockFiles = [
         { path: 'README.md', stat: { mtime: Date.now() }, name: 'README.md' },
-        { path: 'content.md', stat: { mtime: Date.now() }, name: 'content.md' }
+        { path: 'content.md', stat: { mtime: Date.now() }, name: 'content.md' },
       ];
       mockVault.getMarkdownFiles.mockReturnValue(mockFiles);
       mockVault.read.mockResolvedValue('Content');
@@ -140,7 +136,7 @@ describe('SyncEngine', () => {
       const mockFile = {
         path: 'test.md',
         stat: { mtime: now + 1000 },
-        basename: 'test'
+        basename: 'test',
       };
       mockVault.getMarkdownFiles.mockReturnValue([mockFile]);
       mockVault.read.mockResolvedValue('Local content');
@@ -150,7 +146,7 @@ describe('SyncEngine', () => {
         path: '/test',
         title: 'Test',
         content: 'Remote content',
-        updatedAt: new Date(now + 2000).toISOString()
+        updatedAt: new Date(now + 2000).toISOString(),
       };
       mockClient.listPages.mockResolvedValue([mockWikiPage]);
       mockClient.getPage.mockResolvedValue(mockWikiPage);
@@ -177,9 +173,7 @@ describe('SyncEngine', () => {
 
   describe('error handling', () => {
     it('should handle sync errors gracefully', async () => {
-      const mockFiles = [
-        { path: 'test.md', stat: { mtime: Date.now() }, basename: 'test' }
-      ];
+      const mockFiles = [{ path: 'test.md', stat: { mtime: Date.now() }, basename: 'test' }];
       mockVault.getMarkdownFiles.mockReturnValue(mockFiles);
       mockVault.read.mockRejectedValue(new Error('Read failed'));
 
@@ -196,9 +190,7 @@ describe('SyncEngine', () => {
     it('should update internal components when settings change', () => {
       const newSettings = {
         ...settings,
-        pathMapping: [
-          { obsidianPath: 'docs', wikiPath: '/documentation', enabled: true }
-        ]
+        pathMapping: [{ obsidianPath: 'docs', wikiPath: '/documentation', enabled: true }],
       };
 
       syncEngine.updateSettings(newSettings);

@@ -5,12 +5,12 @@ import * as yaml from 'js-yaml';
 import * as toml from 'toml';
 import * as moment from 'moment';
 import { ConversionEngine } from '../conversion-engine';
-import { 
-  HugoSettings, 
-  ExportProfile, 
-  ConversionResult, 
+import {
+  HugoSettings,
+  ExportProfile,
+  ConversionResult,
   ConversionError,
-  ParsedContent 
+  ParsedContent,
 } from '../types';
 
 export class HugoExporter {
@@ -37,7 +37,7 @@ export class HugoExporter {
       errors: [],
       warnings: [],
       outputPath,
-      assets: []
+      assets: [],
     };
 
     try {
@@ -57,7 +57,7 @@ export class HugoExporter {
         } catch (error) {
           result.errors.push({
             file: file.path,
-            error: error.message
+            error: error.message,
           });
         }
       }
@@ -72,7 +72,7 @@ export class HugoExporter {
       result.success = false;
       result.errors.push({
         file: 'general',
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -82,7 +82,11 @@ export class HugoExporter {
   /**
    * Export a single file to Hugo format
    */
-  private async exportFile(file: TFile, outputPath: string, result: ConversionResult): Promise<void> {
+  private async exportFile(
+    file: TFile,
+    outputPath: string,
+    result: ConversionResult
+  ): Promise<void> {
     const parsed = await this.conversionEngine.parseFile(file);
     const hugoContent = await this.convertToHugo(file, parsed);
     const targetPath = this.getTargetPath(file, outputPath);
@@ -104,22 +108,22 @@ export class HugoExporter {
   private async convertToHugo(file: TFile, parsed: ParsedContent): Promise<string> {
     // Process frontmatter
     const hugoFrontmatter = this.convertFrontmatter(file, parsed.frontmatter);
-    
+
     // Process content
     let content = parsed.content;
-    
+
     // Convert wikilinks to Hugo ref shortcodes or markdown links
     content = this.convertWikiLinks(content);
-    
+
     // Convert embedded images
     content = this.convertImages(content);
-    
+
     // Process code blocks and math
     content = this.conversionEngine.processCodeBlocks(content, 'hugo');
-    
+
     // Apply Hugo shortcodes
     content = this.applyShortcodes(content);
-    
+
     // Clean content
     content = this.conversionEngine.cleanContent(content);
 
@@ -148,13 +152,15 @@ export class HugoExporter {
     if (this.settings.taxonomies.tags.enabled && obsidianMeta.tags) {
       const tags = Array.isArray(obsidianMeta.tags) ? obsidianMeta.tags : [obsidianMeta.tags];
       hugo[this.settings.taxonomies.tags.fieldName] = this.transformTaxonomy(
-        tags, 
+        tags,
         this.settings.taxonomies.tags.transform
       );
     }
 
     if (this.settings.taxonomies.categories.enabled && obsidianMeta.categories) {
-      const categories = Array.isArray(obsidianMeta.categories) ? obsidianMeta.categories : [obsidianMeta.categories];
+      const categories = Array.isArray(obsidianMeta.categories)
+        ? obsidianMeta.categories
+        : [obsidianMeta.categories];
       hugo[this.settings.taxonomies.categories.fieldName] = this.transformTaxonomy(
         categories,
         this.settings.taxonomies.categories.transform
@@ -187,7 +193,9 @@ export class HugoExporter {
     }
 
     if (obsidianMeta.aliases) {
-      hugo.aliases = Array.isArray(obsidianMeta.aliases) ? obsidianMeta.aliases : [obsidianMeta.aliases];
+      hugo.aliases = Array.isArray(obsidianMeta.aliases)
+        ? obsidianMeta.aliases
+        : [obsidianMeta.aliases];
     }
 
     // Custom fields from profile template
@@ -204,13 +212,13 @@ export class HugoExporter {
    */
   private convertWikiLinks(content: string): string {
     return content.replace(/\[\[([^\]]+?)\]\]/g, (match, linkContent) => {
-      const [target, alias] = linkContent.includes('|') 
+      const [target, alias] = linkContent.includes('|')
         ? linkContent.split('|', 2)
         : [linkContent, linkContent];
 
       const cleanTarget = target.trim();
       const displayText = alias?.trim() || cleanTarget;
-      
+
       // Use Hugo ref shortcode for internal links
       const slug = this.conversionEngine.slugify(cleanTarget);
       return `[${displayText}]({{< ref "${slug}" >}})`;
@@ -223,13 +231,13 @@ export class HugoExporter {
   private convertImages(content: string): string {
     return content.replace(/!\[\[([^\]]+?)\]\]/g, (match, imagePath) => {
       const cleanPath = imagePath.trim();
-      
+
       // Hugo static file path
       const staticPath = path.join('/', cleanPath);
-      
+
       // Extract filename for alt text
       const filename = cleanPath.split('/').pop()?.split('.')[0] || 'image';
-      
+
       return `![${filename}](${staticPath})`;
     });
   }
@@ -245,17 +253,24 @@ export class HugoExporter {
     }
 
     // Common transformations
-    
+
     // Callouts to Hugo notices
-    content = content.replace(/> \[!(\w+)\]\s*([^\n]*)\n((?:> [^\n]*\n)*)/g, (match, type, title, body) => {
-      const cleanBody = body.replace(/^> /gm, '').trim();
-      const noticeType = type.toLowerCase();
-      return `{{< notice ${noticeType} >}}\n${title ? title + '\n\n' : ''}${cleanBody}\n{{< /notice >}}`;
-    });
+    content = content.replace(
+      /> \[!(\w+)\]\s*([^\n]*)\n((?:> [^\n]*\n)*)/g,
+      (match, type, title, body) => {
+        const cleanBody = body.replace(/^> /gm, '').trim();
+        const noticeType = type.toLowerCase();
+        return `{{< notice ${noticeType} >}}\n${
+          title ? title + '\n\n' : ''
+        }${cleanBody}\n{{< /notice >}}`;
+      }
+    );
 
     // YouTube embeds
-    content = content.replace(/https:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g, 
-      '{{< youtube $1 >}}');
+    content = content.replace(
+      /https:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g,
+      '{{< youtube $1 >}}'
+    );
 
     return content;
   }
@@ -268,9 +283,9 @@ export class HugoExporter {
 
     switch (this.settings.frontmatterFormat) {
       case 'yaml':
-        frontmatterStr = `---\n${yaml.dump(frontmatter, { 
+        frontmatterStr = `---\n${yaml.dump(frontmatter, {
           sortKeys: false,
-          lineWidth: -1 
+          lineWidth: -1,
         })}---\n\n`;
         break;
       case 'toml':
@@ -289,10 +304,10 @@ export class HugoExporter {
    */
   private objectToToml(obj: Record<string, any>): string {
     const lines: string[] = [];
-    
+
     for (const [key, value] of Object.entries(obj)) {
       if (Array.isArray(value)) {
-        lines.push(`${key} = [${value.map(v => `"${v}"`).join(', ')}]`);
+        lines.push(`${key} = [${value.map((v) => `"${v}"`).join(', ')}]`);
       } else if (typeof value === 'string') {
         lines.push(`${key} = "${value}"`);
       } else if (typeof value === 'boolean') {
@@ -303,7 +318,7 @@ export class HugoExporter {
         lines.push(`${key} = ${value.toISOString()}`);
       }
     }
-    
+
     return lines.join('\n');
   }
 
@@ -349,7 +364,7 @@ export class HugoExporter {
   private transformTaxonomy(values: string[], transform?: string): string[] {
     if (!transform) return values;
 
-    return values.map(value => {
+    return values.map((value) => {
       switch (transform) {
         case 'lowercase':
           return value.toLowerCase();
@@ -378,7 +393,7 @@ export class HugoExporter {
   private async ensureDirectories(outputPath: string): Promise<void> {
     const dirs = [
       path.join(outputPath, this.settings.contentDir),
-      path.join(outputPath, this.settings.staticDir)
+      path.join(outputPath, this.settings.staticDir),
     ];
 
     for (const dir of dirs) {
@@ -389,24 +404,28 @@ export class HugoExporter {
   /**
    * Copy assets to Hugo static directory
    */
-  private async copyAssets(files: TFile[], outputPath: string, result: ConversionResult): Promise<void> {
+  private async copyAssets(
+    files: TFile[],
+    outputPath: string,
+    result: ConversionResult
+  ): Promise<void> {
     const staticDir = path.join(outputPath, this.settings.staticDir);
     const allFiles = this.vault.getFiles();
-    
+
     for (const file of allFiles) {
       if (this.isAssetFile(file)) {
         try {
           const targetPath = path.join(staticDir, file.path);
           await fs.ensureDir(path.dirname(targetPath));
-          
+
           const buffer = await this.vault.readBinary(file);
           await fs.writeFile(targetPath, buffer);
-          
+
           result.assets.push({
             originalPath: file.path,
             targetPath,
             size: buffer.byteLength,
-            type: this.isImageFile(file) ? 'image' : 'attachment'
+            type: this.isImageFile(file) ? 'image' : 'attachment',
           });
         } catch (error) {
           result.warnings.push(`Failed to copy asset ${file.path}: ${error.message}`);
@@ -422,30 +441,32 @@ export class HugoExporter {
     if (file.extension !== 'md') return true;
 
     const filter = this.profile.filters;
-    
+
     // Check include/exclude folders
     if (filter.includeFolders.length > 0) {
-      const inIncluded = filter.includeFolders.some(folder => file.path.startsWith(folder));
+      const inIncluded = filter.includeFolders.some((folder) => file.path.startsWith(folder));
       if (!inIncluded) return true;
     }
 
-    if (filter.excludeFolders.some(folder => file.path.startsWith(folder))) {
+    if (filter.excludeFolders.some((folder) => file.path.startsWith(folder))) {
       return true;
     }
 
     // Check include/exclude files
     if (filter.includeFiles.length > 0) {
-      const inIncluded = filter.includeFiles.some(pattern => {
+      const inIncluded = filter.includeFiles.some((pattern) => {
         const regex = new RegExp(pattern.replace('*', '.*'));
         return regex.test(file.path);
       });
       if (!inIncluded) return true;
     }
 
-    if (filter.excludeFiles.some(pattern => {
-      const regex = new RegExp(pattern.replace('*', '.*'));
-      return regex.test(file.path);
-    })) {
+    if (
+      filter.excludeFiles.some((pattern) => {
+        const regex = new RegExp(pattern.replace('*', '.*'));
+        return regex.test(file.path);
+      })
+    ) {
       return true;
     }
 
@@ -457,9 +478,22 @@ export class HugoExporter {
    */
   private isAssetFile(file: TFile): boolean {
     const assetExtensions = [
-      'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg',
-      'pdf', 'doc', 'docx', 'txt', 'zip', 'rar',
-      'mp3', 'mp4', 'avi', 'mov'
+      'png',
+      'jpg',
+      'jpeg',
+      'gif',
+      'webp',
+      'svg',
+      'pdf',
+      'doc',
+      'docx',
+      'txt',
+      'zip',
+      'rar',
+      'mp3',
+      'mp4',
+      'avi',
+      'mov',
     ];
     return assetExtensions.includes(file.extension.toLowerCase());
   }

@@ -10,19 +10,19 @@ describe('MetadataConverter', () => {
     mapping = {
       tags: {
         enabled: true,
-        prefix: 'obsidian:'
+        prefix: 'obsidian:',
       },
       categories: {
         enabled: true,
-        fieldName: 'categories'
+        fieldName: 'categories',
       },
       customFields: [
         {
           obsidianField: 'author',
           wikiField: 'authorName',
-          type: 'string'
-        }
-      ]
+          type: 'string',
+        },
+      ],
     };
     converter = new MetadataConverter(mapping);
   });
@@ -40,7 +40,7 @@ author: John Doe
 This is the body content.`;
 
       const { frontmatter, body } = converter.extractFrontmatter(content);
-      
+
       expect(frontmatter.title).toBe('Test Page');
       expect(frontmatter.tags).toEqual(['test', 'sample']);
       expect(frontmatter.author).toBe('John Doe');
@@ -50,7 +50,7 @@ This is the body content.`;
     it('should handle content without frontmatter', () => {
       const content = '# Just Content\n\nNo frontmatter here.';
       const { frontmatter, body } = converter.extractFrontmatter(content);
-      
+
       expect(frontmatter).toEqual({});
       expect(body).toBe(content);
     });
@@ -73,7 +73,7 @@ This is the body content.`;
         tags: ['note', 'important'],
         categories: ['docs', 'guides'],
         author: 'Jane Smith',
-        description: 'A test page'
+        description: 'A test page',
       };
 
       const wikiMeta = converter.obsidianToWiki(obsidianMeta);
@@ -81,7 +81,7 @@ This is the body content.`;
       expect(wikiMeta.tags).toEqual(['obsidian:note', 'obsidian:important']);
       expect(wikiMeta.description).toBe('A test page');
       expect(wikiMeta.customFields).toEqual({
-        authorName: 'Jane Smith'
+        authorName: 'Jane Smith',
       });
     });
 
@@ -90,7 +90,7 @@ This is the body content.`;
       converter = new MetadataConverter(mapping);
 
       const obsidianMeta = {
-        tags: ['test']
+        tags: ['test'],
       };
 
       const wikiMeta = converter.obsidianToWiki(obsidianMeta);
@@ -99,7 +99,7 @@ This is the body content.`;
 
     it('should handle nested tags', () => {
       const obsidianMeta = {
-        tags: ['project/frontend', 'status/done']
+        tags: ['project/frontend', 'status/done'],
       };
 
       const wikiMeta = converter.obsidianToWiki(obsidianMeta);
@@ -117,7 +117,7 @@ This is the body content.`;
         tags: ['obsidian:note', 'wiki:other'],
         description: 'Test description',
         updatedAt: '2024-01-16T00:00:00Z',
-        createdAt: '2024-01-15T00:00:00Z'
+        createdAt: '2024-01-15T00:00:00Z',
       } as any;
 
       const obsidianMeta = converter.wikiToObsidian(wikiPage);
@@ -134,7 +134,7 @@ This is the body content.`;
       converter = new MetadataConverter(mapping);
 
       const wikiPage = {
-        tags: ['note', 'important']
+        tags: ['note', 'important'],
       } as any;
 
       const obsidianMeta = converter.wikiToObsidian(wikiPage);
@@ -148,7 +148,7 @@ This is the body content.`;
       const frontmatter = {
         title: 'Test',
         tags: ['test'],
-        author: 'Me'
+        author: 'Me',
       };
 
       const merged = converter.mergeFrontmatter(content, frontmatter);
@@ -173,7 +173,7 @@ This is the body content.`;
       const content = 'Body';
       const frontmatter = {
         tags: ['a', 'b', 'c'],
-        categories: ['x', 'y']
+        categories: ['x', 'y'],
       };
 
       const merged = converter.mergeFrontmatter(content, frontmatter);
@@ -187,12 +187,7 @@ This is the body content.`;
       const tags = ['CamelCase', 'with spaces', 'with/slash', 'with-dash'];
       const normalized = converter['normalizeTags'](tags);
 
-      expect(normalized).toEqual([
-        'camelcase',
-        'with-spaces',
-        'with-slash',
-        'with-dash'
-      ]);
+      expect(normalized).toEqual(['camelcase', 'with-spaces', 'with-slash', 'with-dash']);
     });
   });
 
@@ -202,7 +197,7 @@ This is the body content.`;
         { obsidianField: 'rating', wikiField: 'score', type: 'number' },
         { obsidianField: 'published', wikiField: 'isPublished', type: 'boolean' },
         { obsidianField: 'date', wikiField: 'publishDate', type: 'date' },
-        { obsidianField: 'keywords', wikiField: 'tags', type: 'array' }
+        { obsidianField: 'keywords', wikiField: 'tags', type: 'array' },
       ];
       converter = new MetadataConverter(mapping);
 
@@ -210,7 +205,7 @@ This is the body content.`;
         rating: '4.5',
         published: 'true',
         date: '2024-01-16',
-        keywords: 'test, sample'
+        keywords: 'test, sample',
       };
 
       const wikiMeta = converter.obsidianToWiki(obsidianMeta);

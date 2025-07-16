@@ -4,12 +4,12 @@ import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
 import * as moment from 'moment';
 import { ConversionEngine } from '../conversion-engine';
-import { 
-  JekyllSettings, 
-  ExportProfile, 
-  ConversionResult, 
+import {
+  JekyllSettings,
+  ExportProfile,
+  ConversionResult,
   ConversionError,
-  ParsedContent 
+  ParsedContent,
 } from '../types';
 
 export class JekyllExporter {
@@ -36,7 +36,7 @@ export class JekyllExporter {
       errors: [],
       warnings: [],
       outputPath,
-      assets: []
+      assets: [],
     };
 
     try {
@@ -56,7 +56,7 @@ export class JekyllExporter {
         } catch (error) {
           result.errors.push({
             file: file.path,
-            error: error.message
+            error: error.message,
           });
         }
       }
@@ -71,7 +71,7 @@ export class JekyllExporter {
       result.success = false;
       result.errors.push({
         file: 'general',
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -81,7 +81,11 @@ export class JekyllExporter {
   /**
    * Export a single file to Jekyll format
    */
-  private async exportFile(file: TFile, outputPath: string, result: ConversionResult): Promise<void> {
+  private async exportFile(
+    file: TFile,
+    outputPath: string,
+    result: ConversionResult
+  ): Promise<void> {
     const parsed = await this.conversionEngine.parseFile(file);
     const jekyllContent = await this.convertToJekyll(file, parsed);
     const targetPath = this.getTargetPath(file, outputPath, parsed.frontmatter);
@@ -103,22 +107,22 @@ export class JekyllExporter {
   private async convertToJekyll(file: TFile, parsed: ParsedContent): Promise<string> {
     // Process frontmatter
     const jekyllFrontmatter = this.convertFrontmatter(file, parsed.frontmatter);
-    
+
     // Process content
     let content = parsed.content;
-    
+
     // Convert wikilinks to Jekyll-compatible links
     content = this.convertWikiLinks(content);
-    
+
     // Convert embedded images
     content = this.convertImages(content);
-    
+
     // Process code blocks and math
     content = this.conversionEngine.processCodeBlocks(content, 'jekyll');
-    
+
     // Apply Jekyll-specific transformations
     content = this.applyJekyllTransformations(content);
-    
+
     // Clean content
     content = this.conversionEngine.cleanContent(content);
 
@@ -142,7 +146,9 @@ export class JekyllExporter {
 
     // Categories and tags
     if (obsidianMeta.categories) {
-      const categories = Array.isArray(obsidianMeta.categories) ? obsidianMeta.categories : [obsidianMeta.categories];
+      const categories = Array.isArray(obsidianMeta.categories)
+        ? obsidianMeta.categories
+        : [obsidianMeta.categories];
       jekyll.categories = this.applyCategoryMapping(categories);
     }
 
@@ -174,7 +180,9 @@ export class JekyllExporter {
 
     // SEO fields
     if (obsidianMeta.keywords) {
-      jekyll.keywords = Array.isArray(obsidianMeta.keywords) ? obsidianMeta.keywords : [obsidianMeta.keywords];
+      jekyll.keywords = Array.isArray(obsidianMeta.keywords)
+        ? obsidianMeta.keywords
+        : [obsidianMeta.keywords];
     }
 
     // Social media
@@ -203,13 +211,13 @@ export class JekyllExporter {
    */
   private convertWikiLinks(content: string): string {
     return content.replace(/\[\[([^\]]+?)\]\]/g, (match, linkContent) => {
-      const [target, alias] = linkContent.includes('|') 
+      const [target, alias] = linkContent.includes('|')
         ? linkContent.split('|', 2)
         : [linkContent, linkContent];
 
       const cleanTarget = target.trim();
       const displayText = alias?.trim() || cleanTarget;
-      
+
       // Convert to Jekyll post link format
       const slug = this.conversionEngine.slugify(cleanTarget);
       return `[${displayText}]({% post_url ${slug} %})`;
@@ -222,13 +230,13 @@ export class JekyllExporter {
   private convertImages(content: string): string {
     return content.replace(/!\[\[([^\]]+?)\]\]/g, (match, imagePath) => {
       const cleanPath = imagePath.trim();
-      
+
       // Jekyll assets path
       const assetsPath = `/assets/images/${cleanPath}`;
-      
+
       // Extract filename for alt text
       const filename = cleanPath.split('/').pop()?.split('.')[0] || 'image';
-      
+
       return `![${filename}](${assetsPath})`;
     });
   }
@@ -238,11 +246,14 @@ export class JekyllExporter {
    */
   private applyJekyllTransformations(content: string): string {
     // Convert callouts to Jekyll includes
-    content = content.replace(/> \[!(\w+)\]\s*([^\n]*)\n((?:> [^\n]*\n)*)/g, (match, type, title, body) => {
-      const cleanBody = body.replace(/^> /gm, '').trim();
-      const includeType = type.toLowerCase();
-      return `{% include ${includeType}.html title="${title}" content="${cleanBody}" %}`;
-    });
+    content = content.replace(
+      /> \[!(\w+)\]\s*([^\n]*)\n((?:> [^\n]*\n)*)/g,
+      (match, type, title, body) => {
+        const cleanBody = body.replace(/^> /gm, '').trim();
+        const includeType = type.toLowerCase();
+        return `{% include ${includeType}.html title="${title}" content="${cleanBody}" %}`;
+      }
+    );
 
     // Convert code blocks with language to Jekyll highlight tags
     content = content.replace(/```(\w+)\n([\s\S]*?)```/g, (match, lang, code) => {
@@ -255,12 +266,16 @@ export class JekyllExporter {
     });
 
     // YouTube embeds
-    content = content.replace(/https:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g, 
-      '{% include youtube.html id="$1" %}');
+    content = content.replace(
+      /https:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g,
+      '{% include youtube.html id="$1" %}'
+    );
 
     // Gist embeds
-    content = content.replace(/https:\/\/gist\.github\.com\/([^\/]+)\/([a-f0-9]+)/g,
-      '{% gist $1/$2 %}');
+    content = content.replace(
+      /https:\/\/gist\.github\.com\/([^\/]+)\/([a-f0-9]+)/g,
+      '{% gist $1/$2 %}'
+    );
 
     return content;
   }
@@ -269,9 +284,9 @@ export class JekyllExporter {
    * Format content with Jekyll frontmatter
    */
   private formatContent(frontmatter: Record<string, any>, content: string): string {
-    const frontmatterStr = `---\n${yaml.dump(frontmatter, { 
+    const frontmatterStr = `---\n${yaml.dump(frontmatter, {
       sortKeys: false,
-      lineWidth: -1 
+      lineWidth: -1,
     })}---\n\n`;
 
     return frontmatterStr + content;
@@ -282,7 +297,7 @@ export class JekyllExporter {
    */
   private getTargetPath(file: TFile, outputPath: string, frontmatter: Record<string, any>): string {
     const isPost = this.isPost(file.path, frontmatter);
-    
+
     if (isPost) {
       // Posts go to _posts with date prefix
       const filename = this.generatePostFilename(file, frontmatter);
@@ -305,7 +320,12 @@ export class JekyllExporter {
       // Check if it's a collection
       const collection = this.getCollection(relativePath);
       if (collection) {
-        return path.join(outputPath, this.settings.collectionsDir, collection, `${file.basename}.md`);
+        return path.join(
+          outputPath,
+          this.settings.collectionsDir,
+          collection,
+          `${file.basename}.md`
+        );
       }
 
       // Regular page
@@ -320,7 +340,7 @@ export class JekyllExporter {
     const date = frontmatter.date || moment(file.stat.ctime);
     const dateStr = moment(date).format('YYYY-MM-DD');
     const slug = this.conversionEngine.slugify(frontmatter.title || file.basename);
-    
+
     return `${dateStr}-${slug}.md`;
   }
 
@@ -329,7 +349,7 @@ export class JekyllExporter {
    */
   private generatePermalink(file: TFile, frontmatter: Record<string, any>): string {
     let permalink = this.settings.permalinkStructure;
-    
+
     const date = moment(frontmatter.date || file.stat.ctime);
     const replacements: Record<string, string> = {
       ':year': date.format('YYYY'),
@@ -337,7 +357,7 @@ export class JekyllExporter {
       ':day': date.format('DD'),
       ':title': this.conversionEngine.slugify(frontmatter.title || file.basename),
       ':categories': frontmatter.categories ? frontmatter.categories.join('/') : '',
-      ':slug': this.conversionEngine.slugify(file.basename)
+      ':slug': this.conversionEngine.slugify(file.basename),
     };
 
     for (const [placeholder, value] of Object.entries(replacements)) {
@@ -351,7 +371,7 @@ export class JekyllExporter {
    * Apply category mapping
    */
   private applyCategoryMapping(categories: string[]): string[] {
-    return categories.map(category => {
+    return categories.map((category) => {
       return this.settings.categoryMapping[category] || category;
     });
   }
@@ -384,13 +404,13 @@ export class JekyllExporter {
    */
   private getCollection(filePath: string): string | null {
     const collections = ['tutorials', 'projects', 'documentation', 'guides'];
-    
+
     for (const collection of collections) {
       if (filePath.includes(`/${collection}/`)) {
         return collection;
       }
     }
-    
+
     return null;
   }
 
@@ -405,7 +425,7 @@ export class JekyllExporter {
       path.join(outputPath, this.settings.includesDir),
       path.join(outputPath, this.settings.dataDir),
       path.join(outputPath, 'assets', 'images'),
-      path.join(outputPath, 'assets', 'files')
+      path.join(outputPath, 'assets', 'files'),
     ];
 
     for (const dir of dirs) {
@@ -416,26 +436,30 @@ export class JekyllExporter {
   /**
    * Copy assets to Jekyll assets directory
    */
-  private async copyAssets(files: TFile[], outputPath: string, result: ConversionResult): Promise<void> {
+  private async copyAssets(
+    files: TFile[],
+    outputPath: string,
+    result: ConversionResult
+  ): Promise<void> {
     const allFiles = this.vault.getFiles();
-    
+
     for (const file of allFiles) {
       if (this.isAssetFile(file)) {
         try {
           const isImage = this.isImageFile(file);
           const assetsSubdir = isImage ? 'images' : 'files';
           const targetPath = path.join(outputPath, 'assets', assetsSubdir, file.path);
-          
+
           await fs.ensureDir(path.dirname(targetPath));
-          
+
           const buffer = await this.vault.readBinary(file);
           await fs.writeFile(targetPath, buffer);
-          
+
           result.assets.push({
             originalPath: file.path,
             targetPath,
             size: buffer.byteLength,
-            type: isImage ? 'image' : 'attachment'
+            type: isImage ? 'image' : 'attachment',
           });
         } catch (error) {
           result.warnings.push(`Failed to copy asset ${file.path}: ${error.message}`);
@@ -451,30 +475,32 @@ export class JekyllExporter {
     if (file.extension !== 'md') return true;
 
     const filter = this.profile.filters;
-    
+
     // Check include/exclude folders
     if (filter.includeFolders.length > 0) {
-      const inIncluded = filter.includeFolders.some(folder => file.path.startsWith(folder));
+      const inIncluded = filter.includeFolders.some((folder) => file.path.startsWith(folder));
       if (!inIncluded) return true;
     }
 
-    if (filter.excludeFolders.some(folder => file.path.startsWith(folder))) {
+    if (filter.excludeFolders.some((folder) => file.path.startsWith(folder))) {
       return true;
     }
 
     // Check include/exclude files
     if (filter.includeFiles.length > 0) {
-      const inIncluded = filter.includeFiles.some(pattern => {
+      const inIncluded = filter.includeFiles.some((pattern) => {
         const regex = new RegExp(pattern.replace('*', '.*'));
         return regex.test(file.path);
       });
       if (!inIncluded) return true;
     }
 
-    if (filter.excludeFiles.some(pattern => {
-      const regex = new RegExp(pattern.replace('*', '.*'));
-      return regex.test(file.path);
-    })) {
+    if (
+      filter.excludeFiles.some((pattern) => {
+        const regex = new RegExp(pattern.replace('*', '.*'));
+        return regex.test(file.path);
+      })
+    ) {
       return true;
     }
 
@@ -486,9 +512,22 @@ export class JekyllExporter {
    */
   private isAssetFile(file: TFile): boolean {
     const assetExtensions = [
-      'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg',
-      'pdf', 'doc', 'docx', 'txt', 'zip', 'rar',
-      'mp3', 'mp4', 'avi', 'mov'
+      'png',
+      'jpg',
+      'jpeg',
+      'gif',
+      'webp',
+      'svg',
+      'pdf',
+      'doc',
+      'docx',
+      'txt',
+      'zip',
+      'rar',
+      'mp3',
+      'mp4',
+      'avi',
+      'mov',
     ];
     return assetExtensions.includes(file.extension.toLowerCase());
   }

@@ -21,7 +21,7 @@ export class ProfileManager {
    * Get profile by ID
    */
   getProfile(id: string): ExportProfile | undefined {
-    return this.settings.profiles.find(p => p.id === id);
+    return this.settings.profiles.find((p) => p.id === id);
   }
 
   /**
@@ -29,8 +29,10 @@ export class ProfileManager {
    */
   getDefaultProfile(): ExportProfile | undefined {
     const defaultPlatform = this.settings.defaultPlatform;
-    return this.settings.profiles.find(p => p.platform === defaultPlatform) || 
-           this.settings.profiles[0];
+    return (
+      this.settings.profiles.find((p) => p.platform === defaultPlatform) ||
+      this.settings.profiles[0]
+    );
   }
 
   /**
@@ -39,9 +41,9 @@ export class ProfileManager {
   createProfile(profile: Omit<ExportProfile, 'id'>): ExportProfile {
     const newProfile: ExportProfile = {
       ...profile,
-      id: this.generateProfileId()
+      id: this.generateProfileId(),
     };
-    
+
     this.settings.profiles.push(newProfile);
     return newProfile;
   }
@@ -50,7 +52,7 @@ export class ProfileManager {
    * Update existing profile
    */
   updateProfile(id: string, updates: Partial<ExportProfile>): boolean {
-    const index = this.settings.profiles.findIndex(p => p.id === id);
+    const index = this.settings.profiles.findIndex((p) => p.id === id);
     if (index !== -1) {
       this.settings.profiles[index] = { ...this.settings.profiles[index], ...updates };
       return true;
@@ -62,7 +64,7 @@ export class ProfileManager {
    * Delete profile
    */
   deleteProfile(id: string): boolean {
-    const index = this.settings.profiles.findIndex(p => p.id === id);
+    const index = this.settings.profiles.findIndex((p) => p.id === id);
     if (index !== -1) {
       this.settings.profiles.splice(index, 1);
       return true;
@@ -109,15 +111,15 @@ export class ProfileManager {
             taxonomies: {
               tags: { enabled: true, fieldName: 'tags' },
               categories: { enabled: true, fieldName: 'categories' },
-              series: { enabled: false, fieldName: 'series' }
+              series: { enabled: false, fieldName: 'series' },
             },
             archetypes: {
               default: 'default',
-              posts: 'posts', 
+              posts: 'posts',
               pages: 'pages',
-              custom: {}
-            }
-          }
+              custom: {},
+            },
+          },
         },
         pathMappings: [],
         filters: {
@@ -126,14 +128,14 @@ export class ProfileManager {
           includeFiles: [],
           excludeFiles: [],
           includeTags: [],
-          excludeTags: []
+          excludeTags: [],
         },
         templates: {
           frontmatterTemplate: '',
           contentTemplate: '',
           filenameTemplate: '',
-          customTemplates: {}
-        }
+          customTemplates: {},
+        },
       },
       {
         name: 'Jekyll Blog',
@@ -148,8 +150,8 @@ export class ProfileManager {
             filenameFormat: 'YYYY-MM-DD-title.md',
             categoryMapping: {},
             layoutMapping: {},
-            permalinkStructure: '/:categories/:year/:month/:day/:title/'
-          }
+            permalinkStructure: '/:categories/:year/:month/:day/:title/',
+          },
         },
         pathMappings: [],
         filters: {
@@ -158,17 +160,17 @@ export class ProfileManager {
           includeFiles: [],
           excludeFiles: [],
           includeTags: [],
-          excludeTags: []
+          excludeTags: [],
         },
         templates: {
           frontmatterTemplate: '',
           contentTemplate: '',
           filenameTemplate: '',
-          customTemplates: {}
-        }
-      }
+          customTemplates: {},
+        },
+      },
     ];
 
-    return defaults.map(profile => this.createProfile(profile));
+    return defaults.map((profile) => this.createProfile(profile));
   }
 }

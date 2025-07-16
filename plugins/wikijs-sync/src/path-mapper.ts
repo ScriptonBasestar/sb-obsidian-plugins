@@ -60,22 +60,22 @@ export class PathMapper {
   private normalizeWikiPath(path: string): string {
     // Remove file extension
     let normalized = path.replace(/\.md$/i, '');
-    
+
     // Replace spaces with hyphens
     normalized = normalized.replace(/\s+/g, '-');
-    
+
     // Convert to lowercase
     normalized = normalized.toLowerCase();
-    
+
     // Remove special characters except hyphens and slashes
     normalized = normalized.replace(/[^a-z0-9\-\/]/g, '');
-    
+
     // Remove multiple consecutive hyphens
     normalized = normalized.replace(/-+/g, '-');
-    
+
     // Remove leading/trailing slashes and hyphens
     normalized = normalized.replace(/^[\/\-]+|[\/\-]+$/g, '');
-    
+
     // Ensure path starts with /
     if (!normalized.startsWith('/')) {
       normalized = '/' + normalized;
@@ -90,7 +90,7 @@ export class PathMapper {
   private normalizeObsidianPath(path: string): string {
     // Remove leading slash
     let normalized = path.replace(/^\//, '');
-    
+
     // Add .md extension if not present
     if (!normalized.endsWith('.md')) {
       normalized += '.md';
@@ -105,10 +105,10 @@ export class PathMapper {
   private joinPaths(base: string, relative: string): string {
     // Remove trailing slash from base
     base = base.replace(/\/$/, '');
-    
+
     // Remove leading slash from relative
     relative = relative.replace(/^\//, '');
-    
+
     return base + '/' + relative;
   }
 
@@ -137,7 +137,7 @@ export class PathMapper {
           name: child.name,
           path: this.obsidianToWiki(child.path),
           isFolder: true,
-          children: this.buildTreeRecursive(child, child.path)
+          children: this.buildTreeRecursive(child, child.path),
         };
 
         nodes.push(node);
@@ -145,7 +145,7 @@ export class PathMapper {
         const node: PageTreeNode = {
           name: child.basename,
           path: this.obsidianToWiki(child.path),
-          isFolder: false
+          isFolder: false,
         };
 
         nodes.push(node);
@@ -160,7 +160,7 @@ export class PathMapper {
    */
   private isExcludedFolder(path: string): boolean {
     const excludedFolders = ['.obsidian', '.trash', 'templates'];
-    return excludedFolders.some(excluded => path.includes(excluded));
+    return excludedFolders.some((excluded) => path.includes(excluded));
   }
 
   /**
@@ -174,7 +174,7 @@ export class PathMapper {
       if (!this.isExcludedFolder(file.path)) {
         mappedPaths.push({
           obsidian: file.path,
-          wiki: this.obsidianToWiki(file.path)
+          wiki: this.obsidianToWiki(file.path),
         });
       }
     }
@@ -202,7 +202,7 @@ export class PathMapper {
    * Remove a mapping
    */
   removeMapping(obsidianPath: string): void {
-    this.mappings = this.mappings.filter(m => m.obsidianPath !== obsidianPath);
+    this.mappings = this.mappings.filter((m) => m.obsidianPath !== obsidianPath);
     this.cache.clear();
   }
 
@@ -223,8 +223,10 @@ export class PathMapper {
 
     // Check for circular mappings
     for (const existing of this.mappings) {
-      if (existing.obsidianPath === mapping.obsidianPath && 
-          existing.wikiPath === mapping.wikiPath) {
+      if (
+        existing.obsidianPath === mapping.obsidianPath &&
+        existing.wikiPath === mapping.wikiPath
+      ) {
         return false; // Duplicate
       }
     }
@@ -237,19 +239,19 @@ export class PathMapper {
    */
   private handleSpecialCharacters(path: string): string {
     const replacements: Record<string, string> = {
-      'ä': 'ae',
-      'ö': 'oe',
-      'ü': 'ue',
-      'Ä': 'Ae',
-      'Ö': 'Oe',
-      'Ü': 'Ue',
-      'ß': 'ss',
-      'é': 'e',
-      'è': 'e',
-      'ê': 'e',
-      'à': 'a',
-      'ç': 'c',
-      'ñ': 'n'
+      ä: 'ae',
+      ö: 'oe',
+      ü: 'ue',
+      Ä: 'Ae',
+      Ö: 'Oe',
+      Ü: 'Ue',
+      ß: 'ss',
+      é: 'e',
+      è: 'e',
+      ê: 'e',
+      à: 'a',
+      ç: 'c',
+      ñ: 'n',
     };
 
     let result = path;

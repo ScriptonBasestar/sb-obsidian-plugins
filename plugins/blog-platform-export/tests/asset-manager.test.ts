@@ -12,7 +12,7 @@ describe('AssetManager', () => {
     mockVault = {
       read: vi.fn(),
       readBinary: vi.fn(),
-      getFiles: vi.fn()
+      getFiles: vi.fn(),
     } as any;
 
     mockOptions = {
@@ -21,7 +21,7 @@ describe('AssetManager', () => {
       optimizeImages: false,
       imageFormats: ['jpg', 'png', 'gif', 'webp'],
       maxImageSize: 2048,
-      preserveStructure: true
+      preserveStructure: true,
     };
 
     assetManager = new AssetManager(mockVault, mockOptions);
@@ -75,9 +75,9 @@ Spreadsheet: ![[data.xlsx]]
 
   describe('shouldCopyAsset', () => {
     it('should copy images when enabled', () => {
-      const imageFile = { 
+      const imageFile = {
         extension: 'png',
-        stat: { size: 1024 }
+        stat: { size: 1024 },
       } as TFile;
 
       const result = assetManager['shouldCopyAsset'](imageFile);
@@ -88,9 +88,9 @@ Spreadsheet: ![[data.xlsx]]
       mockOptions.copyImages = false;
       assetManager = new AssetManager(mockVault, mockOptions);
 
-      const imageFile = { 
+      const imageFile = {
         extension: 'png',
-        stat: { size: 1024 }
+        stat: { size: 1024 },
       } as TFile;
 
       const result = assetManager['shouldCopyAsset'](imageFile);
@@ -98,9 +98,9 @@ Spreadsheet: ![[data.xlsx]]
     });
 
     it('should not copy oversized images', () => {
-      const largeImageFile = { 
+      const largeImageFile = {
         extension: 'png',
-        stat: { size: 3 * 1024 * 1024 } // 3MB
+        stat: { size: 3 * 1024 * 1024 }, // 3MB
       } as TFile;
 
       const result = assetManager['shouldCopyAsset'](largeImageFile);
@@ -108,9 +108,9 @@ Spreadsheet: ![[data.xlsx]]
     });
 
     it('should not copy unsupported image formats', () => {
-      const unsupportedFile = { 
+      const unsupportedFile = {
         extension: 'bmp',
-        stat: { size: 1024 }
+        stat: { size: 1024 },
       } as TFile;
 
       const result = assetManager['shouldCopyAsset'](unsupportedFile);
@@ -120,9 +120,9 @@ Spreadsheet: ![[data.xlsx]]
 
   describe('getAssetTargetPath', () => {
     it('should preserve structure when enabled', () => {
-      const asset = { 
+      const asset = {
         path: 'folder/subfolder/image.png',
-        name: 'image.png'
+        name: 'image.png',
       } as TFile;
 
       const targetPath = assetManager['getAssetTargetPath'](asset, '/output/assets');
@@ -133,10 +133,10 @@ Spreadsheet: ![[data.xlsx]]
       mockOptions.preserveStructure = false;
       assetManager = new AssetManager(mockVault, mockOptions);
 
-      const asset = { 
+      const asset = {
         path: 'folder/subfolder/image.png',
         name: 'image.png',
-        extension: 'png'
+        extension: 'png',
       } as TFile;
 
       const targetPath = assetManager['getAssetTargetPath'](asset, '/output/assets');
@@ -178,14 +178,14 @@ Spreadsheet: ![[data.xlsx]]
           originalPath: 'folder/image.png',
           targetPath: '/output/assets/folder/image.png',
           size: 1024,
-          type: 'image'
+          type: 'image',
         },
         {
           originalPath: 'docs/file.pdf',
           targetPath: '/output/assets/docs/file.pdf',
           size: 2048,
-          type: 'attachment'
-        }
+          type: 'attachment',
+        },
       ];
 
       const mapping = assetManager.buildAssetMapping(assets);
@@ -202,7 +202,7 @@ Spreadsheet: ![[data.xlsx]]
       const assets = [
         { originalPath: 'img1.png', targetPath: '/out/img1.png', size: 1024, type: 'image' },
         { originalPath: 'img2.jpg', targetPath: '/out/img2.jpg', size: 2048, type: 'image' },
-        { originalPath: 'doc.pdf', targetPath: '/out/doc.pdf', size: 4096, type: 'attachment' }
+        { originalPath: 'doc.pdf', targetPath: '/out/doc.pdf', size: 4096, type: 'attachment' },
       ];
 
       const report = assetManager.generateAssetReport(assets);
@@ -237,8 +237,8 @@ Spreadsheet: ![[data.xlsx]]
   describe('isImageFile', () => {
     it('should identify common image formats', () => {
       const formats = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
-      
-      formats.forEach(format => {
+
+      formats.forEach((format) => {
         const file = { extension: format } as TFile;
         expect(assetManager['isImageFile'](file)).toBe(true);
       });

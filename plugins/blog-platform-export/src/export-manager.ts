@@ -45,7 +45,7 @@ export class ExportManager {
         errors: [{ file: 'general', error: error.message }],
         warnings: [],
         outputPath: this.getOutputPath(profile),
-        assets: []
+        assets: [],
       };
 
       throw error;
@@ -61,7 +61,7 @@ export class ExportManager {
    * Export files with progress tracking
    */
   async exportFilesWithProgress(
-    files: TFile[], 
+    files: TFile[],
     profile: ExportProfile,
     onProgress?: (job: ExportJob) => void
   ): Promise<ConversionResult> {
@@ -73,7 +73,7 @@ export class ExportManager {
       job.startTime = new Date();
 
       const exporter = this.createExporter(profile);
-      
+
       // For now, we'll simulate progress
       // In a real implementation, the exporters would support progress callbacks
       const progressInterval = setInterval(() => {
@@ -86,7 +86,7 @@ export class ExportManager {
       const result = await exporter.exportFiles(files, this.getOutputPath(profile));
 
       clearInterval(progressInterval);
-      
+
       job.status = result.success ? 'completed' : 'failed';
       job.endTime = new Date();
       job.result = result;
@@ -105,7 +105,7 @@ export class ExportManager {
         errors: [{ file: 'general', error: error.message }],
         warnings: [],
         outputPath: this.getOutputPath(profile),
-        assets: []
+        assets: [],
       };
 
       onProgress?.(job);
@@ -118,14 +118,14 @@ export class ExportManager {
    */
   async previewExport(files: TFile[], profile: ExportProfile): Promise<any> {
     const exporter = this.createExporter(profile);
-    
+
     // For preview, we'll process one file to show the transformation
     if (files.length === 0) {
       return { preview: 'No files to preview' };
     }
 
     const file = files[0];
-    
+
     switch (profile.platform) {
       case 'hugo':
         return await this.previewHugoExport(file, profile);
@@ -201,9 +201,9 @@ export class ExportManager {
     return {
       id: this.generateJobId(),
       profile,
-      files: files.map(f => f.path),
+      files: files.map((f) => f.path),
       status: 'pending',
-      progress: 0
+      progress: 0,
     };
   }
 
@@ -220,10 +220,10 @@ export class ExportManager {
   private async previewHugoExport(file: TFile, profile: ExportProfile): Promise<any> {
     const exporter = new HugoExporter(this.app.vault, profile);
     const parsed = await exporter['conversionEngine'].parseFile(file);
-    
+
     // Get Hugo frontmatter preview
     const hugoFrontmatter = exporter['convertFrontmatter'](file, parsed.frontmatter);
-    
+
     // Get processed content preview (first 500 chars)
     let content = parsed.content;
     content = exporter['convertWikiLinks'](content);
@@ -234,7 +234,7 @@ export class ExportManager {
       platform: 'Hugo',
       frontmatter: hugoFrontmatter,
       contentPreview: content,
-      targetPath: exporter['getTargetPath'](file, '/preview')
+      targetPath: exporter['getTargetPath'](file, '/preview'),
     };
   }
 
@@ -244,10 +244,10 @@ export class ExportManager {
   private async previewJekyllExport(file: TFile, profile: ExportProfile): Promise<any> {
     const exporter = new JekyllExporter(this.app.vault, profile);
     const parsed = await exporter['conversionEngine'].parseFile(file);
-    
+
     // Get Jekyll frontmatter preview
     const jekyllFrontmatter = exporter['convertFrontmatter'](file, parsed.frontmatter);
-    
+
     // Get processed content preview
     let content = parsed.content;
     content = exporter['convertWikiLinks'](content);
@@ -258,7 +258,7 @@ export class ExportManager {
       platform: 'Jekyll',
       frontmatter: jekyllFrontmatter,
       contentPreview: content,
-      targetPath: exporter['getTargetPath'](file, '/preview', parsed.frontmatter)
+      targetPath: exporter['getTargetPath'](file, '/preview', parsed.frontmatter),
     };
   }
 
@@ -268,10 +268,10 @@ export class ExportManager {
   private async previewWikiJSExport(file: TFile, profile: ExportProfile): Promise<any> {
     const exporter = new WikiJSExporter(this.app.vault, profile);
     const parsed = await exporter['conversionEngine'].parseFile(file);
-    
+
     // Get WikiJS page data preview
     const wikiPageData = await exporter['convertToWikiJS'](file, parsed);
-    
+
     return {
       platform: 'WikiJS',
       pageData: {
@@ -280,17 +280,19 @@ export class ExportManager {
         description: wikiPageData.description,
         tags: wikiPageData.tags,
         locale: wikiPageData.locale,
-        editor: wikiPageData.editor
+        editor: wikiPageData.editor,
       },
-      contentPreview: wikiPageData.content.substring(0, 500) + 
-                     (wikiPageData.content.length > 500 ? '...' : '')
+      contentPreview:
+        wikiPageData.content.substring(0, 500) + (wikiPageData.content.length > 500 ? '...' : ''),
     };
   }
 
   /**
    * Validate export settings
    */
-  async validateExportSettings(profile: ExportProfile): Promise<{ valid: boolean; errors: string[] }> {
+  async validateExportSettings(
+    profile: ExportProfile
+  ): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
     try {
@@ -316,7 +318,7 @@ export class ExportManager {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -325,12 +327,12 @@ export class ExportManager {
    */
   getExportStats(): any {
     const jobs = Array.from(this.activeJobs.values());
-    
+
     return {
       totalJobs: jobs.length,
-      runningJobs: jobs.filter(j => j.status === 'running').length,
-      completedJobs: jobs.filter(j => j.status === 'completed').length,
-      failedJobs: jobs.filter(j => j.status === 'failed').length
+      runningJobs: jobs.filter((j) => j.status === 'running').length,
+      completedJobs: jobs.filter((j) => j.status === 'completed').length,
+      failedJobs: jobs.filter((j) => j.status === 'failed').length,
     };
   }
 }
