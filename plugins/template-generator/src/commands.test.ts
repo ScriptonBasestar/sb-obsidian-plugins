@@ -13,7 +13,7 @@ describe('Template Commands', () => {
     vi.clearAllMocks();
 
     mockApp = createMockApp();
-    
+
     const basePlugin = createMockPlugin({ app: mockApp });
     mockPlugin = {
       ...basePlugin,

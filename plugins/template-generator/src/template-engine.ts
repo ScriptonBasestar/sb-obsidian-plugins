@@ -126,17 +126,15 @@ export class TemplateEngine {
     });
 
     // Conditional helpers
-    this.handlebars.registerHelper('if_eq', function (
-      this: unknown,
-      a: unknown,
-      b: unknown,
-      options: Handlebars.HelperOptions
-    ) {
-      if (a === b) {
-        return options.fn(this);
+    this.handlebars.registerHelper(
+      'if_eq',
+      function (this: unknown, a: unknown, b: unknown, options: Handlebars.HelperOptions) {
+        if (a === b) {
+          return options.fn(this);
+        }
+        return options.inverse(this);
       }
-      return options.inverse(this);
-    });
+    );
 
     // Math helpers
     this.handlebars.registerHelper('add', (a: number, b: number) => {
