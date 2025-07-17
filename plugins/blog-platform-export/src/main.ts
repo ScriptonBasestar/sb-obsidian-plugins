@@ -1,16 +1,17 @@
 import { Plugin, Notice, TFile, Modal, Menu } from 'obsidian';
-import { BlogPlatformExportSettings, DEFAULT_SETTINGS, ExportProfile } from './types';
-import { BlogPlatformExportSettingTab } from './settings';
-import { ExportModal } from './ui/export-modal';
-import { ProfileManager } from './profile-manager';
+
 import { ExportManager } from './export-manager';
+import { ProfileManager } from './profile-manager';
+import { BlogPlatformExportSettingTab } from './settings';
+import { BlogPlatformExportSettings, DEFAULT_SETTINGS, ExportProfile } from './types';
+import { ExportModal } from './ui/export-modal';
 
 export default class BlogPlatformExportPlugin extends Plugin {
-  settings!: BlogPlatformExportSettings;
-  profileManager!: ProfileManager;
-  exportManager!: ExportManager;
+  public settings!: BlogPlatformExportSettings;
+  public profileManager!: ProfileManager;
+  public exportManager!: ExportManager;
 
-  override async onload() {
+  public override async onload(): Promise<void> {
     await this.loadSettings();
 
     // Initialize managers
@@ -40,19 +41,20 @@ export default class BlogPlatformExportPlugin extends Plugin {
     console.log('Blog Platform Export plugin loaded');
   }
 
-  override onunload() {
+  public override onunload(): void {
     console.log('Blog Platform Export plugin unloaded');
   }
 
-  async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  public async loadSettings(): Promise<void> {
+    const loaded = (await this.loadData()) as Partial<BlogPlatformExportSettings> | null;
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded ?? {});
   }
 
-  async saveSettings() {
+  public async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
   }
 
-  registerCommands() {
+  public registerCommands(): void {
     // Export current file
     this.addCommand({
       id: 'export-current-file',
@@ -60,7 +62,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
       callback: () => {
         const activeFile = this.app.workspace.getActiveFile();
         if (activeFile && activeFile.extension === 'md') {
-          this.exportCurrentFile(activeFile);
+          await this.exportCurrentFile(activeFile);
         } else {
           new Notice('No markdown file is currently active');
         }
@@ -119,13 +121,13 @@ export default class BlogPlatformExportPlugin extends Plugin {
     });
   }
 
-  addFileMenuItems(menu: Menu, file: TFile) {
+  public addFileMenuItems(menu: Menu, file: TFile): void {
     menu.addItem((item) => {
       item
         .setTitle('Export to blog platform')
         .setIcon('upload')
         .onClick(() => {
-          this.exportCurrentFile(file);
+          void this.exportCurrentFile(file);
         });
     });
 
@@ -147,7 +149,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
     }
   }
 
-  async exportCurrentFile(file: TFile) {
+  public async exportCurrentFile(file: TFile): Promise<void> {
     const profiles = this.settings.profiles;
 
     if (profiles.length === 0) {
@@ -158,7 +160,12 @@ export default class BlogPlatformExportPlugin extends Plugin {
 
     if (profiles.length === 1) {
       // Use the only available profile
-      await this.exportWithProfile([file], profiles[0]);
+      const profile = profiles[0];
+      if (profile) {
+        await this.exportWithProfile([file], profile);
+      } else {
+        new Notice('No valid export profile found.');
+      }
     } else {
       // Show profile selection
       this.showProfileSelectionModal([file]);

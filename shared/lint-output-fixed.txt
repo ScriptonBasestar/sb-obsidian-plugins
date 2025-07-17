@@ -1,0 +1,14 @@
+Scope: 7 of 8 workspace projects
+../plugins/publisher-scripton lint$ eslint src --ext .ts
+../plugins/metadata-manager lint$ eslint src --ext .ts
+. lint$ eslint src --ext .ts
+../plugins/metadata-manager lint: Done
+../plugins/publisher-scripton lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/plugins/publisher-scripton/src/scripton-api-service.ts
+../plugins/publisher-scripton lint:   332:7  warning  Unexpected console statement  no-console
+../plugins/publisher-scripton lint: ✖ 1 problem (0 errors, 1 warning)
+../plugins/publisher-scripton lint: Done
+. lint: Done
+../plugins/scripton-sync lint$ eslint src --ext .ts
+../plugins/template-generator lint$ eslint src --ext .ts
+../plugins/scripton-sync lint: Done
+../plugins/template-generator lint: Done

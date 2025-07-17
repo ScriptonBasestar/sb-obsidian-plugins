@@ -1,0 +1,56 @@
+Scope: 7 of 8 workspace projects
+plugins/metadata-manager lint$ eslint src --ext .ts
+plugins/publisher-scripton lint$ eslint src --ext .ts
+shared lint$ eslint src --ext .ts
+plugins/metadata-manager lint: Done
+plugins/publisher-scripton lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/plugins/publisher-scripton/src/main.ts
+plugins/publisher-scripton lint:   117:5  warning  Unexpected console statement  no-console
+plugins/publisher-scripton lint:   121:5  warning  Unexpected console statement  no-console
+plugins/publisher-scripton lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/plugins/publisher-scripton/src/scripton-api-service.ts
+plugins/publisher-scripton lint:   332:7  warning  Unexpected console statement  no-console
+plugins/publisher-scripton lint: ✖ 3 problems (0 errors, 3 warnings)
+plugins/publisher-scripton lint: Done
+shared lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/shared/src/base-plugin.ts
+shared lint:   53:7  warning  Unexpected console statement  no-console
+shared lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/shared/src/cli.ts
+shared lint:    34:3  warning  Unexpected console statement  no-console
+shared lint:    78:7  warning  Unexpected console statement  no-console
+shared lint:    84:7  warning  Unexpected console statement  no-console
+shared lint:    88:9  warning  Unexpected console statement  no-console
+shared lint:    97:7  warning  Unexpected console statement  no-console
+shared lint:    98:7  warning  Unexpected console statement  no-console
+shared lint:   104:5  warning  Unexpected console statement  no-console
+shared lint:   105:5  warning  Unexpected console statement  no-console
+shared lint:   106:5  warning  Unexpected console statement  no-console
+shared lint:   107:5  warning  Unexpected console statement  no-console
+shared lint:   108:5  warning  Unexpected console statement  no-console
+shared lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/shared/src/settings-manager.ts
+shared lint:   60:17  warning  Unexpected confirm  no-alert
+shared lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/shared/src/task-runner.ts
+shared lint:   186:7   warning  Unexpected console statement  no-console
+shared lint:   200:11  warning  Unexpected console statement  no-console
+shared lint:   207:7   warning  Unexpected console statement  no-console
+shared lint:   217:7   warning  Unexpected console statement  no-console
+shared lint:   222:5   warning  Unexpected console statement  no-console
+shared lint:   223:5   warning  Unexpected console statement  no-console
+shared lint:   227:5   warning  Unexpected console statement  no-console
+shared lint:   228:5   warning  Unexpected console statement  no-console
+shared lint:   240:9   warning  Unexpected console statement  no-console
+shared lint:   292:5   warning  Unexpected console statement  no-console
+shared lint: ✖ 23 problems (0 errors, 23 warnings)
+shared lint: Done
+plugins/template-generator lint$ eslint src --ext .ts
+plugins/scripton-sync lint$ eslint src --ext .ts
+plugins/scripton-sync lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/plugins/scripton-sync/src/core/git-service.ts
+plugins/scripton-sync lint:   86:9  warning  Unexpected console statement  no-console
+plugins/scripton-sync lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/plugins/scripton-sync/src/features/auto-commit-service.ts
+plugins/scripton-sync lint:   77:5  warning  Unexpected console statement  no-console
+plugins/scripton-sync lint:   89:7  warning  Unexpected console statement  no-console
+plugins/scripton-sync lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/plugins/scripton-sync/src/features/llm-service.ts
+plugins/scripton-sync lint:   44:7  warning  Unexpected console statement  no-console
+plugins/scripton-sync lint: /Users/archmagece/myopen/scripton/sb-obsidian-plugins/plugins/scripton-sync/src/main.ts
+plugins/scripton-sync lint:    97:5  warning  Unexpected console statement  no-console
+plugins/scripton-sync lint:   103:5  warning  Unexpected console statement  no-console
+plugins/scripton-sync lint: ✖ 6 problems (0 errors, 6 warnings)
+plugins/scripton-sync lint: Done
+plugins/template-generator lint: Done

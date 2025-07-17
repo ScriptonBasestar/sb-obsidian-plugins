@@ -74,7 +74,7 @@ export class AutoCommitService {
       this.performAutoCommit();
     }, intervalMs);
 
-    console.log(
+    console.warn(
       `Auto commit service started with ${this.settings.commitIntervalMinutes} minute interval`
     );
   }
@@ -86,7 +86,7 @@ export class AutoCommitService {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.log('Auto commit service stopped');
+      console.warn('Auto commit service stopped');
     }
   }
 

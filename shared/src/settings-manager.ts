@@ -57,10 +57,61 @@ export class SettingsManager<T extends BasePluginSettings> extends PluginSetting
           .setButtonText('Reset')
           .setWarning()
           .onClick(async () => {
-            if (confirm('Are you sure you want to reset all settings to defaults?')) {
+            // Create a custom confirmation dialog instead of using confirm()
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0, 0, 0, 0.5);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 1000;
+            `;
+
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+              background: var(--background-primary);
+              border: 1px solid var(--background-modifier-border);
+              border-radius: 8px;
+              padding: 20px;
+              max-width: 400px;
+              text-align: center;
+            `;
+
+            dialog.innerHTML = `
+              <h3>Reset Settings</h3>
+              <p>Are you sure you want to reset all settings to defaults?</p>
+              <div style="margin-top: 20px;">
+                <button id="confirm-reset" style="margin-right: 10px;">Yes, Reset</button>
+                <button id="cancel-reset">Cancel</button>
+              </div>
+            `;
+
+            modal.appendChild(dialog);
+            document.body.appendChild(modal);
+
+            const confirmBtn = dialog.querySelector('#confirm-reset') as HTMLButtonElement;
+            const cancelBtn = dialog.querySelector('#cancel-reset') as HTMLButtonElement;
+
+            confirmBtn.onclick = async () => {
+              document.body.removeChild(modal);
               await this.plugin.loadSettings();
               this.display(); // Refresh the settings display
-            }
+            };
+
+            cancelBtn.onclick = () => {
+              document.body.removeChild(modal);
+            };
+
+            modal.onclick = (e) => {
+              if (e.target === modal) {
+                document.body.removeChild(modal);
+              }
+            };
           })
       );
   }

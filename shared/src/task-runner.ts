@@ -183,7 +183,7 @@ export class TaskRunner {
     try {
       execSync('git add .', { cwd: this.basePath });
       execSync(`git commit -m "${message}"`, { cwd: this.basePath });
-      console.log(`✅ Committed: ${message}`);
+      console.warn(`✅ Committed: ${message}`);
     } catch (error) {
       console.warn('Git commit failed:', error);
     }
@@ -197,14 +197,14 @@ export class TaskRunner {
       for (const formatter of formatters) {
         try {
           execSync(formatter, { cwd: this.basePath });
-          console.log(`✅ Ran formatter: ${formatter}`);
+          console.warn(`✅ Ran formatter: ${formatter}`);
           return;
         } catch (error) {
           continue;
         }
       }
 
-      console.log('⚠️ No formatter found, skipping');
+      console.warn('⚠️ No formatter found, skipping');
     } catch (error) {
       console.warn('Formatter failed:', error);
     }
@@ -214,18 +214,18 @@ export class TaskRunner {
     const nextTask = await this.getNextIncompleteTask();
 
     if (!nextTask) {
-      console.log('🎉 No incomplete tasks found!');
+      console.warn('🎉 No incomplete tasks found!');
       return false;
     }
 
     const { file, task } = nextTask;
-    console.log(`📋 Processing: ${file.filename}`);
-    console.log(`🔨 Task: ${task.text}`);
+    console.warn(`📋 Processing: ${file.filename}`);
+    console.warn(`🔨 Task: ${task.text}`);
 
     // This is where the actual task processing would happen
     // For now, we'll just mark it as a template
-    console.log('⚠️ Task processing logic needs to be implemented');
-    console.log('👨‍💻 Manual intervention required for task completion');
+    console.warn('⚠️ Task processing logic needs to be implemented');
+    console.warn('👨‍💻 Manual intervention required for task completion');
 
     return true;
   }
@@ -237,7 +237,7 @@ export class TaskRunner {
 
       for (const alertFile of mdFiles) {
         const alertPath = path.join(this.alertDir, alertFile);
-        console.log(`🚨 Processing alert: ${alertFile}`);
+        console.warn(`🚨 Processing alert: ${alertFile}`);
 
         // Convert alert to TODO task
         await this.convertAlertToTodo(alertPath);
@@ -289,6 +289,6 @@ ${content}
     await fs.writeFile(doneAlertPath, updatedContent, 'utf-8');
     await fs.unlink(alertPath);
 
-    console.log(`✅ Converted alert to TODO: ${todoPath}`);
+    console.warn(`✅ Converted alert to TODO: ${todoPath}`);
   }
 }

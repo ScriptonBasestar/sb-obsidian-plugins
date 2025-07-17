@@ -94,13 +94,13 @@ export default class ScriptonSyncPlugin extends Plugin {
       this.scheduleStartupPull();
     }
 
-    console.log('Scripton Sync plugin loaded');
+    console.warn('Scripton Sync plugin loaded');
   }
 
   public onunload(): void {
     this.stopAutoSync();
     this.autoCommitService.stop();
-    console.log('Scripton Sync plugin unloaded');
+    console.warn('Scripton Sync plugin unloaded');
   }
 
   async loadSettings() {

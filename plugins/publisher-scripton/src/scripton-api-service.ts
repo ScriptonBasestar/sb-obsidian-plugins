@@ -153,10 +153,7 @@ export class ScriptonApiService {
     }
   }
 
-  private async retryPublishNote(
-    options: PublishNoteOptions,
-    attempt = 1
-  ): Promise<PublishResult> {
+  private async retryPublishNote(options: PublishNoteOptions, attempt = 1): Promise<PublishResult> {
     if (attempt > this.settings.maxRetries) {
       this.log('error', `Max retries exceeded for note: ${options.title}`);
       return {
@@ -329,7 +326,15 @@ export class ScriptonApiService {
 
     // Also log to console if detailed logging is enabled
     if (this.settings.enableDetailedLogs) {
-      console[level === 'debug' ? 'log' : level](`[Scripton] ${message}`, error || '');
+      if (level === 'debug') {
+        console.warn(`[Scripton] ${message}`, error || '');
+      } else if (level === 'info') {
+        console.warn(`[Scripton] ${message}`, error || '');
+      } else if (level === 'warn') {
+        console.warn(`[Scripton] ${message}`, error || '');
+      } else if (level === 'error') {
+        console.error(`[Scripton] ${message}`, error || '');
+      }
     }
   }
 

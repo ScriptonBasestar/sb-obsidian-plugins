@@ -41,7 +41,7 @@ export class LLMService {
    */
   async generateCommitMessage(context: CommitContext): Promise<string | null> {
     if (!this.settings.enabled || this.settings.provider === 'none') {
-      console.log('LLM service is disabled');
+      console.warn('LLM service is disabled');
       return null;
     }
 

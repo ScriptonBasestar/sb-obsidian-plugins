@@ -83,7 +83,7 @@ export class GitService {
         ahead = parseInt(counts[1]) || 0;
       } catch (error) {
         // Remote might not exist yet
-        console.debug('Could not get ahead/behind info:', error);
+        console.warn('Could not get ahead/behind info:', error);
       }
 
       return {

@@ -31,7 +31,7 @@ function parseArgs(args: string[]): CLIOptions {
 }
 
 function showHelp(): void {
-  console.log(`
+  console.warn(`
 🚀 TASK_RUNNER.todo - Automated TODO Task Processor
 
 Usage:
@@ -75,17 +75,17 @@ async function main(): Promise<void> {
     await runner.ensureDirectories();
 
     if (options.alerts) {
-      console.log('🚨 Processing alert files...');
+      console.warn('🚨 Processing alert files...');
       await runner.processAlertFiles();
       return;
     }
 
     if (options.process) {
-      console.log('📋 Processing next task...');
+      console.warn('📋 Processing next task...');
       const hasTask = await runner.processNextTask();
 
       if (!hasTask) {
-        console.log('✅ All tasks completed!');
+        console.warn('✅ All tasks completed!');
       }
       return;
     }
@@ -94,18 +94,18 @@ async function main(): Promise<void> {
     const nextTask = await runner.getNextIncompleteTask();
 
     if (!nextTask) {
-      console.log('🎉 No incomplete tasks found!');
-      console.log('📁 Checking for alert files...');
+      console.warn('🎉 No incomplete tasks found!');
+      console.warn('📁 Checking for alert files...');
       await runner.processAlertFiles();
       return;
     }
 
     const { file, task } = nextTask;
-    console.log(`📋 Next task in ${file.filename}:`);
-    console.log(`🔨 ${task.text}`);
-    console.log('');
-    console.log('💡 Use --process to start working on this task');
-    console.log('💡 Use --alerts to process alert files');
+    console.warn(`📋 Next task in ${file.filename}:`);
+    console.warn(`🔨 ${task.text}`);
+    console.warn('');
+    console.warn('💡 Use --process to start working on this task');
+    console.warn('💡 Use --alerts to process alert files');
   } catch (error) {
     console.error('❌ Error:', error);
     process.exit(1);

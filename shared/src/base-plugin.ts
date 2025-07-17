@@ -50,7 +50,7 @@ export abstract class BasePlugin<T extends BasePluginSettings> extends Plugin {
    */
   protected debug(message: string, ...args: any[]): void {
     if (this.settings.debug) {
-      console.log(`[${this.getPluginName()}] ${message}`, ...args);
+      console.warn(`[${this.getPluginName()}] ${message}`, ...args);
     }
   }
 

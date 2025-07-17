@@ -114,11 +114,11 @@ export default class PublisherScriptonPlugin extends Plugin {
     // Settings tab
     this.addSettingTab(new PublisherScriptonSettingTab(this.app, this));
 
-    console.log('Publisher Scripton plugin loaded');
+    console.warn('Publisher Scripton plugin loaded');
   }
 
   public onunload(): void {
-    console.log('Publisher Scripton plugin unloaded');
+    console.warn('Publisher Scripton plugin unloaded');
   }
 
   public async loadSettings(): Promise<void> {
