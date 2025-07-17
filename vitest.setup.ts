@@ -61,15 +61,19 @@ global.performance = {
 } as any;
 
 // Mock crypto API
-global.crypto = {
-  randomUUID: vi.fn(() => 'mock-uuid-' + Math.random().toString(36).substr(2, 9)),
-  getRandomValues: vi.fn((arr) => {
-    for (let i = 0; i < arr.length; i++) {
-      arr[i] = Math.floor(Math.random() * 256);
-    }
-    return arr;
-  }),
-} as any;
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: vi.fn(() => 'mock-uuid-' + Math.random().toString(36).substr(2, 9)),
+    getRandomValues: vi.fn((arr) => {
+      for (let i = 0; i < arr.length; i++) {
+        arr[i] = Math.floor(Math.random() * 256);
+      }
+      return arr;
+    }),
+  },
+  writable: true,
+  configurable: true,
+});
 
 // Setup DOM environment
 beforeEach(() => {
