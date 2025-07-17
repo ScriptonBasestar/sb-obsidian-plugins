@@ -19,6 +19,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.8.1
         version: 19.8.1
+      '@testing-library/jest-dom':
+        specifier: ^6.0.0
+        version: 6.6.3
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.29.0
         version: 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@4.9.5))(eslint@8.57.1)(typescript@4.9.5)
@@ -138,6 +141,9 @@ importers:
         specifier: ^2.3.1
         version: 2.8.0
     devDependencies:
+      '@testing-library/jest-dom':
+        specifier: ^6.0.0
+        version: 6.6.3
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.8
@@ -156,9 +162,15 @@ importers:
       tslib:
         specifier: ^2.4.0
         version: 2.8.1
+      typescript:
+        specifier: ^4.7.4
+        version: 4.9.5
+      vite:
+        specifier: ^4.0.0
+        version: 4.5.14(@types/node@20.19.8)
       vitest:
         specifier: ^1.6.0
-        version: 1.6.1(@types/node@20.19.8)(@vitest/ui@3.2.4(vitest@0.33.0))(jsdom@24.1.3)
+        version: 1.6.1(@types/node@20.19.8)(@vitest/ui@3.2.4)(jsdom@24.1.3)
 
   plugins/publisher-scripton:
     dependencies:
@@ -229,7 +241,7 @@ importers:
         version: 5.8.3
       vitest:
         specifier: ^1.4.0
-        version: 1.6.1(@types/node@20.19.8)(@vitest/ui@3.2.4(vitest@0.33.0))(jsdom@24.1.3)
+        version: 1.6.1(@types/node@20.19.8)(@vitest/ui@3.2.4)(jsdom@24.1.3)
 
   plugins/template-generator:
     dependencies:
@@ -291,7 +303,7 @@ importers:
         version: 5.8.3
       vitest:
         specifier: ^1.4.0
-        version: 1.6.1(@types/node@20.19.8)(@vitest/ui@3.2.4(vitest@0.33.0))(jsdom@24.1.3)
+        version: 1.6.1(@types/node@20.19.8)(@vitest/ui@3.2.4)(jsdom@24.1.3)
 
   shared:
     devDependencies:
@@ -10513,7 +10525,7 @@ snapshots:
       - supports-color
       - terser
 
-  vitest@1.6.1(@types/node@20.19.8)(@vitest/ui@3.2.4(vitest@0.33.0))(jsdom@24.1.3):
+  vitest@1.6.1(@types/node@20.19.8)(@vitest/ui@3.2.4)(jsdom@24.1.3):
     dependencies:
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1
