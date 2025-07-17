@@ -16,20 +16,38 @@ build: check-pnpm
 watch: check-pnpm
 	pnpm run dev
 
-lint: check-pnpm
-	pnpm run lint
-
 test: check-pnpm
 	pnpm run test
 
 test-coverage: check-pnpm
 	pnpm run test --coverage
 
+clean:
+	rm -rf dist/ lib/ node_modules/ packages/*/dist packages/*/lib packages/*/node_modules shared/dist
+
+
+# Code Quality
+lint: check-pnpm
+	pnpm run lint
+
 format: check-pnpm
 	pnpm run format
 
-clean:
-	rm -rf dist/ lib/ node_modules/ packages/*/dist packages/*/lib packages/*/node_modules shared/dist
+# Git hooks integration (husky + lint-staged)
+pre-commit-install: check-pnpm
+	@echo "Installing git hooks with husky..."
+	pnpm run prepare
+
+pre-commit-run: check-pnpm
+	@echo "Running lint-staged on all files..."
+	pnpm exec lint-staged
+
+pre-commit-test: check-pnpm
+	@echo "Running all pre-commit checks..."
+	pnpm run lint
+	pnpm run format:check
+	pnpm run test
+	pnpm run typecheck
 
 # Individual plugin commands
 build-template-generator:
