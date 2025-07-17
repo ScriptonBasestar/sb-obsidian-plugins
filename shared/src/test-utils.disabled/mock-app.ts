@@ -18,7 +18,7 @@ export function createMockApp(overrides?: Partial<MockApp>): MockApp {
     getFileCache: vi.fn().mockReturnValue(null),
     getCache: vi.fn().mockReturnValue(null),
     fileToLinktext: vi.fn((file, sourcePath) => file.basename),
-    resolveLinks: vi.fn().mockReturnValue([]),
+    resolvedLinks: vi.fn().mockReturnValue([]),
     on: vi.fn() as any,
     off: vi.fn() as any,
     offref: vi.fn() as any,

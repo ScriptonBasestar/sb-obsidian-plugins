@@ -1,5 +1,6 @@
 module.exports = {
   extends: ['../.eslintrc.js'],
+  ignorePatterns: ['src/test-utils.disabled/**/*'],
   rules: {
     // Obsidian development specific rules - aligned with other plugins
     '@typescript-eslint/no-unsafe-assignment': 'off',

@@ -61,7 +61,9 @@
       "Bash(git restore:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm -r run lint)",
-      "Bash(.husky/pre-push:*)"
+      "Bash(.husky/pre-push:*)",
+      "Bash(pnpm exec commitlint:*)",
+      "Bash(pnpm list:*)"
     ],
     "deny": []
   }
