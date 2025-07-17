@@ -1,7 +1,7 @@
 import { TFile, Vault } from 'obsidian';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { AssetHandlingOptions, AssetInfo } from './types';
+import { AssetHandlingOptions, AssetInfo, AssetReport } from './types';
 
 export class AssetManager {
   private vault: Vault;
@@ -15,14 +15,14 @@ export class AssetManager {
   /**
    * Copy assets from vault to target directory
    */
-  async copyAssets(
+  public async copyAssets(
     sourceFiles: TFile[],
     targetDir: string,
     subdir: string = 'assets'
   ): Promise<AssetInfo[]> {
     const copiedAssets: AssetInfo[] = [];
     const allFiles = this.vault.getFiles();
-    const referencedAssets = this.findReferencedAssets(sourceFiles, allFiles);
+    const referencedAssets = await this.findReferencedAssets(sourceFiles, allFiles);
 
     const assetsDir = path.join(targetDir, subdir);
     await fs.ensureDir(assetsDir);
@@ -49,12 +49,13 @@ export class AssetManager {
   /**
    * Find all assets referenced by the source files
    */
-  private findReferencedAssets(sourceFiles: TFile[], allFiles: TFile[]): TFile[] {
+  private async findReferencedAssets(sourceFiles: TFile[], allFiles: TFile[]): Promise<TFile[]> {
     const referencedPaths = new Set<string>();
 
     // Extract asset references from source files
     for (const file of sourceFiles) {
-      this.extractAssetReferences(file).forEach((ref) => {
+      const refs = await this.extractAssetReferences(file);
+      refs.forEach((ref: string) => {
         referencedPaths.add(ref);
       });
     }
@@ -85,14 +86,17 @@ export class AssetManager {
     const embeddedRegex = /!\[\[([^\]]+?)\]\]/g;
     let match;
     while ((match = embeddedRegex.exec(content)) !== null) {
-      references.push(match[1]);
+      const capturedGroup = match[1];
+      if (capturedGroup != null && capturedGroup.length > 0) {
+        references.push(capturedGroup);
+      }
     }
 
     // Markdown images: ![alt](path)
     const markdownImageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     while ((match = markdownImageRegex.exec(content)) !== null) {
       const imagePath = match[2];
-      if (!imagePath.startsWith('http')) {
+      if (imagePath != null && imagePath.length > 0 && !imagePath.startsWith('http')) {
         references.push(imagePath);
       }
     }
@@ -100,7 +104,10 @@ export class AssetManager {
     // Embedded attachments: ![[file.pdf]]
     const attachmentRegex = /!\[\[([^\]]+?\.(pdf|doc|docx|txt|zip|rar|mp3|mp4|avi|mov))\]\]/gi;
     while ((match = attachmentRegex.exec(content)) !== null) {
-      references.push(match[1]);
+      const attachmentPath = match[1];
+      if (attachmentPath != null && attachmentPath.length > 0) {
+        references.push(attachmentPath);
+      }
     }
 
     return references;
@@ -114,7 +121,7 @@ export class AssetManager {
     await fs.ensureDir(path.dirname(targetPath));
 
     const buffer = await this.vault.readBinary(asset);
-    await fs.writeFile(targetPath, buffer);
+    await fs.writeFile(targetPath, Buffer.from(buffer));
 
     return {
       originalPath: asset.path,
@@ -207,7 +214,7 @@ export class AssetManager {
   /**
    * Update asset references in content
    */
-  updateAssetReferences(
+  public updateAssetReferences(
     content: string,
     assetMapping: Map<string, string>,
     baseUrl?: string
@@ -215,11 +222,11 @@ export class AssetManager {
     let updatedContent = content;
 
     // Update embedded images: ![[image.png]] -> ![image](path)
-    updatedContent = updatedContent.replace(/!\[\[([^\]]+?)\]\]/g, (match, assetPath) => {
+    updatedContent = updatedContent.replace(/!\[\[([^\]]+?)\]\]/g, (match: string, assetPath: string) => {
       const mappedPath = assetMapping.get(assetPath);
-      if (mappedPath) {
+      if (mappedPath !== null && mappedPath.length > 0) {
         const filename = path.basename(assetPath, path.extname(assetPath));
-        const finalPath = baseUrl ? baseUrl + '/' + mappedPath : mappedPath;
+        const finalPath = baseUrl !== null ? `${baseUrl}/${mappedPath}` : mappedPath;
         return `![${filename}](${finalPath})`;
       }
       return match;
@@ -228,11 +235,11 @@ export class AssetManager {
     // Update markdown image paths
     updatedContent = updatedContent.replace(
       /!\[([^\]]*)\]\(([^)]+)\)/g,
-      (match, alt, imagePath) => {
-        if (!imagePath.startsWith('http')) {
+      (match: string, alt: string, imagePath: string) => {
+        if (imagePath !== null && !imagePath.startsWith('http')) {
           const mappedPath = assetMapping.get(imagePath);
-          if (mappedPath) {
-            const finalPath = baseUrl ? baseUrl + '/' + mappedPath : mappedPath;
+          if (mappedPath !== null && mappedPath.length > 0) {
+            const finalPath = baseUrl !== null ? `${baseUrl}/${mappedPath}` : mappedPath;
             return `![${alt}](${finalPath})`;
           }
         }

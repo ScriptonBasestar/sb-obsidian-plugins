@@ -1,4 +1,4 @@
-import { App, Plugin, Notice, TFile, Modal, Menu } from 'obsidian';
+import { Plugin, Notice, TFile, Modal, Menu } from 'obsidian';
 import { BlogPlatformExportSettings, DEFAULT_SETTINGS, ExportProfile } from './types';
 import { BlogPlatformExportSettingTab } from './settings';
 import { ExportModal } from './ui/export-modal';
@@ -6,11 +6,11 @@ import { ProfileManager } from './profile-manager';
 import { ExportManager } from './export-manager';
 
 export default class BlogPlatformExportPlugin extends Plugin {
-  settings: BlogPlatformExportSettings;
-  profileManager: ProfileManager;
-  exportManager: ExportManager;
+  settings!: BlogPlatformExportSettings;
+  profileManager!: ProfileManager;
+  exportManager!: ExportManager;
 
-  async onload() {
+  override async onload() {
     await this.loadSettings();
 
     // Initialize managers
@@ -40,7 +40,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
     console.log('Blog Platform Export plugin loaded');
   }
 
-  onunload() {
+  override onunload() {
     console.log('Blog Platform Export plugin unloaded');
   }
 
@@ -111,7 +111,9 @@ export default class BlogPlatformExportPlugin extends Plugin {
       id: 'manage-profiles',
       name: 'Manage export profiles',
       callback: () => {
+        // @ts-ignore - Obsidian API
         this.app.setting.open();
+        // @ts-ignore - Obsidian API
         this.app.setting.openTabById('blog-platform-export');
       },
     });
@@ -187,7 +189,8 @@ export default class BlogPlatformExportPlugin extends Plugin {
       this.settings.lastExport = new Date().toISOString();
       await this.saveSettings();
     } catch (error) {
-      new Notice(`❌ Export failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      new Notice(`❌ Export failed: ${errorMessage}`);
       console.error('Export error:', error);
     }
   }
@@ -247,8 +250,11 @@ export default class BlogPlatformExportPlugin extends Plugin {
   async updateProfile(profileId: string, updates: Partial<ExportProfile>) {
     const profileIndex = this.settings.profiles.findIndex((p) => p.id === profileId);
     if (profileIndex !== -1) {
-      Object.assign(this.settings.profiles[profileIndex], updates);
-      await this.saveSettings();
+      const profile = this.settings.profiles[profileIndex];
+      if (profile) {
+        Object.assign(profile, updates);
+        await this.saveSettings();
+      }
     }
   }
 
@@ -270,7 +276,7 @@ export default class BlogPlatformExportPlugin extends Plugin {
     const defaultPlatform = this.settings.defaultPlatform;
     return (
       this.settings.profiles.find((p) => p.platform === defaultPlatform) ||
-      this.settings.profiles[0]
+      (this.settings.profiles.length > 0 ? this.settings.profiles[0] : undefined)
     );
   }
 

@@ -138,6 +138,19 @@ export interface AssetInfo {
   type: 'image' | 'attachment';
 }
 
+export interface AssetReport {
+  total: number;
+  processed: number;
+  skipped: number;
+  errors: Array<{ file: string; error: string }>;
+  assets: Array<{
+    original: string;
+    target: string;
+    size: number;
+    base: string;
+  }>;
+}
+
 export interface ParsedContent {
   frontmatter: Record<string, unknown>;
   content: string;

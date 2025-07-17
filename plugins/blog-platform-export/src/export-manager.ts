@@ -1,4 +1,4 @@
-import { App, TFile, Notice } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import { HugoExporter } from './platforms/hugo-exporter';
 import { JekyllExporter } from './platforms/jekyll-exporter';
 import { WikiJSExporter } from './platforms/wikijs-exporter';
@@ -42,7 +42,9 @@ export class ExportManager {
         success: false,
         processedFiles: 0,
         skippedFiles: 0,
-        errors: [{ file: 'general', error: error.message }],
+        errors: [
+          { file: 'general', error: error instanceof Error ? error.message : String(error) },
+        ],
         warnings: [],
         outputPath: this.getOutputPath(profile),
         assets: [],
@@ -102,7 +104,9 @@ export class ExportManager {
         success: false,
         processedFiles: 0,
         skippedFiles: 0,
-        errors: [{ file: 'general', error: error.message }],
+        errors: [
+          { file: 'general', error: error instanceof Error ? error.message : String(error) },
+        ],
         warnings: [],
         outputPath: this.getOutputPath(profile),
         assets: [],
@@ -117,8 +121,6 @@ export class ExportManager {
    * Preview export without actually exporting
    */
   async previewExport(files: TFile[], profile: ExportProfile): Promise<any> {
-    const exporter = this.createExporter(profile);
-
     // For preview, we'll process one file to show the transformation
     if (files.length === 0) {
       return { preview: 'No files to preview' };

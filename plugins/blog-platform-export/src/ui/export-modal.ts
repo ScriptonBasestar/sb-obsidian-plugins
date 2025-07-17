@@ -1,4 +1,4 @@
-import { App, Modal, Setting, TFile, Notice } from 'obsidian';
+import { App, Modal, TFile, Notice } from 'obsidian';
 import { ProfileManager } from '../profile-manager';
 import { ExportProfile } from '../types';
 
@@ -18,7 +18,7 @@ export class ExportModal extends Modal {
     this.onExport = onExport;
   }
 
-  onOpen() {
+  override onOpen() {
     const { contentEl } = this;
     contentEl.empty();
 
@@ -203,7 +203,7 @@ export class ExportModal extends Modal {
     this.onExport(this.selectedFiles, this.selectedProfile);
   }
 
-  onClose() {
+  override onClose() {
     const { contentEl } = this;
     contentEl.empty();
   }
