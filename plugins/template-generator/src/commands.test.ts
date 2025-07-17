@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createMockApp, createMockPlugin, MockPlugin } from '@sb-obsidian-plugins/shared';
-import { App } from 'obsidian';
+import { createMockApp, createMockPlugin, type MockPlugin } from '@sb-obsidian-plugins/shared';
+import type { App } from 'obsidian';
 
 describe('Template Commands', () => {
   let mockApp: App;
@@ -12,7 +12,7 @@ describe('Template Commands', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockApp = createMockApp();
+    mockApp = createMockApp() as App;
 
     const basePlugin = createMockPlugin({ app: mockApp });
     mockPlugin = {
@@ -72,7 +72,7 @@ describe('Template Commands', () => {
     it('should create new file with correct content', async () => {
       const mockTemplate = { name: 'Daily Note', content: '# Daily {{date}}' };
 
-      mockApp.vault.create.mockResolvedValue({ path: 'Daily Note-123456.md' });
+      vi.mocked(mockApp.vault.create).mockResolvedValue({ path: 'Daily Note-123456.md' } as any);
 
       // Simulate file creation with template
       const fileName = `${mockTemplate.name}-${Date.now()}.md`;
@@ -87,9 +87,9 @@ describe('Template Commands', () => {
 
   describe('Modal Integration', () => {
     it('should handle no active view scenario', () => {
-      mockApp.workspace.getActiveViewOfType.mockReturnValue(null);
+      vi.mocked(mockApp.workspace.getActiveViewOfType).mockReturnValue(null);
 
-      const noActiveView = mockApp.workspace.getActiveViewOfType();
+      const noActiveView = mockApp.workspace.getActiveViewOfType(null as any);
       expect(noActiveView).toBeNull();
 
       // Should trigger new file creation flow
@@ -104,9 +104,9 @@ describe('Template Commands', () => {
         },
       };
 
-      mockApp.workspace.getActiveViewOfType.mockReturnValue(mockView);
+      vi.mocked(mockApp.workspace.getActiveViewOfType).mockReturnValue(mockView as any);
 
-      const activeView = mockApp.workspace.getActiveViewOfType();
+      const activeView = mockApp.workspace.getActiveViewOfType(null as any);
       expect(activeView).toBe(mockView);
 
       // Should trigger template insertion flow

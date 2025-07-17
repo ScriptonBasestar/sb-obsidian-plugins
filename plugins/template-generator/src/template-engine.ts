@@ -4,7 +4,7 @@ import { WeatherService, WeatherSettings } from './weather-service';
 import { FortuneService, FortuneSettings } from './fortune-service';
 
 export interface TemplateVariables {
-  [key: string]: string | number | boolean | null | undefined;
+  [key: string]: string | number | boolean | Date | any[] | null | undefined;
 }
 
 export interface TemplateContext {
@@ -36,7 +36,7 @@ export interface TemplateContext {
   author?: string;
 
   // Custom variables
-  [key: string]: string | number | boolean | null | undefined;
+  [key: string]: string | number | boolean | Date | any[] | null | undefined;
 }
 
 export class TemplateEngine {
@@ -296,7 +296,8 @@ export class TemplateEngine {
       return compiledTemplate(context);
     } catch (error) {
       console.error('Template rendering error:', error);
-      throw new Error(`Failed to render template: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to render template: ${errorMessage}`);
     }
   }
 
@@ -315,7 +316,8 @@ export class TemplateEngine {
       return compiledTemplate(context);
     } catch (error) {
       console.error('Template string rendering error:', error);
-      throw new Error(`Failed to render template string: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to render template string: ${errorMessage}`);
     }
   }
 
@@ -358,7 +360,8 @@ export class TemplateEngine {
       // Try to compile the template
       this.handlebars.compile(templateString);
     } catch (error) {
-      errors.push(`Handlebars syntax error: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      errors.push(`Handlebars syntax error: ${errorMessage}`);
     }
 
     // Check for common issues

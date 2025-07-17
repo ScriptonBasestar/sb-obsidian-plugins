@@ -28,9 +28,9 @@ module.exports = {
     'no-console': 'warn',
     'no-alert': 'warn',
     'prefer-template': 'off',
-    'eqeqeq': 'off',
+    eqeqeq: 'off',
     'import/order': 'off',
-    'curly': 'off',
+    curly: 'off',
     'arrow-body-style': 'off',
   },
 };

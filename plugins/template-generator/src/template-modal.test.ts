@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { TemplateParser } from './template-parser';
 
 // Mock Obsidian DOM APIs for testing
@@ -119,11 +119,22 @@ class MockTemplateModal extends MockModal {
   getFilteredTemplates(): any[] {
     return this.filteredTemplates;
   }
+
+  async showPreview(template: any): Promise<void> {
+    // Mock implementation
+    if (this.templateEngine && this.templateEngine.previewTemplate) {
+      try {
+        await this.templateEngine.previewTemplate(template);
+      } catch (error) {
+        console.warn('Preview generation failed:', error);
+      }
+    }
+  }
 }
 
 describe('TemplateModal', () => {
   let mockTemplates: any[];
-  let mockOnChoose: vi.Mock;
+  let mockOnChoose: Mock;
   let mockTemplateEngine: any;
   let modal: MockTemplateModal;
 

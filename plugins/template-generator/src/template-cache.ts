@@ -179,7 +179,7 @@ export class TemplateCache {
     const loadPromises = templateFiles.map((file) => this.getTemplate(file));
     await Promise.allSettled(loadPromises);
 
-    console.log(`Preloaded ${templateFiles.length} templates into cache`);
+    // Templates preloaded into cache successfully
   }
 
   // Get template by name (useful for quick lookups)

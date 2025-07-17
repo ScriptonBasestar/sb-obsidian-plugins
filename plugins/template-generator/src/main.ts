@@ -2,6 +2,7 @@ import {
   App,
   Editor,
   MarkdownView,
+  MarkdownFileInfo,
   Modal,
   Notice,
   Plugin,
@@ -51,9 +52,9 @@ const DEFAULT_SETTINGS: AwesomePluginSettings = {
 };
 
 export default class AwesomePlugin extends Plugin {
-  settings: AwesomePluginSettings;
-  templateCache: TemplateCache;
-  templateEngine: TemplateEngine;
+  settings!: AwesomePluginSettings;
+  templateCache!: TemplateCache;
+  templateEngine!: TemplateEngine;
   private templateCommandsRegistered = false;
 
   async onload() {
@@ -82,7 +83,7 @@ export default class AwesomePlugin extends Plugin {
     this.addCommand({
       id: 'insert-template',
       name: 'Insert Template',
-      editorCallback: (editor: Editor, view: MarkdownView) => {
+      editorCallback: (editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => {
         this.insertTemplate(editor);
       },
     });
@@ -90,8 +91,11 @@ export default class AwesomePlugin extends Plugin {
     this.addCommand({
       id: 'auto-metadata',
       name: 'Auto-generate Metadata',
-      editorCallback: (editor: Editor, view: MarkdownView) => {
-        this.autoGenerateMetadata(editor, view);
+      editorCallback: (editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => {
+        const view = ctx instanceof MarkdownView ? ctx : this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (view) {
+          this.autoGenerateMetadata(editor, view);
+        }
       },
     });
 
@@ -106,15 +110,18 @@ export default class AwesomePlugin extends Plugin {
     this.addCommand({
       id: 'publish-note',
       name: 'Publish Note',
-      editorCallback: (editor: Editor, view: MarkdownView) => {
-        this.publishNote(view);
+      editorCallback: (editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => {
+        const view = ctx instanceof MarkdownView ? ctx : this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (view) {
+          this.publishNote(view);
+        }
       },
     });
 
     this.addCommand({
       id: 'insert-default-template',
       name: 'Insert Default Template',
-      editorCallback: async (editor: Editor, view: MarkdownView) => {
+      editorCallback: async (editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => {
         await this.insertDefaultTemplate(editor);
       },
     });
@@ -184,7 +191,7 @@ export default class AwesomePlugin extends Plugin {
         this.addCommand({
           id: `insert-template-${this.sanitizeId(template.name)}`,
           name: `Insert Template: ${template.name}`,
-          editorCallback: async (editor: Editor, view: MarkdownView) => {
+          editorCallback: async (editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => {
             await this.insertTemplateWithEngine(editor, template);
           },
         });
@@ -200,7 +207,7 @@ export default class AwesomePlugin extends Plugin {
       }
 
       this.templateCommandsRegistered = true;
-      console.log(`Registered ${templates.length * 2} template commands`);
+      // Template commands registered successfully
     } catch (error) {
       console.error('Failed to register template commands:', error);
     }
@@ -228,7 +235,8 @@ export default class AwesomePlugin extends Plugin {
       new Notice(`Inserted template: ${template.name}`);
     } catch (error) {
       console.error('Template insertion error:', error);
-      new Notice(`Failed to insert template: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      new Notice(`Failed to insert template: ${errorMessage}`);
 
       // Fallback to raw template content
       const cursor = editor.getCursor();
@@ -257,7 +265,8 @@ export default class AwesomePlugin extends Plugin {
       new Notice(`Created new file with template: ${template.name}`);
     } catch (error) {
       console.error('Template file creation error:', error);
-      new Notice(`Failed to create new file: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      new Notice(`Failed to create new file: ${errorMessage}`);
     }
   }
 
@@ -446,7 +455,7 @@ export default class AwesomePlugin extends Plugin {
    * These are minimal built-in templates to ensure the plugin always works
    */
   private getDefaultTemplates(): Array<ParsedTemplate> {
-    console.log('Using built-in fallback templates');
+    // Using built-in fallback templates
 
     const defaultTemplates = [
       {
@@ -576,9 +585,9 @@ class TemplateModal extends Modal {
   onChoose: (template: ParsedTemplate) => void;
   templateEngine: TemplateEngine;
   private selectedTemplate: ParsedTemplate | null = null;
-  private searchInput: HTMLInputElement;
-  private templatesContainer: HTMLElement;
-  private previewContainer: HTMLElement;
+  private searchInput!: HTMLInputElement;
+  private templatesContainer!: HTMLElement;
+  private previewContainer!: HTMLElement;
   private filteredTemplates: Array<ParsedTemplate>;
 
   constructor(
@@ -885,7 +894,8 @@ class TemplateModal extends Modal {
       const preview = await this.templateEngine.previewTemplate(template);
       previewContent.textContent = preview;
     } catch (error) {
-      previewContent.textContent = 'Error generating preview: ' + error.message;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      previewContent.textContent = 'Error generating preview: ' + errorMessage;
       previewContent.style.color = 'var(--text-error)';
     }
 
@@ -1047,7 +1057,8 @@ class AwesomePluginSettingTab extends PluginSettingTab {
                 new Notice(`Template folder already exists: ${folderPath}`);
               }
             } catch (error) {
-              new Notice(`Failed to create template folder: ${error.message}`);
+              const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+              new Notice(`Failed to create template folder: ${errorMessage}`);
             }
           })
       );
@@ -1159,8 +1170,8 @@ class AwesomePluginSettingTab extends PluginSettingTab {
           .addOption('metric', 'Celsius (°C)')
           .addOption('imperial', 'Fahrenheit (°F)')
           .setValue(this.plugin.settings.weatherUnit)
-          .onChange(async (value: 'metric' | 'imperial') => {
-            this.plugin.settings.weatherUnit = value;
+          .onChange(async (value: string) => {
+            this.plugin.settings.weatherUnit = value as 'metric' | 'imperial';
             await this.plugin.saveSettings();
           })
       );
@@ -1202,8 +1213,8 @@ class AwesomePluginSettingTab extends PluginSettingTab {
           .addOption('kr', '한국어')
           .addOption('en', 'English')
           .setValue(this.plugin.settings.fortuneLanguage)
-          .onChange(async (value: 'kr' | 'en') => {
-            this.plugin.settings.fortuneLanguage = value;
+          .onChange(async (value: string) => {
+            this.plugin.settings.fortuneLanguage = value as 'kr' | 'en';
             await this.plugin.saveSettings();
           })
       );

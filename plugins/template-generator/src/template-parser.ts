@@ -57,7 +57,8 @@ export class TemplateParser {
       return result;
     } catch (error) {
       result.isValid = false;
-      result.errors.push(`Failed to parse template: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      result.errors.push(`Failed to parse template: ${errorMessage}`);
       return result;
     }
   }
