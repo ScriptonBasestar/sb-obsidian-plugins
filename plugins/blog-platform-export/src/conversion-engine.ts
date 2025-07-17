@@ -1,37 +1,19 @@
-import { TFile, Vault } from 'obsidian';
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkStringify from 'remark-stringify';
-import remarkFrontmatter from 'remark-frontmatter';
 import * as yaml from 'js-yaml';
+import { TFile, Vault } from 'obsidian';
+
 import { ParsedContent, LinkInfo, ImageInfo, AttachmentInfo } from './types';
 
 export class ConversionEngine {
   private vault: Vault;
-  private processor: any;
 
   constructor(vault: Vault) {
     this.vault = vault;
-    this.initializeProcessor();
-  }
-
-  private initializeProcessor() {
-    this.processor = unified()
-      .use(remarkParse)
-      .use(remarkFrontmatter, ['yaml', 'toml'])
-      .use(remarkStringify, {
-        bullet: '-',
-        listItemIndent: 'one',
-        emphasis: '*',
-        strong: '*',
-        rule: '-',
-      });
   }
 
   /**
    * Parse an Obsidian file and extract all components
    */
-  async parseFile(file: TFile): Promise<ParsedContent> {
+  public async parseFile(file: TFile): Promise<ParsedContent> {
     const content = await this.vault.read(file);
     const { frontmatter, body } = this.extractFrontmatter(content);
 
@@ -47,7 +29,10 @@ export class ConversionEngine {
   /**
    * Extract YAML frontmatter from content
    */
-  extractFrontmatter(content: string): { frontmatter: Record<string, any>; body: string } {
+  public extractFrontmatter(content: string): {
+    frontmatter: Record<string, unknown>;
+    body: string;
+  } {
     const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
     const match = content.match(frontmatterRegex);
 
@@ -56,11 +41,19 @@ export class ConversionEngine {
     }
 
     try {
-      const frontmatter = (yaml.load(match[1]) as Record<string, any>) || {};
-      const body = content.slice(match[0].length);
+      const frontmatter =
+        match[1] !== undefined && match[1] !== ''
+          ? (yaml.load(match[1]) as Record<string, unknown>) ?? {}
+          : {};
+      const body = content.slice(match[0]?.length ?? 0);
       return { frontmatter, body };
-    } catch (error) {
-      console.warn('Failed to parse frontmatter:', error);
+    } catch (error: unknown) {
+      // Log warning for development debugging - can be removed in production
+      if (error instanceof Error) {
+        console.warn('Failed to parse frontmatter:', error.message);
+      } else {
+        console.warn('Failed to parse frontmatter:', String(error));
+      }
       return { frontmatter: {}, body: content };
     }
   }
@@ -68,27 +61,31 @@ export class ConversionEngine {
   /**
    * Extract all links from content
    */
-  extractLinks(content: string): LinkInfo[] {
+  public extractLinks(content: string): LinkInfo[] {
     const links: LinkInfo[] = [];
 
     // Wiki links: [[link]] or [[link|alias]]
     const wikiLinkRegex = /\[\[([^\]]+?)\]\]/g;
-    let match;
+    let match: RegExpExecArray | null;
     while ((match = wikiLinkRegex.exec(content)) !== null) {
       const fullMatch = match[0];
       const linkContent = match[1];
+      if (linkContent === undefined || linkContent === '') {
+        continue;
+      }
+
       const [target, alias] = linkContent.includes('|')
-        ? linkContent.split('|', 2)
-        : [linkContent, undefined];
+        ? (linkContent.split('|', 2) as [string, string])
+        : ([linkContent, undefined] as [string, undefined]);
 
       links.push({
         type: 'wikilink',
         original: fullMatch,
-        target: target.trim(),
+        target: target?.trim() || '',
         alias: alias?.trim(),
         position: {
-          start: match.index,
-          end: match.index + fullMatch.length,
+          start: match.index || 0,
+          end: (match.index || 0) + fullMatch.length,
         },
       });
     }
@@ -100,8 +97,13 @@ export class ConversionEngine {
       const alias = match[1];
       const target = match[2];
 
+      if (target === undefined || target === '') {
+        continue;
+      }
+
       // Skip if it's an image (starts with !)
-      if (content[match.index - 1] === '!') {
+      const charBefore = content.charAt((match.index || 0) - 1);
+      if (charBefore === '!') {
         continue;
       }
 
@@ -109,10 +111,10 @@ export class ConversionEngine {
         type: target.startsWith('http') ? 'external' : 'markdown',
         original: fullMatch,
         target: target.trim(),
-        alias: alias || undefined,
+        alias: alias !== undefined && alias !== '' ? alias : undefined,
         position: {
-          start: match.index,
-          end: match.index + fullMatch.length,
+          start: match.index || 0,
+          end: (match.index || 0) + fullMatch.length,
         },
       });
     }
@@ -123,19 +125,22 @@ export class ConversionEngine {
   /**
    * Extract all images from content
    */
-  extractImages(content: string): ImageInfo[] {
+  public extractImages(content: string): ImageInfo[] {
     const images: ImageInfo[] = [];
 
     // Embedded images: ![[image.png]]
     const embeddedImageRegex = /!\[\[([^\]]+?)\]\]/g;
-    let match;
+    let match: RegExpExecArray | null;
     while ((match = embeddedImageRegex.exec(content)) !== null) {
+      if (match[1] === undefined || match[1] === '') {
+        continue;
+      }
       images.push({
         type: 'embedded',
         path: match[1].trim(),
         position: {
-          start: match.index,
-          end: match.index + match[0].length,
+          start: match.index || 0,
+          end: (match.index || 0) + (match[0]?.length || 0),
         },
       });
     }
@@ -143,14 +148,17 @@ export class ConversionEngine {
     // Markdown images: ![alt](path "title")
     const mdImageRegex = /!\[([^\]]*)\]\(([^)]+?)(?:\s+"([^"]*)")?\)/g;
     while ((match = mdImageRegex.exec(content)) !== null) {
+      if (match[2] === undefined || match[2] === '') {
+        continue;
+      }
       images.push({
         type: 'linked',
         path: match[2].trim(),
-        alt: match[1] || undefined,
-        title: match[3] || undefined,
+        alt: match[1] !== undefined && match[1] !== '' ? match[1] : undefined,
+        title: match[3] !== undefined && match[3] !== '' ? match[3] : undefined,
         position: {
-          start: match.index,
-          end: match.index + match[0].length,
+          start: match.index || 0,
+          end: (match.index || 0) + (match[0]?.length || 0),
         },
       });
     }
@@ -161,19 +169,22 @@ export class ConversionEngine {
   /**
    * Extract attachments (non-image files)
    */
-  extractAttachments(content: string): AttachmentInfo[] {
+  public extractAttachments(content: string): AttachmentInfo[] {
     const attachments: AttachmentInfo[] = [];
 
     // Embedded attachments: ![[file.pdf]]
     const attachmentRegex = /!\[\[([^\]]+?\.(pdf|doc|docx|txt|zip|rar|mp3|mp4|avi|mov))\]\]/gi;
-    let match;
+    let match: RegExpExecArray | null;
     while ((match = attachmentRegex.exec(content)) !== null) {
+      if (match[1] === undefined || match[1] === '' || match[2] === undefined || match[2] === '') {
+        continue;
+      }
       attachments.push({
         path: match[1].trim(),
         type: match[2].toLowerCase(),
         position: {
-          start: match.index,
-          end: match.index + match[0].length,
+          start: match.index || 0,
+          end: (match.index || 0) + (match[0]?.length || 0),
         },
       });
     }
@@ -184,20 +195,20 @@ export class ConversionEngine {
   /**
    * Convert Obsidian wikilinks to standard markdown links
    */
-  convertWikiLinksToMarkdown(
+  public convertWikiLinksToMarkdown(
     content: string,
     linkMapping: Map<string, string> = new Map()
   ): string {
-    return content.replace(/\[\[([^\]]+?)\]\]/g, (match, linkContent) => {
+    return content.replace(/\[\[([^\]]+?)\]\]/g, (_match: string, linkContent: string) => {
       const [target, alias] = linkContent.includes('|')
-        ? linkContent.split('|', 2)
-        : [linkContent, linkContent];
+        ? (linkContent.split('|', 2) as [string, string])
+        : ([linkContent, linkContent] as [string, string]);
 
       const cleanTarget = target.trim();
-      const displayText = alias?.trim() || cleanTarget;
+      const displayText = alias?.trim() ?? cleanTarget;
 
       // Use mapping if available, otherwise create a slug
-      const mappedTarget = linkMapping.get(cleanTarget) || this.slugify(cleanTarget);
+      const mappedTarget = linkMapping.get(cleanTarget) ?? this.slugify(cleanTarget);
 
       return `[${displayText}](${mappedTarget})`;
     });
@@ -206,13 +217,16 @@ export class ConversionEngine {
   /**
    * Convert embedded images to standard markdown
    */
-  convertEmbeddedImages(content: string, pathMapping: Map<string, string> = new Map()): string {
-    return content.replace(/!\[\[([^\]]+?)\]\]/g, (match, imagePath) => {
+  public convertEmbeddedImages(
+    content: string,
+    pathMapping: Map<string, string> = new Map()
+  ): string {
+    return content.replace(/!\[\[([^\]]+?)\]\]/g, (_match: string, imagePath: string) => {
       const cleanPath = imagePath.trim();
-      const mappedPath = pathMapping.get(cleanPath) || cleanPath;
+      const mappedPath = pathMapping.get(cleanPath) ?? cleanPath;
 
       // Extract filename for alt text
-      const filename = cleanPath.split('/').pop()?.split('.')[0] || 'image';
+      const filename = cleanPath.split('/').pop()?.split('.')[0] ?? 'image';
 
       return `![${filename}](${mappedPath})`;
     });
@@ -221,9 +235,9 @@ export class ConversionEngine {
   /**
    * Process code blocks for platform compatibility
    */
-  processCodeBlocks(content: string, platform: 'hugo' | 'jekyll' | 'wikijs'): string {
+  public processCodeBlocks(content: string, platform: 'hugo' | 'jekyll' | 'wikijs'): string {
     // Handle math blocks
-    content = content.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
+    content = content.replace(/\$\$([^$]+)\$\$/g, (match: string, math: string) => {
       switch (platform) {
         case 'hugo':
           return `{{< math >}}\n${math.trim()}\n{{< /math >}}`;
@@ -237,7 +251,7 @@ export class ConversionEngine {
     });
 
     // Handle inline math
-    content = content.replace(/\$([^$]+)\$/g, (match, math) => {
+    content = content.replace(/\$([^$]+)\$/g, (match: string, math: string) => {
       switch (platform) {
         case 'hugo':
           return `{{< math inline >}}${math.trim()}{{< /math >}}`;
@@ -256,7 +270,7 @@ export class ConversionEngine {
   /**
    * Clean content for blog platform export
    */
-  cleanContent(content: string): string {
+  public cleanContent(content: string): string {
     // Remove Obsidian-specific syntax
     content = content.replace(/%%[^%]*%%/g, ''); // Comments
     content = content.replace(/\^[a-zA-Z0-9-_]+/g, ''); // Block references
@@ -270,7 +284,7 @@ export class ConversionEngine {
   /**
    * Generate slug from text
    */
-  slugify(text: string): string {
+  public slugify(text: string): string {
     return text
       .toLowerCase()
       .replace(/[^\w\s-]/g, '') // Remove special characters
@@ -282,7 +296,7 @@ export class ConversionEngine {
   /**
    * Validate content structure
    */
-  validateContent(content: string): { valid: boolean; warnings: string[] } {
+  public validateContent(content: string): { valid: boolean; warnings: string[] } {
     const warnings: string[] = [];
 
     // Check for unresolved wikilinks
@@ -315,12 +329,15 @@ export class ConversionEngine {
   /**
    * Extract headings for navigation/TOC
    */
-  extractHeadings(content: string): Array<{ level: number; text: string; anchor: string }> {
+  public extractHeadings(content: string): Array<{ level: number; text: string; anchor: string }> {
     const headings: Array<{ level: number; text: string; anchor: string }> = [];
     const headingRegex = /^(#{1,6})\s+(.+)$/gm;
 
-    let match;
+    let match: RegExpExecArray | null;
     while ((match = headingRegex.exec(content)) !== null) {
+      if (match[1] === undefined || match[1] === '' || match[2] === undefined || match[2] === '') {
+        continue;
+      }
       const level = match[1].length;
       const text = match[2].trim();
       const anchor = this.slugify(text);

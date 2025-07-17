@@ -139,7 +139,7 @@ export interface AssetInfo {
 }
 
 export interface ParsedContent {
-  frontmatter: Record<string, any>;
+  frontmatter: Record<string, unknown>;
   content: string;
   links: LinkInfo[];
   images: ImageInfo[];
