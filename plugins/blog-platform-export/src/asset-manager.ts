@@ -253,12 +253,12 @@ export class AssetManager {
   /**
    * Build asset mapping from original paths to target paths
    */
-  buildAssetMapping(assets: AssetInfo[], baseUrl?: string): Map<string, string> {
+  private buildAssetMapping(assets: AssetInfo[], baseUrl?: string): Map<string, string> {
     const mapping = new Map<string, string>();
 
     for (const asset of assets) {
       const originalName = path.basename(asset.originalPath);
-      const relativePath = path.relative(baseUrl || '', asset.targetPath);
+      const relativePath = path.relative(baseUrl ?? '', asset.targetPath);
 
       // Map by full path
       mapping.set(asset.originalPath, relativePath);
@@ -273,24 +273,22 @@ export class AssetManager {
   /**
    * Generate asset report
    */
-  generateAssetReport(assets: AssetInfo[]): any {
+  public generateAssetReport(assets: AssetInfo[]): AssetReport {
     const totalSize = assets.reduce((sum, asset) => sum + asset.size, 0);
     const images = assets.filter((a) => a.type === 'image');
     const attachments = assets.filter((a) => a.type === 'attachment');
 
     return {
-      totalAssets: assets.length,
-      totalSize: totalSize,
-      totalSizeFormatted: this.formatBytes(totalSize),
-      images: {
-        count: images.length,
-        size: images.reduce((sum, asset) => sum + asset.size, 0),
-      },
-      attachments: {
-        count: attachments.length,
-        size: attachments.reduce((sum, asset) => sum + asset.size, 0),
-      },
-      assets: assets,
+      total: assets.length,
+      processed: assets.length,
+      skipped: 0,
+      errors: [],
+      assets: assets.map((asset) => ({
+        original: asset.originalPath,
+        target: asset.targetPath,
+        size: asset.size,
+        base: asset.targetPath.replace(this.options.baseUrl ?? '', ''),
+      })),
     };
   }
 
@@ -353,13 +351,13 @@ export class AssetManager {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + (sizes[i] ?? 'Bytes');
   }
 
   /**
    * Clean up unused assets in target directory
    */
-  async cleanupUnusedAssets(targetDir: string, usedAssets: AssetInfo[]): Promise<void> {
+  public async cleanupUnusedAssets(targetDir: string, usedAssets: AssetInfo[]): Promise<void> {
     const assetsDir = path.join(targetDir, 'assets');
 
     if (!(await fs.pathExists(assetsDir))) {

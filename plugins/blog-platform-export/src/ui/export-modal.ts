@@ -18,7 +18,7 @@ export class ExportModal extends Modal {
     this.onExport = onExport;
   }
 
-  override onOpen() {
+  public override onOpen(): void {
     const { contentEl } = this;
     contentEl.empty();
 
@@ -38,26 +38,26 @@ export class ExportModal extends Modal {
     buttonContainer.style.textAlign = 'right';
 
     const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
-    cancelBtn.addEventListener('click', () => this.close());
+    cancelBtn.addEventListener('click', (): void => this.close());
 
     const exportBtn = buttonContainer.createEl('button', {
       text: 'Export',
       cls: 'mod-cta',
     });
     exportBtn.style.marginLeft = '10px';
-    exportBtn.addEventListener('click', () => this.handleExport());
+    exportBtn.addEventListener('click', (): void => this.handleExport());
 
     this.updateExportButton(exportBtn);
   }
 
-  private renderFileSelection(container: HTMLElement) {
+  private renderFileSelection(container: HTMLElement): void {
     const fileContainer = container.createDiv('file-selection');
 
     // Quick options
     const quickOptions = fileContainer.createDiv('quick-options');
 
     const currentFileBtn = quickOptions.createEl('button', { text: 'Current File' });
-    currentFileBtn.addEventListener('click', () => {
+    currentFileBtn.addEventListener('click', (): void => {
       const activeFile = this.app.workspace.getActiveFile();
       if (activeFile && activeFile.extension === 'md') {
         this.selectedFiles = [activeFile];
@@ -69,7 +69,7 @@ export class ExportModal extends Modal {
 
     const allFilesBtn = quickOptions.createEl('button', { text: 'All Files' });
     allFilesBtn.style.marginLeft = '10px';
-    allFilesBtn.addEventListener('click', () => {
+    allFilesBtn.addEventListener('click', (): void => {
       this.selectedFiles = this.app.vault.getMarkdownFiles();
       this.renderSelectedFiles(fileContainer);
     });
@@ -78,7 +78,7 @@ export class ExportModal extends Modal {
     this.renderSelectedFiles(fileContainer);
   }
 
-  private renderSelectedFiles(container: HTMLElement) {
+  private renderSelectedFiles(container: HTMLElement): void {
     const existing = container.querySelector('.selected-files');
     if (existing) {
       existing.remove();
@@ -104,7 +104,7 @@ export class ExportModal extends Modal {
       fileList.style.margin = '5px 0';
       fileList.style.padding = '0 20px';
 
-      this.selectedFiles.forEach((file) => {
+      this.selectedFiles.forEach((file): void => {
         const listItem = fileList.createEl('li', { text: file.path });
         listItem.style.fontSize = '0.9em';
       });
@@ -115,14 +115,14 @@ export class ExportModal extends Modal {
         cls: 'mod-warning',
       });
       clearBtn.style.fontSize = '0.8em';
-      clearBtn.addEventListener('click', () => {
+      clearBtn.addEventListener('click', (): void => {
         this.selectedFiles = [];
         this.renderSelectedFiles(container);
       });
     }
   }
 
-  private renderProfileSelection(container: HTMLElement) {
+  private renderProfileSelection(container: HTMLElement): void {
     const profiles = this.profileManager.getAllProfiles();
 
     if (profiles.length === 0) {
@@ -135,7 +135,7 @@ export class ExportModal extends Modal {
 
     const profileContainer = container.createDiv('profile-selection');
 
-    profiles.forEach((profile) => {
+    profiles.forEach((profile): void => {
       const profileEl = profileContainer.createDiv('profile-option');
       profileEl.style.border = '1px solid var(--background-modifier-border)';
       profileEl.style.borderRadius = '5px';
@@ -146,7 +146,7 @@ export class ExportModal extends Modal {
       const radio = profileEl.createEl('input', { type: 'radio' });
       radio.name = 'export-profile';
       radio.value = profile.id;
-      radio.addEventListener('change', () => {
+      radio.addEventListener('change', (): void => {
         this.selectedProfile = profile;
         this.updateExportButton();
       });
@@ -165,13 +165,13 @@ export class ExportModal extends Modal {
       const name = info.createEl('div', { text: profile.name });
       name.style.fontWeight = 'bold';
 
-      const platform = info.createEl('div', {
+      const _platform = info.createEl('div', {
         text: `Platform: ${profile.platform.toUpperCase()}`,
         cls: 'setting-item-description',
       });
 
       // Click anywhere on the profile to select it
-      profileEl.addEventListener('click', (e) => {
+      profileEl.addEventListener('click', (e): void => {
         if (e.target !== radio) {
           radio.click();
         }
@@ -179,16 +179,16 @@ export class ExportModal extends Modal {
     });
   }
 
-  private updateExportButton(button?: HTMLButtonElement) {
-    const exportBtn = button || (this.contentEl.querySelector('.mod-cta') as HTMLButtonElement);
-    if (!exportBtn) return;
+  private updateExportButton(button?: HTMLButtonElement): void {
+    const exportBtn = button ?? (this.contentEl.querySelector('.mod-cta') as HTMLButtonElement);
+    if (exportBtn === null || exportBtn === undefined) return;
 
     const canExport = this.selectedFiles.length > 0 && this.selectedProfile !== null;
     exportBtn.disabled = !canExport;
     exportBtn.style.opacity = canExport ? '1' : '0.5';
   }
 
-  private handleExport() {
+  private handleExport(): void {
     if (this.selectedFiles.length === 0) {
       new Notice('Please select files to export');
       return;
@@ -203,7 +203,7 @@ export class ExportModal extends Modal {
     this.onExport(this.selectedFiles, this.selectedProfile);
   }
 
-  override onClose() {
+  public override onClose(): void {
     const { contentEl } = this;
     contentEl.empty();
   }
