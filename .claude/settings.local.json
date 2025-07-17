@@ -58,7 +58,10 @@
       "Bash(npm test:*)",
       "Bash(pnpm -w run test)",
       "Bash(npx lint-staged:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm -r run lint)",
+      "Bash(.husky/pre-push:*)"
     ],
     "deny": []
   }

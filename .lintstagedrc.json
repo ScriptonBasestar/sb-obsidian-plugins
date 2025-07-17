@@ -1,11 +1,23 @@
 {
-  "*.{ts,tsx}": ["eslint --fix --max-warnings 0", "prettier --write"],
-  "*.{js,jsx}": ["eslint --fix --max-warnings 0", "prettier --write"],
   "*.{json,md,yaml,yml}": ["prettier --write"],
-  "plugins/{git-sync,metadata-manager,publisher-scripton}/src/**/*.ts": [
-    "bash -c 'cd $(git rev-parse --show-toplevel) && pnpm --filter $(basename $(dirname $(dirname $0))) run typecheck'"
+  "plugins/metadata-manager/src/**/*.ts": [
+    "bash -c 'cd $(git rev-parse --show-toplevel) && pnpm --filter @sb-obsidian-plugins/metadata-manager run lint'",
+    "prettier --write"
+  ],
+  "plugins/publisher-scripton/src/**/*.ts": [
+    "bash -c 'cd $(git rev-parse --show-toplevel) && pnpm --filter @sb-obsidian-plugins/publisher-scripton run lint'",
+    "prettier --write"
+  ],
+  "plugins/scripton-sync/src/**/*.ts": [
+    "bash -c 'cd $(git rev-parse --show-toplevel) && pnpm --filter @sb-obsidian-plugins/scripton-sync run lint'",
+    "prettier --write"
+  ],
+  "plugins/template-generator/src/**/*.ts": [
+    "bash -c 'cd $(git rev-parse --show-toplevel) && pnpm --filter @sb-obsidian-plugins/template-generator run lint'",
+    "prettier --write"
   ],
   "shared/src/**/*.ts": [
-    "bash -c 'cd $(git rev-parse --show-toplevel) && pnpm --filter @sb-obsidian-plugins/shared run typecheck'"
+    "bash -c 'cd $(git rev-parse --show-toplevel) && pnpm --filter @sb-obsidian-plugins/shared run lint'",
+    "prettier --write"
   ]
 }

@@ -96,7 +96,9 @@ export default class PublisherScriptonPlugin extends Plugin {
     this.addCommand({
       id: 'test-api-connection',
       name: 'Test API Connection',
-      callback: () => { void this.testApiConnection(); },
+      callback: () => {
+        void this.testApiConnection();
+      },
     });
 
     this.addCommand({
@@ -842,3 +844,4 @@ class PublisherScriptonSettingTab extends PluginSettingTab {
       );
   }
 }
+// Test comment

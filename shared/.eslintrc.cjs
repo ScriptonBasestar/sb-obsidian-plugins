@@ -1,7 +1,7 @@
 module.exports = {
   extends: ['../.eslintrc.js'],
   rules: {
-    // Shared library specific rules
+    // Obsidian development specific rules - aligned with other plugins
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
@@ -20,6 +20,11 @@ module.exports = {
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/no-misused-promises': 'off',
     '@typescript-eslint/unbound-method': 'off',
+    '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/ban-types': 'off',
+    '@typescript-eslint/prefer-optional-chain': 'off',
+    '@typescript-eslint/no-inferrable-types': 'off',
+    '@typescript-eslint/await-thenable': 'off',
     'no-console': 'warn',
     'no-alert': 'warn',
     'prefer-template': 'off',

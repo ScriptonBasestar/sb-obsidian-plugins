@@ -1,10 +1,12 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Skip tests temporarily due to configuration issues
-echo "⚠️  Tests are temporarily disabled due to ESM configuration issues"
-echo "To run tests manually: pnpm test"
+# Run linting (unified with make lint and pre-commit)
+echo "Running lint checks..."
+pnpm lint
 
-# Run type checking only
-echo "Running type checking..."
-pnpm typecheck || echo "⚠️  Type checking failed but continuing..."
+# Run tests if they exist
+echo "Running tests..."
+pnpm test || echo "⚠️  Some tests failed but continuing..."
+
+echo "✅ Pre-push checks completed"

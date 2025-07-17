@@ -1,7 +1,7 @@
 module.exports = {
   extends: ['../../.eslintrc.js'],
   rules: {
-    // Obsidian development specific rules
+    // Obsidian development specific rules - aligned with other plugins
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
@@ -28,9 +28,9 @@ module.exports = {
     'no-console': 'warn',
     'no-alert': 'warn',
     'prefer-template': 'off',
-    eqeqeq: 'off',
+    'eqeqeq': 'off',
     'import/order': 'off',
-    curly: 'off',
+    'curly': 'off',
     'arrow-body-style': 'off',
   },
 };
