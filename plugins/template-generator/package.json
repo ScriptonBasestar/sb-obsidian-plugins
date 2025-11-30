@@ -21,14 +21,14 @@
   "license": "MIT",
   "devDependencies": {
     "@sb-obsidian-plugins/shared": "workspace:*",
-    "@types/node": "^16.11.6",
-    "builtin-modules": "^3.3.0",
-    "esbuild": "^0.17.3",
+    "@types/node": "^24.10.1",
+    "builtin-modules": "^5.0.0",
+    "esbuild": "^0.27.0",
     "obsidian": "latest",
-    "tslib": "^2.4.0"
+    "tslib": "^2.8.1"
   },
   "dependencies": {
-    "handlebars": "^4.7.7",
-    "moment": "^2.29.4"
+    "handlebars": "^4.7.8",
+    "moment": "^2.30.1"
   }
 }
