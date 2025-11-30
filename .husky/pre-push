@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Run linting (unified with make lint and pre-commit)
 echo "Running lint checks..."
 pnpm lint
