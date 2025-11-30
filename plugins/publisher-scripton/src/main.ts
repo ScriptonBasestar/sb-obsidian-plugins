@@ -367,7 +367,10 @@ interface PublishOptions {
 }
 
 class NoteSelectionModal extends FuzzySuggestModal<TFile> {
-  constructor(app: App, private onSelect: (file: TFile) => void) {
+  constructor(
+    app: App,
+    private onSelect: (file: TFile) => void
+  ) {
     super(app);
     this.setPlaceholder('Select a note to publish...');
   }
@@ -386,7 +389,10 @@ class NoteSelectionModal extends FuzzySuggestModal<TFile> {
 }
 
 class FolderSelectionModal extends FuzzySuggestModal<TFolder> {
-  constructor(app: App, private onSelect: (folder: TFolder) => void) {
+  constructor(
+    app: App,
+    private onSelect: (folder: TFolder) => void
+  ) {
     super(app);
     this.setPlaceholder('Select a folder to publish...');
   }
@@ -394,7 +400,7 @@ class FolderSelectionModal extends FuzzySuggestModal<TFolder> {
   getItems(): TFolder[] {
     return this.app.vault
       .getAllLoadedFiles()
-      .filter((file) => file instanceof TFolder) as TFolder[];
+      .filter((file): file is TFolder => file instanceof TFolder);
   }
 
   getItemText(folder: TFolder): string {
@@ -515,7 +521,10 @@ class PublishOptionsModal extends Modal {
 }
 
 class PublishLogsModal extends Modal {
-  constructor(app: App, private logs: any[]) {
+  constructor(
+    app: App,
+    private logs: any[]
+  ) {
     super(app);
   }
 

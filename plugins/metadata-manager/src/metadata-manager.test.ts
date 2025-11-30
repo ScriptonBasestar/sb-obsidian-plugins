@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import moment from 'moment';
 
 import MetadataManagerPlugin from './main';
 
@@ -22,12 +23,16 @@ vi.mock('obsidian', () => ({
   PluginSettingTab: class MockPluginSettingTab {},
   Setting: class MockSetting {},
   TFile: class MockTFile {
-    constructor(public name: string, public path: string, public basename: string) {}
+    constructor(
+      public name: string,
+      public path: string,
+      public basename: string
+    ) {}
     parent = { name: 'folder', path: 'folder' };
   },
   Notice: class MockNotice {},
   TAbstractFile: class MockTAbstractFile {},
-  moment: require('moment'),
+  moment,
 }));
 
 describe('MetadataManagerPlugin', () => {

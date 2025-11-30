@@ -1,8 +1,8 @@
 // Mock implementation for Obsidian API during testing
 import { vi } from 'vitest';
 
-// Avoid unused variable warning
-vi;
+// Keep vi import for potential future use in mocks
+void vi;
 
 export const App = class MockApp {};
 export const Plugin = class MockPlugin {};

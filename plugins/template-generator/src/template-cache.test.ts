@@ -21,7 +21,7 @@ const createMockVault = () => {
     getFiles: vi.fn(() => Array.from(files.values())),
     getAbstractFileByPath: vi.fn((path: string) => files.get(path)),
     read: vi.fn((file: any) => Promise.resolve(`# ${file.basename}\n\nTemplate content`)),
-    on: vi.fn((event: string, callback: Function) => {
+    on: vi.fn((event: string, callback: (...args: any[]) => void) => {
       if (!eventListeners.has(event)) {
         eventListeners.set(event, []);
       }
@@ -44,7 +44,7 @@ const createMockVault = () => {
     },
     triggerEvent: (event: string, ...args: any[]) => {
       const listeners = eventListeners.get(event) || [];
-      listeners.forEach((callback: Function) => callback(...args));
+      listeners.forEach((callback: (...args: any[]) => void) => callback(...args));
     },
   };
 };

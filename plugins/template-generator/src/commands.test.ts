@@ -4,10 +4,10 @@ import type { App } from 'obsidian';
 
 describe('Template Commands', () => {
   let mockApp: App;
-  let mockPlugin: MockPlugin & {
+  let mockPlugin: {
     getTemplates: ReturnType<typeof vi.fn>;
     sanitizeId: (name: string) => string;
-  };
+  } & Record<string, any>;
 
   beforeEach(() => {
     vi.clearAllMocks();

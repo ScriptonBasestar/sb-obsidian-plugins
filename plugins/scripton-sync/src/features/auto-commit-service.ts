@@ -1,4 +1,5 @@
 import { Vault, TFile, TFolder, Notice } from 'obsidian';
+import { hostname } from 'os';
 
 import { GitService } from '../core/git-service';
 import { ScriptonSyncSettings, GitResult, BranchConfig } from '../types';
@@ -227,9 +228,9 @@ export class AutoCommitService {
     // Default commit message
     const timestamp = new Date().toLocaleString();
     const fileCount = status.staged.length + status.unstaged.length + status.untracked.length;
-    const hostname = require('os').hostname();
+    const currentHostname = hostname();
 
-    return `Auto commit from ${hostname} - ${fileCount} files changed (${timestamp})`;
+    return `Auto commit from ${currentHostname} - ${fileCount} files changed (${timestamp})`;
   }
 
   /**

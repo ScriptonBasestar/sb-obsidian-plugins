@@ -359,7 +359,7 @@ export class ScriptonCloudClient {
   /**
    * Get organization settings
    */
-  async getOrganizationSettings(): Promise<any | null> {
+  async getOrganizationSettings(): Promise<any> {
     if (!this.config.organizationId) {
       return null;
     }
@@ -384,7 +384,7 @@ export class ScriptonCloudClient {
   /**
    * Get team settings
    */
-  async getTeamSettings(): Promise<any | null> {
+  async getTeamSettings(): Promise<any> {
     if (!this.config.teamId) {
       return null;
     }
