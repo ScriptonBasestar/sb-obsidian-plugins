@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@sb-obsidian-plugins/shared": "workspace:*",
-    "graphql": "^16.8.1",
+    "graphql": "^16.12.0",
     "graphql-request": "^6.1.0"
   }
 }
