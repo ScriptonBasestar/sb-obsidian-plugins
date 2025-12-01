@@ -1,4 +1,4 @@
-import { buildPlugin } from "@sb-obsidian-plugins/shared/build";
+import { buildPlugin } from "../../shared/src/build/esbuild-config.mjs";
 
 // Publisher specific external dependencies
 const publisherExternals = [

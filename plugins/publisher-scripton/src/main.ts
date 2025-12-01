@@ -46,7 +46,7 @@ const DEFAULT_SETTINGS: PublisherScriptonSettings = {
 };
 
 export default class PublisherScriptonPlugin extends Plugin {
-  public settings: PublisherScriptonSettings;
+  public settings!: PublisherScriptonSettings;
   private apiService: ScriptonApiService | null = null;
   private statusBarItem: HTMLElement | null = null;
 
@@ -54,7 +54,7 @@ export default class PublisherScriptonPlugin extends Plugin {
     await this.loadSettings();
 
     // Initialize API service
-    this.apiService = new ScriptonApiService(this.settings);
+    this.apiService = new ScriptonApiService(this.settings, this.app);
 
     // Add status bar item
     this.statusBarItem = this.addStatusBarItem();
@@ -356,16 +356,6 @@ export default class PublisherScriptonPlugin extends Plugin {
   }
 }
 
-interface PublishOptions {
-  title?: string;
-  visibility?: 'public' | 'private' | 'unlisted';
-  tags?: string[];
-  includeAttachments?: boolean;
-  preserveLinks?: boolean;
-  stripFrontmatter?: boolean;
-  convertWikiLinks?: boolean;
-}
-
 class NoteSelectionModal extends FuzzySuggestModal<TFile> {
   constructor(
     app: App,
@@ -449,8 +439,8 @@ class PublishOptionsModal extends Modal {
           .addOption('unlisted', 'Unlisted')
           .addOption('public', 'Public')
           .setValue(this.settings.defaultVisibility)
-          .onChange((value: 'public' | 'private' | 'unlisted') => {
-            this.options.visibility = value;
+          .onChange((value) => {
+            this.options.visibility = value as 'public' | 'private' | 'unlisted';
           })
       );
 
@@ -675,8 +665,8 @@ class PublisherScriptonSettingTab extends PluginSettingTab {
           .addOption('unlisted', 'Unlisted')
           .addOption('public', 'Public')
           .setValue(this.plugin.settings.defaultVisibility)
-          .onChange(async (value: 'public' | 'private' | 'unlisted') => {
-            this.plugin.settings.defaultVisibility = value;
+          .onChange(async (value) => {
+            this.plugin.settings.defaultVisibility = value as 'public' | 'private' | 'unlisted';
             await this.plugin.saveSettings();
           })
       );
@@ -846,8 +836,8 @@ class PublisherScriptonSettingTab extends PluginSettingTab {
           .addOption('info', 'Info')
           .addOption('debug', 'Debug')
           .setValue(this.plugin.settings.logLevel)
-          .onChange(async (value: 'error' | 'warn' | 'info' | 'debug') => {
-            this.plugin.settings.logLevel = value;
+          .onChange(async (value) => {
+            this.plugin.settings.logLevel = value as 'error' | 'warn' | 'info' | 'debug';
             await this.plugin.saveSettings();
           })
       );

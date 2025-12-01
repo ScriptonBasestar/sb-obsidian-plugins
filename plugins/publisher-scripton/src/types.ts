@@ -1,9 +1,18 @@
 export interface PublishOptions {
+  // Basic options
+  title?: string;
+  visibility?: 'public' | 'private' | 'unlisted';
   draft?: boolean;
   tags?: string[];
   category?: string;
   series?: string;
   overwrite?: boolean;
+
+  // Content processing options
+  includeAttachments?: boolean;
+  preserveLinks?: boolean;
+  stripFrontmatter?: boolean;
+  convertWikiLinks?: boolean;
 }
 
 export interface PublishResult {

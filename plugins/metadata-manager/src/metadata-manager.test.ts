@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import moment from 'moment';
+import * as moment from 'moment';
 
 import MetadataManagerPlugin from './main';
 
@@ -39,7 +39,21 @@ describe('MetadataManagerPlugin', () => {
   let plugin: MetadataManagerPlugin;
 
   beforeEach(() => {
-    plugin = new MetadataManagerPlugin();
+    const mockApp = {
+      vault: {
+        on: vi.fn(),
+        read: vi.fn(),
+        modify: vi.fn(),
+      },
+    } as any;
+
+    const mockManifest = {
+      id: 'metadata-manager',
+      name: 'Metadata Manager',
+      version: '1.0.0',
+    } as any;
+
+    plugin = new MetadataManagerPlugin(mockApp, mockManifest);
     plugin.app = {
       vault: {
         on: vi.fn(),

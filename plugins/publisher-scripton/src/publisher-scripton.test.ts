@@ -64,7 +64,25 @@ describe('PublisherScriptonPlugin', () => {
   let plugin: PublisherScriptonPlugin;
 
   beforeEach(() => {
-    plugin = new PublisherScriptonPlugin();
+    const mockApp = {
+      vault: {
+        read: vi.fn(),
+        readBinary: vi.fn(),
+        getMarkdownFiles: vi.fn().mockReturnValue([]),
+        getAllLoadedFiles: vi.fn().mockReturnValue([]),
+      },
+      metadataCache: {
+        getFirstLinkpathDest: vi.fn(),
+      },
+    } as any;
+
+    const mockManifest = {
+      id: 'publisher-scripton',
+      name: 'Publisher Scripton',
+      version: '1.0.0',
+    } as any;
+
+    plugin = new PublisherScriptonPlugin(mockApp, mockManifest);
     plugin.app = {
       vault: {
         read: vi.fn(),
@@ -214,7 +232,14 @@ describe('ScriptonApiService', () => {
       retryDelay: 1000,
     };
 
-    service = new ScriptonApiService(mockSettings);
+    const mockApp = {
+      vault: {
+        read: vi.fn(),
+        readBinary: vi.fn(),
+      },
+    } as any;
+
+    service = new ScriptonApiService(mockSettings, mockApp);
     mockAxios = (service as any).api;
   });
 

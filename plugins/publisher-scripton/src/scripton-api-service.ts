@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { TFile } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import { ScriptonPost, getErrorMessage } from './types';
 
 export interface PublishNoteOptions {
@@ -39,12 +39,14 @@ export interface LogEntry {
 }
 
 export class ScriptonApiService {
-  private api: AxiosInstance;
+  private api!: AxiosInstance;
   private logs: LogEntry[] = [];
   private settings: any;
+  private app: App;
 
-  constructor(settings: any) {
+  constructor(settings: any, app: App) {
     this.settings = settings;
+    this.app = app;
     this.initializeApi();
   }
 
