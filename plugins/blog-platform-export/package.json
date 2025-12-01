@@ -34,7 +34,7 @@
     "esbuild": "^0.19.2",
     "obsidian": "latest",
     "typescript": "^4.9.5",
-    "vitest": "^0.34.0"
+    "vitest": "^0.34.6"
   },
   "keywords": [
     "obsidian",
