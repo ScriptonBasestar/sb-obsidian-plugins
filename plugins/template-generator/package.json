@@ -22,10 +22,14 @@
   "devDependencies": {
     "@sb-obsidian-plugins/shared": "workspace:*",
     "@types/node": "^24.10.1",
+    "@vitest/ui": "^4.0.14",
     "builtin-modules": "^5.0.0",
     "esbuild": "^0.27.0",
+    "happy-dom": "^20.0.11",
     "obsidian": "latest",
-    "tslib": "^2.8.1"
+    "tslib": "^2.8.1",
+    "vite": "^7.2.4",
+    "vitest": "^4.0.14"
   },
   "dependencies": {
     "handlebars": "^4.7.8",
