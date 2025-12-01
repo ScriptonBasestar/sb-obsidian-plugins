@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import PublisherScriptonPlugin from './main';
 import { ScriptonApiService } from './scripton-api-service';
+import { TFile, TFolder } from 'obsidian';
 
 // Mock Obsidian
 vi.mock('obsidian', () => ({
@@ -35,7 +36,10 @@ vi.mock('obsidian', () => ({
     parent = { name: 'folder', path: 'folder' };
   },
   TFolder: class MockTFolder {
-    constructor(public name: string, public path: string) {}
+    constructor(
+      public name: string,
+      public path: string
+    ) {}
     children = [];
   },
   Notice: class MockNotice {},
@@ -45,18 +49,20 @@ vi.mock('obsidian', () => ({
 }));
 
 // Mock axios
+const mockAxiosInstance = {
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn(),
+  interceptors: {
+    request: { use: vi.fn() },
+    response: { use: vi.fn() },
+  },
+};
+
 vi.mock('axios', () => ({
   default: {
-    create: vi.fn().mockReturnValue({
-      get: vi.fn(),
-      post: vi.fn(),
-      put: vi.fn(),
-      delete: vi.fn(),
-      interceptors: {
-        request: { use: vi.fn() },
-        response: { use: vi.fn() },
-      },
-    }),
+    create: vi.fn(() => mockAxiosInstance),
   },
 }));
 
@@ -180,19 +186,16 @@ This is [[a link]] content.`;
 
   describe('Folder Processing', () => {
     it('should get markdown files from folder recursively', () => {
-      const mockFiles = [
-        { name: 'file1.md', extension: 'md' },
-        { name: 'file2.txt', extension: 'txt' },
-        { name: 'file3.md', extension: 'md' },
-      ];
+      const file1 = new TFile('file1.md', 'folder/file1.md', 'file1', 'md');
+      const file2 = new TFile('file2.txt', 'folder/file2.txt', 'file2', 'txt');
+      const file3 = new TFile('file3.md', 'folder/file3.md', 'file3', 'md');
+      const subFile = new TFile('sub1.md', 'folder/sub/sub1.md', 'sub1', 'md');
 
-      const mockSubfolder = {
-        children: [{ name: 'sub1.md', extension: 'md' }],
-      };
+      const mockSubfolder = new TFolder('sub', 'folder/sub');
+      (mockSubfolder as any).children = [subFile];
 
-      const mockFolder = {
-        children: [...mockFiles, mockSubfolder],
-      } as any;
+      const mockFolder = new TFolder('folder', 'folder');
+      (mockFolder as any).children = [file1, file2, file3, mockSubfolder];
 
       const result = (plugin as any).getMarkdownFilesInFolder(mockFolder);
 
@@ -222,11 +225,14 @@ describe('ScriptonApiService', () => {
   let mockAxios: any;
 
   beforeEach(() => {
+    // Reset all mocks
+    vi.clearAllMocks();
+
     const mockSettings = {
       apiKey: 'test-key',
       apiEndpoint: 'https://api.test.com',
       enableDetailedLogs: false,
-      logLevel: 'warn',
+      logLevel: 'info',
       enableRetry: true,
       maxRetries: 3,
       retryDelay: 1000,
@@ -240,7 +246,7 @@ describe('ScriptonApiService', () => {
     } as any;
 
     service = new ScriptonApiService(mockSettings, mockApp);
-    mockAxios = (service as any).api;
+    mockAxios = mockAxiosInstance;
   });
 
   describe('Connection Testing', () => {
@@ -313,6 +319,7 @@ describe('ScriptonApiService', () => {
 
       mockAxios.post.mockRejectedValue({
         response: {
+          status: 401,
           data: { message: 'Invalid API key' },
         },
       });
@@ -346,7 +353,7 @@ describe('ScriptonApiService', () => {
     });
 
     it('should determine if error should be retried', () => {
-      const networkError = { code: 'NETWORK_ERROR' };
+      const networkError = { response: undefined, code: 'NETWORK_ERROR' };
       const serverError = { response: { status: 500 } };
       const clientError = { response: { status: 400 } };
 

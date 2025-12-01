@@ -1,7 +1,6 @@
-// This file provides a complete mock of the Obsidian module
-// It re-exports all test utilities from shared package
-
-export * from '@sb-obsidian-plugins/shared/src/test-utils';
+// This file provides a re-export of Obsidian module types
+// Note: Shared test-utils are currently disabled
+// Each plugin should define its own mocks as needed
 
 // Export mock Obsidian classes and types
 export {
@@ -50,29 +49,3 @@ export {
   normalizePath,
   moment,
 } from 'obsidian';
-
-// Re-export test utilities
-export {
-  createMockApp,
-  createMockAppWithFiles,
-  createMockVault,
-  createMockWorkspace,
-  createMockWorkspaceLeaf,
-  createMockMarkdownView,
-  createMockEditor,
-  createMockPlugin,
-  createMockPluginWithSettings,
-  createMockPluginClass,
-  createMockFile,
-  createMockFolder,
-  createFrontmatter,
-  createMarkdownFile,
-  extractFrontmatter,
-  mockNotice,
-  waitFor,
-  waitForCall,
-  withCleanup,
-  expectToReject,
-  createMockCommand,
-  testData,
-} from '@sb-obsidian-plugins/shared/src/test-utils';

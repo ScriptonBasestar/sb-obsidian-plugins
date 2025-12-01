@@ -1,39 +1,44 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as moment from 'moment';
-
 import MetadataManagerPlugin from './main';
 
 // Mock Obsidian
-vi.mock('obsidian', () => ({
-  App: class MockApp {},
-  Plugin: class MockPlugin {
-    addCommand = vi.fn();
-    addSettingTab = vi.fn();
-    registerEvent = vi.fn();
-    loadData = vi.fn().mockResolvedValue({});
-    saveData = vi.fn().mockResolvedValue(undefined);
-    app = {
-      vault: {
-        on: vi.fn(),
-        read: vi.fn(),
-        modify: vi.fn(),
-      },
-    };
-  },
-  PluginSettingTab: class MockPluginSettingTab {},
-  Setting: class MockSetting {},
-  TFile: class MockTFile {
-    constructor(
-      public name: string,
-      public path: string,
-      public basename: string
-    ) {}
-    parent = { name: 'folder', path: 'folder' };
-  },
-  Notice: class MockNotice {},
-  TAbstractFile: class MockTAbstractFile {},
-  moment,
-}));
+vi.mock('obsidian', async () => {
+  const mockMoment = vi.fn((_dateString?: string, _format?: string, _strict?: boolean) => ({
+    format: vi.fn().mockReturnValue('2024-01-01 12:00:00'),
+    isValid: vi.fn().mockReturnValue(_dateString !== 'invalid-date'),
+  }));
+
+  return {
+    App: class MockApp {},
+    Plugin: class MockPlugin {
+      addCommand = vi.fn();
+      addSettingTab = vi.fn();
+      registerEvent = vi.fn();
+      loadData = vi.fn().mockResolvedValue({});
+      saveData = vi.fn().mockResolvedValue(undefined);
+      app = {
+        vault: {
+          on: vi.fn(),
+          read: vi.fn(),
+          modify: vi.fn(),
+        },
+      };
+    },
+    PluginSettingTab: class MockPluginSettingTab {},
+    Setting: class MockSetting {},
+    TFile: class MockTFile {
+      constructor(
+        public name: string,
+        public path: string,
+        public basename: string
+      ) {}
+      parent = { name: 'folder', path: 'folder' };
+    },
+    Notice: class MockNotice {},
+    TAbstractFile: class MockTAbstractFile {},
+    moment: mockMoment,
+  };
+});
 
 describe('MetadataManagerPlugin', () => {
   let plugin: MetadataManagerPlugin;
