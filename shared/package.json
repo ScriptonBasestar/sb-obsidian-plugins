@@ -28,9 +28,9 @@
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^24.10.1",
+    "@types/node": "^24.10.4",
     "builtin-modules": "^5.0.0",
-    "esbuild": "^0.27.0",
+    "esbuild": "^0.27.1",
     "obsidian": "latest",
     "typescript": "^5.9.3"
   }
