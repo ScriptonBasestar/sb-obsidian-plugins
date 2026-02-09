@@ -14,7 +14,7 @@
     "@sb-obsidian-plugins/shared": "workspace:*",
     "@sb-obsidian-plugins/wikijs-sync": "workspace:*",
     "fs-extra": "^11.3.2",
-    "glob": "^13.0.0",
+    "glob": "^13.0.1",
     "handlebars": "^4.7.8",
     "js-yaml": "^4.1.1",
     "moment": "^2.30.1",
